@@ -19,11 +19,8 @@ export type Selection =
   | { readonly kind: "edge"; readonly key: string }
   | undefined;
 
-export interface ModelInfo {
-  readonly id: string;
-  readonly name: string;
-  readonly className: string;
-}
+import type { ModelInfo } from "../engine/models";
+export type { ModelInfo };
 
 export interface GraphState {
   readonly connection?: IModelConnection;
@@ -127,14 +124,6 @@ function mergeProgress(partial: GraphData, optimistic: GraphData | undefined): G
   return { ...partial, nodes, edges };
 }
 
-async function loadModels(engine: GraphEngine): Promise<ModelInfo[]> {
-  const rows = await engine.port.query(
-    "SELECT m.ECInstanceId Id, m.ECClassId ClassId, p.CodeValue Code, p.UserLabel UserLabel FROM bis.Model m LEFT JOIN bis.Element p ON p.ECInstanceId = m.ModeledElement.Id");
-  return rows
-    .map((r) => ({ id: r.Id as string, name: (r.UserLabel ?? r.Code ?? r.Id) as string, className: engine.registry.nameOf(r.ClassId) }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
 export const graphActions = {
   async attach(connection: IModelConnection, fileName: string, prefer?: StrategyName): Promise<void> {
     beginWork("Reading schemas…");
@@ -143,8 +132,7 @@ export const graphActions = {
     syncHistoryFlags();
     try {
       const engine = await GraphEngine.create(createQueryPort(connection as unknown as QuerySource), prefer);
-      const models = await loadModels(engine);
-      set({ engine, models, status: { kind: "idle", message: `Traversal: ${engine.strategy.name === "relations" ? "ECVLib.Relations()" : "metadata fallback"}` } });
+      set({ engine, models: engine.models, status: { kind: "idle", message: `Traversal: ${engine.strategy.name === "relations" ? "ECVLib.Relations()" : "metadata fallback"}` } });
     } catch (e) {
       fail(e);
     }

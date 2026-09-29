@@ -271,3 +271,14 @@
 .ig-visibility-trees [role="tree"] { background-color: transparent; }
 .ig-classifications { height: 100%; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
 .ig-classifications > :last-child { flex: 1; min-height: 0; }
+
+/* Model hierarchy in the Filters widget. */
+.ig-list--tall { max-height: 320px; }
+.ig-tree-row__twist {
+  width: 14px; flex: none; padding: 0; border: 0; background: none;
+  color: var(--iui-color-text-muted, #777); cursor: pointer; font-size: 11px; line-height: 1;
+}
+span.ig-tree-row__twist { cursor: default; }
+.ig-tri--inherited { opacity: 0.55; border-style: dashed; }
+.ig-tri--inherited-include { color: #27ae60; border-color: #27ae60; }
+.ig-tri--inherited-exclude { color: #eb5757; border-color: #eb5757; }

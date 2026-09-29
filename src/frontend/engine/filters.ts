@@ -57,11 +57,20 @@ export function passesRelationshipFilters(filters: FilterSpec, relHierarchy: rea
 }
 
 /** Model filter, evaluated after resolution. Instances not contained in a model (models, aspects,
- * code specs) are unaffected. */
-export function passesModelFilters(filters: FilterSpec, node: Pick<GraphNode, "modelId">): boolean {
+ * code specs) are unaffected. Sub-models inherit the state of their nearest ancestor that has one,
+ * so excluding a model also hides its sub-models, and a sub-model can override its parent. */
+export function passesModelFilters(filters: FilterSpec, node: Pick<GraphNode, "modelId">, parentOf: (modelId: string) => string | undefined = () => undefined): boolean {
   if (!node.modelId)
     return true;
-  return passes(filters.models, (s) => s, (id) => id === node.modelId);
+  const entries = filters.models;
+  const seen = new Set<string>();
+  for (let id: string | undefined = node.modelId; id !== undefined && !seen.has(id); id = parentOf(id)) {
+    seen.add(id);
+    const state = entries[id];
+    if (state)
+      return state === "include";
+  }
+  return !Object.values(entries).includes("include");
 }
 
 export function cycleFilterState(current: FilterState | undefined): FilterState | undefined {

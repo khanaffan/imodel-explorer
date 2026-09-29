@@ -171,9 +171,28 @@ describe.each([["relations"], ["fallback"]] as const)("GraphEngine (%s)", (name)
     expect(g.nodes.has(key("TestIG:Pipe", fx.ids.pipeB))).toBe(false);
     expect(g.nodes.has(key("TestIG:Pipe", fx.ids.pipeA))).toBe(true);
 
+    // PlantA and PlantB are sub-models of the RepositoryModel, so excluding it hides both.
+    g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      opts({ filters: { ...EMPTY_FILTERS, models: { "0x1": "exclude" } } }));
+    expect(g.nodes.has(key("TestIG:Pipe", fx.ids.pipeA))).toBe(false);
+    expect(g.nodes.has(key("TestIG:Pipe", fx.ids.pipeB))).toBe(false);
+
+    // ...and a sub-model's own state overrides the inherited one.
+    g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      opts({ filters: { ...EMPTY_FILTERS, models: { "0x1": "exclude", [fx.ids.plantB]: "include" } } }));
+    expect(g.nodes.has(key("TestIG:Pipe", fx.ids.pipeA))).toBe(false);
+    expect(g.nodes.has(key("TestIG:Pipe", fx.ids.pipeB))).toBe(true);
+
     g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
       opts({ filters: { ...EMPTY_FILTERS, schemas: { BisCore: "exclude" } } }));
     expect([...g.nodes.values()].filter((n) => n.key !== pump1).every((n) => n.schemaName === "TestIG")).toBe(true);
+  });
+
+  it("loads each model's parent model", () => {
+    const models = new Map(engine().models.map((m) => [m.id, m]));
+    expect(models.get(fx.ids.plantA)?.parentId).toBe("0x1");
+    expect(models.get(fx.ids.plantB)?.parentId).toBe("0x1");
+    expect(models.get("0x1")?.parentId).toBeUndefined();
   });
 
   it("respects the direction filter", async () => {

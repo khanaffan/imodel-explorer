@@ -4,6 +4,7 @@ import {
   aggregateKey, type DirectionFilter, parseAggregateKey, edgeKeyFor, type GraphData, type GraphEdge, type GraphNode, type NodeKey, nodeKeyString, parseNodeKey, type RawRelation,
 } from "./GraphModel";
 import type { IModelQueryPort } from "./IModelQueryPort";
+import { loadModels, type ModelInfo } from "./models";
 import { NodeResolver } from "./resolveNodes";
 import { RelationshipInfoCache } from "./relationshipInfo";
 import { selectStrategy, type StrategyName, type TraversalStrategy } from "./TraversalStrategy";
@@ -58,16 +59,23 @@ export class GraphEngine {
     public readonly relationships: RelationshipInfoCache,
     public readonly resolver: NodeResolver,
     public readonly strategy: TraversalStrategy,
-  ) { }
+    public readonly models: readonly ModelInfo[],
+  ) {
+    this._modelParents = new Map(models.map((m) => [m.id, m.parentId]));
+  }
+
+  private readonly _modelParents: ReadonlyMap<string, string | undefined>;
+  private readonly _parentOf = (modelId: string) => this._modelParents.get(modelId);
 
   public static async create(port: IModelQueryPort, prefer?: StrategyName): Promise<GraphEngine> {
     const registry = await ClassRegistry.create(port);
     const strategy = await selectStrategy(port, registry, prefer);
-    return new GraphEngine(port, registry, new RelationshipInfoCache(registry), new NodeResolver(port, registry), strategy);
+    const models = await loadModels(port, registry);
+    return new GraphEngine(port, registry, new RelationshipInfoCache(registry), new NodeResolver(port, registry), strategy, models);
   }
 
   public withStrategy(strategy: TraversalStrategy): GraphEngine {
-    return new GraphEngine(this.port, this.registry, this.relationships, this.resolver, strategy);
+    return new GraphEngine(this.port, this.registry, this.relationships, this.resolver, strategy, this.models);
   }
 
   /** The centre plus `depth` hops, one frontier at a time so filters apply between hops and each
@@ -256,7 +264,7 @@ export class GraphEngine {
     }
     const added: string[] = [];
     for (const [k, n] of resolved) {
-      if (!passesModelFilters(opts.filters, n)) continue;
+      if (!passesModelFilters(opts.filters, n, this._parentOf)) continue;
       g.nodes.set(k, { ...n, depth: depthOf.get(k) ?? 1, expanded: false });
       added.push(k);
     }

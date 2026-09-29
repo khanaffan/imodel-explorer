@@ -1,13 +1,23 @@
 import { Checkbox, ExpandableBlock, Input, Select, Text, ToggleSwitch } from "@itwin/itwinui-react";
 import { useMemo, useState } from "react";
 import { type ClassFilterEntry, cycleFilterState, type FilterSpec, type FilterState, isFilterEmpty, EMPTY_FILTERS } from "../engine/filters";
+import { buildModelTree, type ModelInfo, type ModelTreeNode } from "../engine/models";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import "./widgets.css";
 
-export function TriState({ state, onChange, title }: { state: FilterState | undefined; onChange: (s: FilterState | undefined) => void; title?: string }) {
-  const label = state === "include" ? "✓" : state === "exclude" ? "✕" : "·";
+export function TriState({ state, onChange, title, inherited }: {
+  state: FilterState | undefined;
+  onChange: (s: FilterState | undefined) => void;
+  title?: string;
+  /** State inherited from a parent, shown faintly when this entry has none of its own. */
+  inherited?: FilterState;
+}) {
+  const shown = state ?? inherited;
+  const label = shown === "include" ? "✓" : shown === "exclude" ? "✕" : "·";
+  const cls = state ? `ig-tri--${state}` : inherited ? `ig-tri--inherited ig-tri--inherited-${inherited}` : "ig-tri--none";
+  const hint = state ?? (inherited ? `${inherited} (inherited from parent model)` : "neutral");
   return (
-    <button className={`ig-tri ig-tri--${state ?? "none"}`} title={`${title ?? ""} ${state ?? "neutral"} — click to cycle include / exclude / neutral`}
+    <button className={`ig-tri ${cls}`} title={`${title ?? ""} ${hint} — click to cycle include / exclude / neutral`}
       onClick={() => onChange(cycleFilterState(state))}>{label}</button>
   );
 }
@@ -102,6 +112,70 @@ function StateList({ title, items, states, onChange, searchable }: {
   );
 }
 
+const modelDetail = (m: ModelInfo) => m.className.split(":")[1];
+
+/** Models nested under their parent models. A model without its own state inherits its nearest
+ * ancestor's, matching how the traversal evaluates the filter. */
+function ModelTreeList({ models, states, onChange }: {
+  models: readonly ModelInfo[];
+  states: Readonly<Record<string, FilterState>>;
+  onChange: (next: Record<string, FilterState>) => void;
+}) {
+  const roots = useMemo(() => buildModelTree(models), [models]);
+  const byId = useMemo(() => new Map(models.map((m) => [m.id, m])), [models]);
+  // Roots start open so their direct sub-models are visible; everything else starts collapsed.
+  const [toggled, setToggled] = useState<ReadonlySet<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const isOpen = (n: ModelTreeNode, depth: number) => (depth === 0) !== toggled.has(n.model.id);
+  const toggle = (id: string) => setToggled((t) => { const x = new Set(t); if (!x.delete(id)) x.add(id); return x; });
+  const set = (id: string, s: FilterState | undefined) => onChange(setIn(states, id, s));
+
+  const q = search.trim().toLowerCase();
+  const pathOf = (m: ModelInfo) => {
+    const names: string[] = [];
+    const seen = new Set<string>();
+    for (let p = m.parentId; p && !seen.has(p); p = byId.get(p)?.parentId) { seen.add(p); names.unshift(byId.get(p)?.name ?? p); }
+    return names.join(" › ");
+  };
+  const inheritedOf = (m: ModelInfo): FilterState | undefined => {
+    const seen = new Set<string>();
+    for (let p = m.parentId; p && !seen.has(p); p = byId.get(p)?.parentId) { seen.add(p); if (states[p]) return states[p]; }
+    return undefined;
+  };
+
+  const row = (m: ModelInfo, inherited: FilterState | undefined, depth: number, node?: ModelTreeNode, path?: string) => (
+    <div key={m.id} className="ig-filter-row ig-tree-row" style={{ paddingLeft: depth * 14 }}>
+      {node && node.children.length > 0
+        ? <button className="ig-tree-row__twist" onClick={() => toggle(m.id)} aria-label={isOpen(node, depth) ? "Collapse" : "Expand"}>{isOpen(node, depth) ? "▾" : "▸"}</button>
+        : <span className="ig-tree-row__twist" />}
+      <TriState state={states[m.id]} inherited={inherited} title={m.name} onChange={(s) => set(m.id, s)} />
+      <span className="ig-filter-row__name" title={`${path ? `${path} › ` : ""}${m.name}\n${m.className} ${m.id}`}>{m.name}</span>
+      {node && node.children.length > 0 && <span className="ig-filter-row__detail" title="Sub-models">{node.children.length}</span>}
+      <span className="ig-filter-row__detail">{path ?? modelDetail(m)}</span>
+    </div>
+  );
+
+  const renderNode = (n: ModelTreeNode, depth: number, inherited: FilterState | undefined): React.ReactNode[] => {
+    const own = states[n.model.id];
+    const out: React.ReactNode[] = [row(n.model, inherited, depth, n)];
+    if (isOpen(n, depth))
+      for (const c of n.children) out.push(...renderNode(c, depth + 1, own ?? inherited));
+    return out;
+  };
+
+  return (
+    <Section title="Models" count={Object.keys(states).length}>
+      {models.length > 8 && <Input size="small" placeholder="Filter…" value={search} onChange={(e) => setSearch(e.target.value)} />}
+      <div className="ig-list ig-list--short ig-list--tall">
+        {q
+          ? models.filter((m) => m.name.toLowerCase().includes(q) || m.className.toLowerCase().includes(q))
+            .map((m) => row(m, inheritedOf(m), 0, undefined, pathOf(m)))
+          : roots.flatMap((r) => renderNode(r, 0, undefined))}
+      </div>
+    </Section>
+  );
+}
+
 export function FiltersWidget() {
   const engine = useGraphStore((s) => s.engine);
   const models = useGraphStore((s) => s.models);
@@ -145,11 +219,9 @@ export function FiltersWidget() {
         <Text variant="leading">Filters</Text>
         {!isFilterEmpty(f) && <button className="ig-link" onClick={() => graphActions.setOptions({ filters: EMPTY_FILTERS })}>Clear all</button>}
       </div>
-      <Text variant="small" isMuted>✓ include only · ✕ exclude · the centre is never hidden.</Text>
+      <Text variant="small" isMuted>✓ include only · ✕ exclude · sub-models follow their parent unless set · the centre is never hidden.</Text>
 
-      <StateList title="Models" searchable
-        items={models.map((m) => ({ key: m.id, label: m.name, detail: m.className.split(":")[1] }))}
-        states={f.models} onChange={(models) => updateFilters((x) => ({ ...x, models }))} />
+      <ModelTreeList models={models} states={f.models} onChange={(models) => updateFilters((x) => ({ ...x, models }))} />
       <StateList title="Schemas" searchable
         items={schemas.map((s) => ({ key: s, label: s }))}
         states={f.schemas} onChange={(schemas) => updateFilters((x) => ({ ...x, schemas }))} />

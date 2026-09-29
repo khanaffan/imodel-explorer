@@ -263,8 +263,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "package_dependencies_bentley_icons_generic_webfont",
-      "community": 18,
-      "community_name": "@bentley/icons-generic-webfont",
+      "community": 13,
+      "community_name": "dependencies",
       "norm_label": "@bentley/icons-generic-webfont"
     },
     {
@@ -274,8 +274,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "bentley_icons_generic_webfont",
-      "community": 18,
-      "community_name": "@bentley/icons-generic-webfont",
+      "community": 13,
+      "community_name": "dependencies",
       "norm_label": "@bentley/icons-generic-webfont"
     },
     {
@@ -439,8 +439,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "package_dependencies_itwin_core_frontend",
-      "community": 13,
-      "community_name": "dependencies",
+      "community": 18,
+      "community_name": "@itwin/core-frontend",
       "norm_label": "@itwin/core-frontend"
     },
     {
@@ -450,8 +450,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "itwin_core_frontend",
-      "community": 13,
-      "community_name": "dependencies",
+      "community": 18,
+      "community_name": "@itwin/core-frontend",
       "norm_label": "@itwin/core-frontend"
     },
     {
@@ -1681,7 +1681,7 @@
       "label": "relevant",
       "file_type": "code",
       "source_file": "scripts/smoke.mjs",
-      "source_location": "L103",
+      "source_location": "L108",
       "_origin": "ast",
       "id": "scripts_smoke_relevant",
       "community": 15,
@@ -8846,7 +8846,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/smoke.mjs",
-      "source_location": "L103",
+      "source_location": "L108",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_smoke",
@@ -21917,5 +21917,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "5619bff6452831e670b2e979219da26ebd3f25f4"
+  "built_at_commit": "e4e6540ff8b0b0db6dfa36ae69848e48e8469e35"
 }

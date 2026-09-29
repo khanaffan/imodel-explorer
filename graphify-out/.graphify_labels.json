@@ -53,5 +53,6 @@
   "51": "@stratakit/foundations",
   "52": "@stratakit/icons",
   "53": "@stratakit/mui",
-  "54": "@stratakit/structures"
+  "54": "@stratakit/structures",
+  "55": "FiltersWidget.tsx"
 }
