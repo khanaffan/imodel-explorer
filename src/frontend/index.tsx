@@ -4,6 +4,8 @@ import { StandardNavigationToolsProvider, UiFramework, UiItemsManager } from "@i
 import { IModelApp } from "@itwin/core-frontend";
 import { ElectronApp } from "@itwin/core-electron/renderer";
 import { ITwinLocalization } from "@itwin/core-i18n";
+import { Presentation } from "@itwin/presentation-frontend";
+import { LOCALIZATION_NAMESPACES as TREE_WIDGET_NAMESPACES } from "@itwin/tree-widget-react";
 import { createRoot } from "react-dom/client";
 import { getRpcInterfaces } from "../common/appInfo";
 import { App } from "./App";
@@ -11,6 +13,7 @@ import { instanceGraphUiProvider } from "./frontstages/InstanceGraphUiProvider";
 import { MAIN_STAGE_ID } from "./frontstages/MainFrontstage";
 import { openAndShow } from "./imodel/session";
 import { graphActions, useGraphStore } from "./state/graphStore";
+import { getUnifiedSelectionStorage } from "./state/selectionStorage";
 
 async function start() {
   await ElectronApp.startup({
@@ -19,6 +22,8 @@ async function start() {
       localization: new ITwinLocalization({ urlTemplate: "./locales/{{lng}}/{{ns}}.json", initOptions: { load: "languageOnly" } }),
     },
   });
+  await Presentation.initialize({ selection: { selectionStorage: getUnifiedSelectionStorage() } });
+  await Promise.all(TREE_WIDGET_NAMESPACES.map(async (ns) => IModelApp.localization.registerNamespace(ns)));
   await UiFramework.initialize();
   UiItemsManager.register(instanceGraphUiProvider);
   StandardNavigationToolsProvider.register("InstanceGraph:Navigation", undefined, (stageId) => stageId === MAIN_STAGE_ID);

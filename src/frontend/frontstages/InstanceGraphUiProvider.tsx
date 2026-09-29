@@ -1,10 +1,11 @@
 import { StagePanelLocation, StagePanelSection, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
-import { SvgFilter, SvgInfo, SvgPalette, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
+import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgPalette, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
 import { FiltersWidget } from "../widgets/FiltersWidget";
 import { LegendWidget } from "../widgets/LegendWidget";
 import { PropertiesWidget } from "../widgets/PropertiesWidget";
 import { SeedQueryWidget } from "../widgets/SeedQueryWidget";
 import { SessionsWidget } from "../widgets/SessionsWidget";
+import { VisibilityTreesWidget } from "../widgets/VisibilityTreesWidget";
 import { MAIN_STAGE_ID } from "./MainFrontstage";
 
 /** Widgets are provided (not hard-wired into the stage) so a Studio host can place them in its own frontstage. */
@@ -19,7 +20,10 @@ export const instanceGraphUiProvider: UiItemsProvider = {
       ];
     }
     if (location === StagePanelLocation.Left && section === StagePanelSection.End)
-      return [{ id: "ig-filters", label: "Traversal & filters", iconNode: <SvgFilter />, content: <FiltersWidget />, defaultState: WidgetState.Open, canPopout: false }];
+      return [
+        { id: "ig-filters", label: "Traversal & filters", iconNode: <SvgFilter />, content: <FiltersWidget />, defaultState: WidgetState.Open, canPopout: false },
+        { id: "ig-visibility", label: "Models & categories", iconNode: <SvgHierarchyTree />, content: <VisibilityTreesWidget />, canPopout: false },
+      ];
     if (location === StagePanelLocation.Right && section === StagePanelSection.Start)
       return [{ id: "ig-properties", label: "Properties", iconNode: <SvgInfo />, content: <PropertiesWidget />, defaultState: WidgetState.Open, canPopout: false }];
     if (location === StagePanelLocation.Right && section === StagePanelSection.End)

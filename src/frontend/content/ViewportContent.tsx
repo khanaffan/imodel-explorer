@@ -24,7 +24,7 @@ export function ViewportContent() {
       const vs = await new ViewCreator3d(connection).createDefaultView({ skyboxOn: false, standardViewId: StandardViewId.Iso });
       // A few stray elements can inflate the project extents enough that the default fit shows nothing.
       const robust = await queryRobustExtents(connection).catch(() => undefined);
-      if (vs.is3d() && shouldRefit(connection.projectExtents, robust)) {
+      if (vs.is3d() && shouldRefit(vs.getExtents().magnitude(), robust)) {
         robust.scaleAboutCenterInPlace(1.1);
         vs.lookAtVolume(robust);
         fitRange.current = robust;

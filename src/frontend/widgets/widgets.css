@@ -264,3 +264,8 @@
   background: transparent;
   cursor: pointer;
 }
+
+.ig-visibility-trees { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.ig-visibility-trees > * { flex: 1; min-height: 0; }
+.ig-classifications { height: 100%; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+.ig-classifications > :last-child { flex: 1; min-height: 0; }

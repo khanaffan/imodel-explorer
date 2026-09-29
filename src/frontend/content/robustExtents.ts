@@ -9,9 +9,10 @@ const SAMPLE_LIMIT = 20000;
 const STRIDES = [1, 16, 256, 4096];
 
 /**
- * Project extents are often blown up by a few stray elements (e.g. one at the origin while the
- * site sits at 440 km, 280 km), so fitting the view to them shows a black screen. This samples the
- * spatial index evenly and returns the range covering the central `1 - 2 * trim` of the geometry.
+ * The default view fits to model extents, which a few stray elements (e.g. some at the origin while
+ * the site sits at 440 km, 280 km) can blow up so far that the view shows a black screen. This
+ * samples the spatial index evenly, drops boxes outside the project extents, and returns the range
+ * covering the central `1 - 2 * trim` of what is left.
  */
 export async function queryRobustExtents(imodel: IModelConnection, trim = 0.01): Promise<Range3d | undefined> {
   for (const stride of STRIDES) {
@@ -23,7 +24,7 @@ export async function queryRobustExtents(imodel: IModelConnection, trim = 0.01):
     for await (const row of reader)
       boxes.push([row[0], row[1], row[2], row[3], row[4], row[5]]);
     if (boxes.length < SAMPLE_LIMIT || stride === STRIDES[STRIDES.length - 1])
-      return robustRange(boxes, trim);
+      return robustRange(boxes.filter((b) => intersects(b, imodel.projectExtents)), trim);
   }
   return undefined;
 }
@@ -38,13 +39,18 @@ export function robustRange(boxes: readonly Box[], trim = 0.01): Range3d | undef
   return range.isNull ? undefined : range;
 }
 
+function intersects(b: Box, r: Range3d): boolean {
+  if (r.isNull) return true;
+  return b[0] <= r.high.x && b[3] >= r.low.x && b[1] <= r.high.y && b[4] >= r.low.y && b[2] <= r.high.z && b[5] >= r.low.z;
+}
+
 function quantile(values: number[], q: number): number {
   values.sort((a, b) => a - b);
   return values[Math.min(values.length - 1, Math.max(0, Math.round(q * (values.length - 1))))];
 }
 
-/** Use the robust range only when it is much tighter than the project extents. */
-export function shouldRefit(project: Range3d, robust: Range3d | undefined): robust is Range3d {
-  if (!robust || project.isNull) return false;
-  return robust.diagonal().magnitude() < 0.5 * project.diagonal().magnitude();
+/** Use the robust range only when it is much smaller than what the view currently shows (`viewSize` = view delta diagonal). */
+export function shouldRefit(viewSize: number, robust: Range3d | undefined): robust is Range3d {
+  if (!robust || !(viewSize > 0)) return false;
+  return robust.diagonal().magnitude() < 0.5 * viewSize;
 }

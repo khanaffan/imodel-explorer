@@ -31,6 +31,8 @@ try {
   await page.evaluate(() => globalThis.instanceGraph.graphActions.setOptions({ depth: 1, direction: "both", filters: { models: {}, schemas: {}, classes: {}, relationships: {} } }, false));
 
   // Drive the Seed widget like a user would.
+  // The persisted layout may have another tab active in the seed panel.
+  await page.getByText("Seed query", { exact: true }).first().click().catch(() => {});
   const editor = page.locator("textarea.ig-sql").first();
   await editor.waitFor({ timeout: 30_000 });
   await editor.fill(ecsql);

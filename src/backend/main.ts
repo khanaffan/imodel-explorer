@@ -1,6 +1,8 @@
 import * as path from "node:path";
 import { app } from "electron";
 import { IModelHost } from "@itwin/core-backend";
+import { ECSchemaRpcImpl } from "@itwin/ecschema-rpcinterface-impl";
+import { Presentation } from "@itwin/presentation-backend";
 import { ElectronHost } from "@itwin/core-electron/lib/cjs/ElectronBackend";
 import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
 
@@ -20,6 +22,8 @@ async function main() {
       cacheDir: path.join(app.getPath("userData"), "cache"),
     },
   });
+  ECSchemaRpcImpl.register();
+  Presentation.initialize();
   await ElectronHost.openMainWindow({ title: APP_TITLE, width: 1600, height: 1000, show: true, storeWindowName: "instance-graph-main" });
   if (dev)
     ElectronHost.mainWindow?.webContents.openDevTools({ mode: "detach" });

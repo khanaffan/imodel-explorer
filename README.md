@@ -30,6 +30,7 @@ Open a snapshot or briefcase (`.bim`) from the welcome page. Briefcases open rea
 | **Properties** (right) | For a node: class, id, model, hop distance, and every readable property; clicking a navigation value jumps to that instance. For an edge: the relationship class, strength and direction, source and target constraints with multiplicity, and, for **link-table** relationships, the relationship instance's own properties. |
 | **Legend & colours** (right) | Counts per category, plus colour pickers for each category (3D or 2D geometric, definition, information, role, model, aspect, other) and ordered custom rules by class (polymorphic or exact) or by schema. |
 | **Sessions** (left) | Save or restore the centre, options, filters and expanded nodes (stored in localStorage), and import or export them as JSON files. |
+| **Models & categories** (left, next to Traversal & filters) | ECPresentation visibility trees from `@itwin/tree-widget-react` (the same trees OpenSite+ uses). Pick **Models**, **Categories** or **Classifications**, then use a row's eye button to show or hide that content in the 3D view (for example, hide terrain). **Classifications** only appears when the iModel has `ClassificationSystems` data; if there are several systems, a picker chooses between them, and it starts on the system with the most classified elements. Selecting an element node in a tree recentres the graph on it. |
 | **3D view** (right of graph) | Selecting a node selects and highlights the element in the view, and selecting one element in the view recentres the graph on it. **Show in 3D** zooms to it. |
 
 Edges: a solid orange line is a **link-table** relationship (it has its own ECInstance and may have
@@ -86,8 +87,15 @@ src/
     answered by the fallback and the status bar says so.
 * **3D view fit.** A few stray elements can inflate the project extents (the plant test file has
   elements at the origin and at 890 km while the site sits at 440 km, 280 km), so the default view
-  fit showed nothing. The viewport samples `bis.SpatialIndex` evenly and fits to the 1st–99th
-  percentile box range whenever that is less than half the project extents.
+  fit showed nothing. The viewport samples `bis.SpatialIndex` evenly, keeps only boxes that
+  intersect the project extents, and fits to their 1st–99th percentile range whenever that is less
+  than half the size of the default view (which `ViewCreator3d` fits to model extents).
+* **Visibility trees.** `@itwin/tree-widget-react` 4 (alpha) is built on StrataKit, so the app is
+  wrapped in the StrataKit `Root`. The trees need `ECSchemaRpcInterface` (registered on the backend
+  with `ECSchemaRpcImpl.register()`) and `PresentationRpcInterface`, with `Presentation.initialize`
+  on both sides, a shared `@itwin/unified-selection` storage, and the tree-widget localisation
+  namespaces. After installing packages, run `npm run copy-assets` so their locale files reach
+  `public/`.
 * **Id sets.** Batched lookups use validated `ECInstanceId IN (…)` lists rather than
   `InVirtualSet()`, which is a per-row function call that forces a full table scan: about 0.7 s
   per lookup on a 40 GB iModel, versus about 0 ms.
