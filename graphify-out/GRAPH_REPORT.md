@@ -1,7 +1,7 @@
 # Graph Report - InstanceGraph  (2026-09-29)
 
 ## Corpus Check
-- 58 files · ~27,607 words
+- 58 files · ~27,667 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5619bff6`
+- Built from commit: `e4e6540f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -33,7 +33,7 @@
 - smoke.mjs
 - copy-assets.mjs
 - vite.config.ts
-- @bentley/icons-generic-webfont
+- @itwin/core-frontend
 - @itwin/appui-abstract
 - @itwin/appui-react
 - @itwin/components-react
@@ -144,7 +144,7 @@ Nodes (19): node, src/backend, compilerOptions, esModuleInterop, lib, module, mo
 
 ### Community 13 - "dependencies"
 Cohesion: 0.18
-Nodes (11): elkjs, @itwin/core-frontend, @itwin/core-orbitgt, @itwin/core-react, @itwin/itwinui-react, dependencies, elkjs, @itwin/core-frontend (+3 more)
+Nodes (11): @bentley/icons-generic-webfont, elkjs, @itwin/core-orbitgt, @itwin/core-react, @itwin/itwinui-react, dependencies, @bentley/icons-generic-webfont, elkjs (+3 more)
 
 ### Community 14 - "InstanceGraph"
 Cohesion: 0.33
@@ -166,7 +166,7 @@ Nodes (3): out, root, scope
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `dependencies` to `html-to-image`, `scripts`, `@bentley/icons-generic-webfont`, `@itwin/appui-abstract`, `@itwin/appui-react`, `@itwin/components-react`, `@itwin/core-bentley`, `@itwin/core-common`, `@itwin/core-electron`, `@itwin/core-backend`, `@itwin/core-geometry`, `@itwin/core-i18n`, `@itwin/ecschema-rpcinterface-impl`, `@itwin/core-quantity`, `@itwin/imodel-components-react`, `@itwin/ecschema-metadata`, `@itwin/ecschema-rpcinterface-common`, `@itwin/itwinui-icons-react`, `@itwin/presentation-backend`, `@itwin/webgl-compatibility`, `react`, `react-dom`, `react-redux`, `redux`, `@xyflow/react`, `zustand`, `@itwin/presentation-common`, `@itwin/presentation-components`, `@itwin/presentation-frontend`, `@itwin/tree-widget-react`, `@itwin/unified-selection`, `@mui/material`, `@stratakit/bricks`, `@stratakit/foundations`, `@stratakit/icons`, `@stratakit/mui`, `@stratakit/structures`?**
+- **Why does `dependencies` connect `dependencies` to `html-to-image`, `scripts`, `@itwin/core-frontend`, `@itwin/appui-abstract`, `@itwin/appui-react`, `@itwin/components-react`, `@itwin/core-bentley`, `@itwin/core-common`, `@itwin/core-electron`, `@itwin/core-backend`, `@itwin/core-geometry`, `@itwin/core-i18n`, `@itwin/ecschema-rpcinterface-impl`, `@itwin/core-quantity`, `@itwin/imodel-components-react`, `@itwin/ecschema-metadata`, `@itwin/ecschema-rpcinterface-common`, `@itwin/itwinui-icons-react`, `@itwin/presentation-backend`, `@itwin/webgl-compatibility`, `react`, `react-dom`, `react-redux`, `redux`, `@xyflow/react`, `zustand`, `@itwin/presentation-common`, `@itwin/presentation-components`, `@itwin/presentation-frontend`, `@itwin/tree-widget-react`, `@itwin/unified-selection`, `@mui/material`, `@stratakit/bricks`, `@stratakit/foundations`, `@stratakit/icons`, `@stratakit/mui`, `@stratakit/structures`?**
   _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Why does `useGraphStore` connect `graphStore.ts` to `InstanceGraphUiProvider.tsx`, `engine.test.ts`, `GraphCanvas.tsx`, `frontend.test.ts`, `GraphEngine.ts`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._

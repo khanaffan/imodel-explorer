@@ -6,6 +6,9 @@
   --ig-node-bg: var(--iui-color-background-backdrop, #fafafa);
   --ig-text: var(--iui-color-text, #222);
   --ig-muted: var(--iui-color-text-muted, #777);
+  /* Follow the iTwinUI theme (light or dark) rather than React Flow's built-in light minimap. */
+  --xy-minimap-background-color: var(--iui-color-background-backdrop, #f4f4f4);
+  --xy-minimap-mask-background-color: rgb(128 128 128 / 0.25);
 }
 
 /* StrataKit's reset sets `svg { max-inline-size: 100% }`; React Flow's edge layer is 0px wide,

@@ -17,7 +17,7 @@
   "15": "smoke.mjs",
   "16": "copy-assets.mjs",
   "17": "vite.config.ts",
-  "18": "@bentley/icons-generic-webfont",
+  "18": "@itwin/core-frontend",
   "19": "@itwin/appui-abstract",
   "20": "@itwin/appui-react",
   "21": "@itwin/components-react",

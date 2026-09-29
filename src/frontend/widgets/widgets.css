@@ -267,5 +267,7 @@
 
 .ig-visibility-trees { height: 100%; display: flex; flex-direction: column; min-height: 0; }
 .ig-visibility-trees > * { flex: 1; min-height: 0; }
+/* StrataKit paints the tree with its own page colour; let the AppUI panel background show instead. */
+.ig-visibility-trees [role="tree"] { background-color: transparent; }
 .ig-classifications { height: 100%; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
 .ig-classifications > :last-child { flex: 1; min-height: 0; }

@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "scripts/smoke.mjs": {
-    "mtime": 1790714457.8304913,
-    "ast_hash": "4197506e52083e46e2360878720a86ab",
+    "mtime": 1790715074.4196453,
+    "ast_hash": "03cf6b2469a717b0cbce38f306b54317",
     "semantic_hash": ""
   },
   "src/backend/main.ts": {
