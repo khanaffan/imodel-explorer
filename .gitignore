@@ -2,5 +2,9 @@ node_modules/
 dist/
 public/
 *.log
-graphify-out/cache/
+graphify-out/
 .DS_Store
+samples/*.bim-shm
+samples/*.bim-wal
+samples/*.bim.Tiles
+*.bim-journal

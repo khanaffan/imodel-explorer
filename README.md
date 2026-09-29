@@ -2,12 +2,79 @@
 
 A developer tool for looking at the **instance graph** of an iModel: the actual EC instances and the
 relationships between them, rather than the schema. Open a `.bim` file, pick a starting instance
-with any ECSQL query, and explore what it is connected to: a pump's pipes, its category, model,
-code spec, the link-table relationships that feed it, and so on outward, as deep as you like.
+with any ECSQL query, and explore what it is connected to — its parts, category, model, code spec,
+the link-table relationships that feed it, and so on outward, as deep as you like.
 
-Built on iTwin.js 5.x (Electron, AppUI, iTwinUI), React Flow and elkjs.
+![iModel Data Explorer: a parking area from the OpenSite+ drainage example, with its first-degree neighbours, the 3D view and the property pane](docs/images/overview.png)
+
+Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and elkjs.
+
+> Screenshots use the OpenSite+ *Example 1.6 – Drainage* iModel. Regenerate them with
+> `npm run screenshots -- <path-to-that.bim>`.
+
+## Why
+
+A schema tells you what *could* be connected; this shows what *is*. Questions like "what is this
+parking area actually related to, through which relationship classes, with what cardinality, and
+what sits two hops further out?" usually mean hand-writing a chain of ECSQL joins. Here you pick the
+instance and read the answer off the graph.
+
+## Features
+
+- **ECSQL seed.** Any query that returns an `ECInstanceId` picks the instance at the centre.
+- **Centred, animated graph.** The seed sits in the middle with one ring per hop. Click any node to
+  recentre on it; back/forward history keeps you from getting lost. Choose depth (1–6) and
+  direction (in, out, both), or expand a single node by one hop.
+- **Both kinds of relationship.** Traversal uses the experimental `ECVLib.Relations()` virtual table
+  (with a metadata-driven fallback), so it finds **navigation-property** relationships and
+  **link-table** relationships in both directions. Link-table edges are solid orange and can be
+  selected to see the relationship instance's own properties; navigation edges are dashed and
+  labelled `Relationship.NavProperty`.
+- **Cardinality.** Every edge shows its source and target multiplicities (`0..1`, `0..*`, …) from the
+  `ECRelationshipClass` constraints.
+- **Properties pane.** Class, id, model and every readable property of a node; navigation values
+  are links that recentre the graph.
+- **Include / exclude filters** by model (as a model hierarchy), schema, class (optionally
+  polymorphic) and relationship class, applied during traversal.
+- **Colouring** by category — 3D/2D geometric, definition, information, role, model, aspect — with
+  customisable colours and custom rules by class or schema.
+- **Hub safety.** Large fan-outs (a CodeSpec, a category, a root subject) collapse to `+N` summary
+  nodes that you can open on demand; a node budget caps the whole graph.
+- **3D view** with two-way selection sync, plus ECPresentation **visibility trees** (models,
+  categories, classifications) to hide content such as terrain.
+- **Sessions and export.** Save and restore sessions; export JSON, GraphML or PNG, or copy an ECSQL
+  recipe that reproduces the traversal.
+
+### The graph
+
+Centred on a `CivilSpatial:ParkingArea`: orange link-table edges to the curbs, islands and wall it
+organises (`SpatialOrganizerHoldsSpatialElements`), dashed navigation edges to its model, category,
+code spec and code scope, multiplicities at each end, and a `+63` summary node for the rest of an
+aggregation.
+
+![The instance graph around a parking area](docs/images/graph.png)
+
+### Relationships and their properties
+
+Selecting a link-table edge shows its relationship class, strength and direction, both constraints
+with multiplicity and role labels, and the relationship instance's own properties.
+
+![A selected link-table relationship with its constraints and properties](docs/images/link-table-edge.png)
+
+### Filters and visibility
+
+Models are filtered as a tree: excluding a model (✗) also excludes its sub-models, shown as faint
+dashed marks, unless a sub-model overrides it. The **Models & categories** tab holds the
+ECPresentation visibility trees; here the *Terrain* classification is hidden in the 3D view.
+
+| Model filter hierarchy | Visibility trees |
+|---|---|
+| ![Hierarchical model filter](docs/images/filters.png) | ![Classification tree with terrain hidden](docs/images/visibility-trees.png) |
 
 ## Quick start
+
+Requires Node.js 22 and macOS, Windows or Linux. The `@itwin/*` packages are `5.14.0-dev` builds,
+which provide `ECVLib.Relations()` and `IModelConnection.getSchemaView()`.
 
 ```bash
 npm install        # also copies @itwin static assets into public/
@@ -114,6 +181,7 @@ src/
 | `npm run build` | Backend tsc and Vite to `dist/` |
 | `npm run sample [out.bim]` | Generates the demo iModel |
 | `npm run smoke [file.bim] [ecsql]` | Playwright-driven end-to-end run of the built app; writes screenshots to `dist/smoke/` |
+| `npm run screenshots -- file.bim [outDir]` | Regenerates the README images from the built app (run `npm run build` first) (expects the OpenSite+ drainage example; defaults to `docs/images/`) |
 | `npm run bench -- file.bim "<ecsql>"…` | Times seed queries, depth 1–3 traversals and property loads with both strategies, read-only (`MAX_DEPTH=2` for huge files) |
 
 In the renderer devtools console, `imodelExplorer.openAndShow(path)`, `imodelExplorer.graphActions`
