@@ -1,0 +1,325 @@
+.ig-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--iui-color-background, #fff);
+  --ig-node-bg: var(--iui-color-background-backdrop, #fafafa);
+  --ig-text: var(--iui-color-text, #222);
+  --ig-muted: var(--iui-color-text-muted, #777);
+}
+
+.ig-canvas .react-flow__node {
+  /* Positions are animated in JS; no CSS transition on transform or edges would detach. */
+  transition: none;
+}
+
+.ig-node {
+  box-sizing: border-box;
+  background: var(--ig-node-bg);
+  color: var(--ig-text);
+  border: 2px solid #888;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  animation: ig-enter 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: box-shadow 160ms ease, opacity 200ms ease, transform 160ms ease;
+}
+
+.ig-node:hover {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+}
+
+.ig-node--centre {
+  border-width: 3px;
+  box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.25), 0 4px 14px rgba(0, 0, 0, 0.25);
+  transform: scale(1.06);
+}
+
+.ig-node--selected {
+  outline: 2px dashed var(--iui-color-border-accent, #2f80ed);
+  outline-offset: 3px;
+}
+
+.ig-node--leaving {
+  animation: ig-leave 220ms ease forwards;
+  pointer-events: none;
+}
+
+.ig-node--open {
+  z-index: 20;
+  position: relative;
+}
+
+.ig-node__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ig-node__class {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ig-node__schema {
+  font-weight: 400;
+  opacity: 0.8;
+  font-size: 10px;
+}
+
+.ig-node__body {
+  padding: 4px 8px 6px;
+}
+
+.ig-node__label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ig-node__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--ig-muted);
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.ig-node__model {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.ig-node__preview {
+  margin-top: 4px;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+  padding-top: 3px;
+  animation: ig-reveal 200ms ease both;
+}
+
+.ig-node__prop {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.ig-node__prop span:first-child {
+  color: var(--ig-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ig-node__prop span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ig-node__muted {
+  color: var(--ig-muted);
+  font-size: 10px;
+}
+
+.ig-node__actions {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.ig-node:hover .ig-node__actions,
+.ig-node--centre .ig-node__actions,
+.ig-node--open .ig-node__actions {
+  opacity: 1;
+}
+
+.ig-node__btn {
+  width: 18px;
+  height: 18px;
+  line-height: 14px;
+  padding: 0;
+  font-size: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  background: var(--iui-color-background, #fff);
+  color: var(--ig-text);
+  cursor: pointer;
+}
+
+.ig-node__btn:hover {
+  background: var(--iui-color-background-hover, #eee);
+}
+
+.ig-node--compact .ig-node__header {
+  padding: 18px 8px;
+  font-size: 18px;
+}
+
+.ig-node--aggregate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #999;
+  background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(128, 128, 128, 0.08) 6px 12px), var(--ig-node-bg);
+}
+
+.ig-node__agg-count {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ig-node__agg-rel {
+  color: var(--ig-muted);
+  font-size: 10px;
+}
+
+.ig-edge {
+  transition: stroke 150ms ease, stroke-width 150ms ease, opacity 200ms ease;
+}
+
+.react-flow__edge-path.ig-edge--navigation {
+  stroke: #7a8ca3;
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+}
+
+.react-flow__edge-path.ig-edge--linkTable {
+  stroke: #d9822b;
+  stroke-width: 2.2;
+}
+
+.react-flow__edge-path.ig-edge--aggregate {
+  stroke: #999;
+  stroke-width: 1.4;
+  stroke-dasharray: 2 4;
+}
+
+.react-flow__edge-path.ig-edge--hl {
+  stroke-width: 3;
+}
+
+.react-flow__edge-path.ig-edge--selected {
+  stroke: var(--iui-color-border-accent, #2f80ed);
+  stroke-width: 3.2;
+}
+
+.react-flow__edge-path.ig-edge--leaving {
+  opacity: 0;
+}
+
+.ig-edge-label {
+  position: absolute;
+  pointer-events: all;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  white-space: nowrap;
+  background: var(--iui-color-background, #fff);
+  color: var(--ig-text);
+  border: 1px solid #7a8ca3;
+  animation: ig-reveal 180ms ease both;
+}
+
+.ig-edge-label--linkTable {
+  border-color: #d9822b;
+  font-weight: 600;
+}
+
+.ig-edge-label--selected {
+  border-color: var(--iui-color-border-accent, #2f80ed);
+  box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.25);
+}
+
+.ig-edge-label__nav {
+  color: var(--ig-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.ig-edge-card {
+  position: absolute;
+  font-size: 9px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--ig-muted);
+  background: var(--iui-color-background, #fff);
+  padding: 0 3px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.ig-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: var(--iui-color-background, #fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.ig-toolbar__select {
+  width: 110px;
+}
+
+.ig-status {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--iui-color-background, #fff);
+  opacity: 0.9;
+}
+
+.ig-status--error {
+  color: var(--iui-color-text-negative, #c00);
+}
+
+.ig-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ig-muted);
+  pointer-events: none;
+}
+
+.ig-empty__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@keyframes ig-enter {
+  from { opacity: 0; transform: scale(0.6); }
+}
+
+@keyframes ig-leave {
+  to { opacity: 0; transform: scale(0.6); }
+}
+
+@keyframes ig-reveal {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-node, .ig-node__preview, .ig-edge-label { animation: none; }
+  .ig-node--leaving { opacity: 0; }
+}

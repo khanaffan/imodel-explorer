@@ -1,0 +1,57 @@
+html, body, #root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ig-app {
+  height: 100vh;
+  width: 100vw;
+}
+
+.ig-welcome {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--iui-color-background-backdrop, #f3f3f3);
+}
+
+.ig-welcome__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 520px;
+  max-width: 90vw;
+  padding: 28px;
+  border-radius: 10px;
+  background: var(--iui-color-background, #fff);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+}
+
+.ig-welcome__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ig-welcome__title svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+.ig-welcome__recent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ig-viewport-msg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

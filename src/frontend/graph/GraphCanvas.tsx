@@ -1,0 +1,233 @@
+import {
+  Background, type EdgeMarker, MarkerType, MiniMap, type NodeChange, ReactFlow, ReactFlowProvider, useReactFlow,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { GraphData, GraphEdge, GraphNode } from "../engine/GraphModel";
+import { colorFor } from "../state/colorTheme";
+import { graphActions, useGraphStore } from "../state/graphStore";
+import { GraphToolbar } from "./GraphToolbar";
+import { InstanceNode, type InstanceFlowNode } from "./InstanceNode";
+import { computeLayout, NODE_HEIGHT, NODE_WIDTH, type Point, type Positions } from "./layout";
+import { DEFAULT_DURATION_MS, LayoutAnimator, LEAVE_DURATION_MS, prefersReducedMotion } from "./motion";
+import { RelationshipEdge, type RelationshipFlowEdge } from "./RelationshipEdge";
+import "./graph.css";
+
+const nodeTypes = { instance: InstanceNode };
+const edgeTypes = { relationship: RelationshipEdge };
+const RING_STAGGER_MS = 70;
+
+interface Leaving {
+  readonly nodes: Map<string, GraphNode>;
+  readonly edges: Map<string, GraphEdge>;
+}
+
+function boundsOf(positions: Positions) {
+  let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const p of positions.values()) {
+    x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y);
+    x1 = Math.max(x1, p.x + NODE_WIDTH); y1 = Math.max(y1, p.y + NODE_HEIGHT);
+  }
+  return Number.isFinite(x0) ? { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } : undefined;
+}
+
+function GraphCanvasInner() {
+  const graph = useGraphStore((s) => s.graph);
+  const layoutMode = useGraphStore((s) => s.layoutMode);
+  const theme = useGraphStore((s) => s.theme);
+  const selection = useGraphStore((s) => s.selection);
+  const fitRequest = useGraphStore((s) => s.fitRequest);
+  const rf = useReactFlow();
+
+  const [positions, setPositions] = useState<Positions>(new Map());
+  const [leaving, setLeaving] = useState<Leaving>({ nodes: new Map(), edges: new Map() });
+  const [hovered, setHovered] = useState<string>();
+  const measured = useRef(new Map<string, { width: number; height: number }>());
+  const animator = useMemo(() => new LayoutAnimator((p) => setPositions(p)), []);
+  const shown = useRef<GraphData>(graph);
+  const handledFit = useRef(0);
+  const firstEnter = useRef(new Map<string, number>());
+
+  useEffect(() => () => animator.stop(), [animator]);
+
+  // Every graph change: lay out, animate from where nodes are now, fade out what left, move the camera.
+  useEffect(() => {
+    let cancelled = false;
+    const before = shown.current;
+    const previousPositions = animator.current;
+    void (async () => {
+      let target: Positions;
+      try {
+        target = await computeLayout(graph, layoutMode, previousPositions, before.centreKey !== graph.centreKey ? before.centreKey : undefined);
+      } catch {
+        return;
+      }
+      if (cancelled) return;
+
+      const gone: Leaving = { nodes: new Map(), edges: new Map() };
+      for (const [k, n] of before.nodes)
+        if (!graph.nodes.has(k) && previousPositions.has(k)) gone.nodes.set(k, n);
+      for (const [k, e] of before.edges)
+        if (!graph.edges.has(k) && (gone.nodes.has(e.source) || gone.nodes.has(e.target))) gone.edges.set(k, e);
+      const withLeaving = new Map(target);
+      for (const k of gone.nodes.keys()) withLeaving.set(k, previousPositions.get(k)!);
+      setLeaving(gone);
+
+      // Newcomers grow out of a neighbour that is already on screen.
+      const spawn = (k: string): Point | undefined => {
+        for (const e of graph.edges.values()) {
+          const other = e.source === k ? e.target : e.target === k ? e.source : undefined;
+          if (other && previousPositions.has(other)) return previousPositions.get(other);
+        }
+        return previousPositions.get(graph.centreKey);
+      };
+      for (const [k, n] of graph.nodes)
+        if (!previousPositions.has(k) && !firstEnter.current.has(k)) firstEnter.current.set(k, n.depth * RING_STAGGER_MS);
+      for (const k of [...firstEnter.current.keys()])
+        if (previousPositions.has(k)) firstEnter.current.delete(k);
+
+      const duration = prefersReducedMotion() ? 0 : DEFAULT_DURATION_MS;
+      animator.animateTo(withLeaving, spawn, duration);
+      shown.current = graph;
+
+      if (gone.nodes.size > 0)
+        setTimeout(() => { if (!cancelled) setLeaving({ nodes: new Map(), edges: new Map() }); }, Math.max(duration, LEAVE_DURATION_MS));
+
+      const bounds = boundsOf(target);
+      if (fitRequest !== handledFit.current && bounds) {
+        handledFit.current = fitRequest;
+        void rf.fitBounds(bounds, { padding: 0.15, duration });
+      } else if (before.centreKey !== graph.centreKey && target.has(graph.centreKey)) {
+        const c = target.get(graph.centreKey)!;
+        void rf.setCenter(c.x + NODE_WIDTH / 2, c.y + NODE_HEIGHT / 2, { zoom: rf.getZoom(), duration });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [graph, layoutMode, fitRequest, animator, rf]);
+
+  const selectedNode = selection?.kind === "node" ? selection.key : undefined;
+  const selectedEdge = selection?.kind === "edge" ? selection.key : undefined;
+  const focus = hovered ?? selectedNode;
+
+  const nodeData = useMemo(() => {
+    const m = new Map<string, InstanceFlowNode["data"]>();
+    const add = (n: GraphNode, isLeaving: boolean) => m.set(n.key, {
+      node: n, color: colorFor(n, theme), isCentre: n.key === graph.centreKey, isSelected: n.key === selectedNode,
+      leaving: isLeaving, enterDelayMs: firstEnter.current.get(n.key) ?? 0,
+    });
+    for (const n of graph.nodes.values()) add(n, false);
+    for (const n of leaving.nodes.values()) if (!m.has(n.key)) add(n, true);
+    return m;
+  }, [graph, leaving, theme, selectedNode]);
+
+  const nodes: InstanceFlowNode[] = useMemo(() => {
+    const out: InstanceFlowNode[] = [];
+    for (const [k, data] of nodeData) {
+      const position = positions.get(k);
+      if (!position) continue;
+      out.push({
+        id: k, type: "instance", position, data,
+        measured: measured.current.get(k), selectable: false, zIndex: data.isCentre ? 10 : data.isSelected ? 5 : 0,
+      });
+    }
+    return out;
+  }, [nodeData, positions]);
+
+  const edges: RelationshipFlowEdge[] = useMemo(() => {
+    const all = [...graph.edges.values()].map((e) => ({ e, leaving: false }))
+      .concat([...leaving.edges.values()].map((e) => ({ e, leaving: true })));
+    const pairCount = new Map<string, number>();
+    const pairKey = (e: GraphEdge) => (e.source < e.target ? `${e.source}|${e.target}` : `${e.target}|${e.source}`);
+    for (const { e } of all) pairCount.set(pairKey(e), (pairCount.get(pairKey(e)) ?? 0) + 1);
+    const pairSeen = new Map<string, number>();
+    return all.map(({ e, leaving: isLeaving }) => {
+      const pk = pairKey(e);
+      const idx = pairSeen.get(pk) ?? 0;
+      pairSeen.set(pk, idx + 1);
+      const marker: EdgeMarker = { type: MarkerType.ArrowClosed, width: 16, height: 16, color: e.kind === "linkTable" ? "#d9822b" : "#7a8ca3" };
+      return {
+        id: e.key, source: e.source, target: e.target, type: "relationship", markerEnd: marker, selectable: false,
+        data: {
+          edge: e, parallelIndex: idx, parallelCount: pairCount.get(pk)!, leaving: isLeaving,
+          highlighted: focus !== undefined && (e.source === focus || e.target === focus), isSelected: e.key === selectedEdge,
+        },
+      };
+    });
+  }, [graph, leaving, focus, selectedEdge]);
+
+  const onNodesChange = useCallback((changes: NodeChange<InstanceFlowNode>[]) => {
+    let moved = false;
+    for (const c of changes) {
+      if (c.type === "dimensions" && c.dimensions)
+        measured.current.set(c.id, c.dimensions);
+      else if (c.type === "position" && c.position) {
+        animator.setPosition(c.id, c.position);
+        moved = true;
+      }
+    }
+    if (moved) setPositions(animator.current);
+  }, [animator]);
+
+  const onNodeClick = useCallback((ev: React.MouseEvent, n: InstanceFlowNode) => {
+    if (ev.shiftKey || ev.metaKey || ev.ctrlKey) graphActions.select({ kind: "node", key: n.id });
+    else void graphActions.activate(n.id);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest("input, textarea, select, [contenteditable]")) return;
+      if (e.altKey && e.key === "ArrowLeft") graphActions.back();
+      else if (e.altKey && e.key === "ArrowRight") graphActions.forward();
+      else if (e.key === "f" && !e.metaKey && !e.ctrlKey) graphActions.requestFit();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <div className="ig-canvas">
+      <ReactFlow<InstanceFlowNode, RelationshipFlowEdge>
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onNodeClick={onNodeClick}
+        onEdgeClick={(_, e) => graphActions.select({ kind: "edge", key: e.id })}
+        onNodeMouseEnter={(_, n) => setHovered(n.id)}
+        onNodeMouseLeave={() => setHovered(undefined)}
+        onPaneClick={() => graphActions.select(undefined)}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        zoomOnDoubleClick={false}
+        minZoom={0.05}
+        maxZoom={2.5}
+        onlyRenderVisibleElements={nodes.length > 300}
+        proOptions={{ hideAttribution: true }}
+      >
+        <Background gap={24} size={1} />
+        <MiniMap pannable zoomable nodeColor={(n) => (n.data as InstanceFlowNode["data"]).color} nodeStrokeWidth={0} />
+        <GraphToolbar />
+      </ReactFlow>
+      {graph.nodes.size === 0 && <GraphEmptyState />}
+    </div>
+  );
+}
+
+function GraphEmptyState() {
+  const engine = useGraphStore((s) => s.engine);
+  return (
+    <div className="ig-empty">
+      <div className="ig-empty__title">No instance selected</div>
+      <div>{engine ? "Run an ECSQL query in the Seed panel and pick a row, or click an element in the 3D view." : "Opening iModel…"}</div>
+    </div>
+  );
+}
+
+export function GraphCanvas() {
+  return (
+    <ReactFlowProvider>
+      <GraphCanvasInner />
+    </ReactFlowProvider>
+  );
+}

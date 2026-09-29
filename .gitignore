@@ -1,0 +1,6 @@
+node_modules/
+dist/
+public/
+*.log
+graphify-out/cache/
+.DS_Store
