@@ -1760,7 +1760,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "src/frontend/App.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_app_app",
@@ -1798,8 +1798,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_content_graphcontent",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
       "norm_label": "graphcontent.tsx"
     },
     {
@@ -1810,8 +1810,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_graphcontent_graphcontent",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
       "norm_label": "graphcontent()"
     },
     {
@@ -1984,8 +1984,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "classregistry.ts"
     },
     {
@@ -1997,8 +1997,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_viewclass",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "viewclass"
     },
     {
@@ -2010,8 +2010,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "classregistry"
     },
     {
@@ -2022,8 +2022,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_constructor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -2046,8 +2046,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_nameof",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".nameof()"
     },
     {
@@ -2058,8 +2058,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_idof",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".idof()"
     },
     {
@@ -2070,8 +2070,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_allclassnames",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".allclassnames()"
     },
     {
@@ -2082,8 +2082,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_findclass",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".findclass()"
     },
     {
@@ -2094,8 +2094,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_hierarchyof",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".hierarchyof()"
     },
     {
@@ -2106,8 +2106,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_isa",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".isa()"
     },
     {
@@ -2118,8 +2118,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_categoryof",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".categoryof()"
     },
     {
@@ -2130,8 +2130,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_kindof",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".kindof()"
     },
     {
@@ -2154,8 +2154,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_traversaloptions",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": "traversaloptions"
     },
     {
@@ -2178,8 +2178,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_canceltoken",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "canceltoken"
     },
     {
@@ -2216,8 +2216,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_mutablegraph",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "mutablegraph"
     },
     {
@@ -2265,8 +2265,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_constructor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -2289,8 +2289,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_withstrategy",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 0,
+      "community_name": "TraversalStrategy.ts",
       "norm_label": ".withstrategy()"
     },
     {
@@ -2373,8 +2373,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_edgefor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "._edgefor()"
     },
     {
@@ -2434,8 +2434,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_direction",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 0,
+      "community_name": "TraversalStrategy.ts",
       "norm_label": "direction"
     },
     {
@@ -2460,8 +2460,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_nodecategory",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "nodecategory"
     },
     {
@@ -2484,8 +2484,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_graphnode",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "graphnode"
     },
     {
@@ -2523,8 +2523,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_cardinality",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "cardinality"
     },
     {
@@ -2536,8 +2536,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_graphedge",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "graphedge"
     },
     {
@@ -2598,8 +2598,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_aggregatekey",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 0,
+      "community_name": "TraversalStrategy.ts",
       "norm_label": "aggregatekey()"
     },
     {
@@ -3018,8 +3018,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_traversalstrategy_fallbacktraversal_constructor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3352,8 +3352,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_filterstate",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "filterstate"
     },
     {
@@ -3365,8 +3365,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_classfilterentry",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "classfilterentry"
     },
     {
@@ -3378,8 +3378,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_filterspec",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": "filterspec"
     },
     {
@@ -3401,8 +3401,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_isfilterempty",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "isfilterempty()"
     },
     {
@@ -3485,8 +3485,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_cyclefilterstate",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "cyclefilterstate()"
     },
     {
@@ -3522,8 +3522,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_instanceproperties_propertyrecord",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 3,
+      "community_name": "engine.test.ts",
       "norm_label": "propertyrecord"
     },
     {
@@ -3592,8 +3592,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "relationshipinfo.ts"
     },
     {
@@ -3605,8 +3605,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_constraintinfo",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "constraintinfo"
     },
     {
@@ -3618,8 +3618,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfo",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "relationshipinfo"
     },
     {
@@ -3630,8 +3630,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_formatmultiplicity",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "formatmultiplicity()"
     },
     {
@@ -3641,8 +3641,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_strength",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "strength"
     },
     {
@@ -3654,8 +3654,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "relationshipinfocache"
     },
     {
@@ -3666,8 +3666,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache_constructor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -3678,8 +3678,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache_get",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".get()"
     },
     {
@@ -3690,8 +3690,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache_compute",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "._compute()"
     },
     {
@@ -3751,8 +3751,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_resolvenodes_noderesolver_constructor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -4018,8 +4018,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_graph_graphcanvas_leaving",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "leaving"
     },
     {
@@ -4066,8 +4066,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_graph_graphcanvas_graphcanvas",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
       "norm_label": "graphcanvas()"
     },
     {
@@ -5210,8 +5210,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_state_colortheme",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "colortheme.ts"
     },
     {
@@ -5223,8 +5223,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_colorrule",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "colorrule"
     },
     {
@@ -5236,8 +5236,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_colortheme",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "colortheme"
     },
     {
@@ -5247,8 +5247,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_category_labels",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "category_labels"
     },
     {
@@ -5258,8 +5258,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_default_theme",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "default_theme"
     },
     {
@@ -5369,8 +5369,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_graphstate",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": "graphstate"
     },
     {
@@ -5510,8 +5510,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_graphactions",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "graphactions"
     },
     {
@@ -5742,14 +5742,86 @@
       "norm_label": "synctreeselectiontograph()"
     },
     {
+      "label": "useColorScheme.ts",
+      "file_type": "code",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_frontend_usecolorscheme",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "usecolorscheme.ts"
+    },
+    {
+      "label": "ColorScheme",
+      "file_type": "code",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L3",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "src_frontend_usecolorscheme_colorscheme",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "colorscheme"
+    },
+    {
+      "label": "resolveColorScheme()",
+      "file_type": "code",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L8",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_usecolorscheme_resolvecolorscheme",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "resolvecolorscheme()"
+    },
+    {
+      "label": "current()",
+      "file_type": "code",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L14",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_usecolorscheme_current",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "current()"
+    },
+    {
+      "label": "subscribe()",
+      "file_type": "code",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L18",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_usecolorscheme_subscribe",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "subscribe()"
+    },
+    {
+      "label": "useColorScheme()",
+      "file_type": "code",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L29",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_usecolorscheme_usecolorscheme",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "usecolorscheme()"
+    },
+    {
       "label": "FiltersWidget.tsx",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "filterswidget.tsx"
     },
     {
@@ -5760,8 +5832,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_tristate",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "tristate()"
     },
     {
@@ -5772,8 +5844,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_setin",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "setin()"
     },
     {
@@ -5784,8 +5856,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_updatefilters",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "updatefilters()"
     },
     {
@@ -5796,8 +5868,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_section",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "section()"
     },
     {
@@ -5808,8 +5880,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_countlabel",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "countlabel()"
     },
     {
@@ -5820,8 +5892,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_classfiltersection",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "classfiltersection()"
     },
     {
@@ -5832,8 +5904,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_statelist",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "statelist()"
     },
     {
@@ -5844,8 +5916,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_filterswidget",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "filterswidget()"
     },
     {
@@ -5855,8 +5927,8 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_filteredits",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 55,
+      "community_name": "FiltersWidget.tsx",
       "norm_label": "filteredits"
     },
     {
@@ -5866,8 +5938,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_widgets_legendwidget",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 10,
+      "community_name": "GraphEngine.ts",
       "norm_label": "legendwidget.tsx"
     },
     {
@@ -6343,6 +6415,17 @@
       "community": 2,
       "community_name": "graphStore.ts",
       "norm_label": "box()"
+    },
+    {
+      "label": "useColorScheme.test.ts",
+      "file_type": "code",
+      "source_file": "test/useColorScheme.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "test_usecolorscheme_test",
+      "community": 1,
+      "community_name": "InstanceGraphUiProvider.tsx",
+      "norm_label": "usecolorscheme.test.ts"
     },
     {
       "label": "tsconfig.backend.json",
@@ -8974,7 +9057,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/App.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_app",
@@ -9014,7 +9097,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_app",
-      "target": "src_frontend_welcomepage",
+      "target": "src_frontend_usecolorscheme",
       "confidence_score": 1.0
     },
     {
@@ -9023,6 +9106,30 @@
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/App.tsx",
       "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_app",
+      "target": "src_frontend_usecolorscheme_usecolorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/App.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_app",
+      "target": "src_frontend_welcomepage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/App.tsx",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_app",
@@ -9047,11 +9154,23 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/App.tsx",
-      "source_location": "L8",
+      "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_app_app",
       "target": "src_frontend_state_graphstore_usegraphstore"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/frontend/App.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_app_app",
+      "target": "src_frontend_usecolorscheme_usecolorscheme"
     },
     {
       "relation": "imports",
@@ -20701,6 +20820,121 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_colorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_current",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_resolvecolorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_subscribe",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_usecolorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/useColorScheme.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_usecolorscheme_test",
+      "target": "src_frontend_usecolorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme_current",
+      "target": "src_frontend_usecolorscheme_resolvecolorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/useColorScheme.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_usecolorscheme_test",
+      "target": "src_frontend_usecolorscheme_resolvecolorscheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_current",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/frontend/useColorScheme.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_usecolorscheme_usecolorscheme",
+      "target": "src_frontend_usecolorscheme_subscribe",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
       "source_location": "L40",
       "weight": 1.0,
@@ -21917,5 +22151,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e4e6540ff8b0b0db6dfa36ae69848e48e8469e35"
+  "built_at_commit": "2b49ac25b21fa37f2fb3dcaa35ac29613bfe8f0a"
 }

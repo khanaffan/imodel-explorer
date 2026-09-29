@@ -12,7 +12,7 @@ import { loadInstanceProperties } from "../src/frontend/engine/instancePropertie
 
 async function main() {
   const [file, ...seeds] = process.argv.slice(2);
-  await IModelHost.startup({ cacheDir: join(tmpdir(), "instancegraph-bench") });
+  await IModelHost.startup({ cacheDir: join(tmpdir(), "imodel-explorer-bench") });
   const db = SnapshotDb.openFile(file);
   const port = createQueryPort(db as unknown as QuerySource);
   for (const prefer of ["relations", "fallback"] as const) {

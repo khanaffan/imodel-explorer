@@ -1,15 +1,15 @@
 {
   "0": "TraversalStrategy.ts",
-  "1": "InstanceGraphUiProvider.tsx",
+  "1": "useGraphStore",
   "2": "graphStore.ts",
   "3": "engine.test.ts",
-  "4": "NavigationHistory",
+  "4": "@bentley/icons-generic-webfont",
   "5": "GraphCanvas.tsx",
   "6": "devDependencies",
   "7": "frontend.test.ts",
   "8": "html-to-image",
   "9": "compilerOptions",
-  "10": "GraphEngine.ts",
+  "10": "ClassRegistry",
   "11": "scripts",
   "12": "compilerOptions",
   "13": "dependencies",
@@ -20,7 +20,6 @@
   "18": "@itwin/core-frontend",
   "19": "@itwin/appui-abstract",
   "20": "@itwin/appui-react",
-  "21": "@itwin/components-react",
   "22": "@itwin/core-bentley",
   "23": "@itwin/core-common",
   "24": "@itwin/core-electron",
@@ -54,5 +53,5 @@
   "52": "@stratakit/icons",
   "53": "@stratakit/mui",
   "54": "@stratakit/structures",
-  "55": "FiltersWidget.tsx"
+  "55": "GraphEngine.ts"
 }

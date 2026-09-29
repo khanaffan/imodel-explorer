@@ -2,7 +2,7 @@ import { ECSchemaRpcInterface } from "@itwin/ecschema-rpcinterface-common";
 import { PresentationRpcInterface } from "@itwin/presentation-common";
 import { IModelReadRpcInterface, IModelTileRpcInterface, type RpcInterfaceDefinition, SnapshotIModelRpcInterface } from "@itwin/core-common";
 
-export const APP_TITLE = "InstanceGraph";
+export const APP_TITLE = "iModel Data Explorer";
 
 /** Must be identical on both sides of the Electron bridge. */
 export function getRpcInterfaces(): RpcInterfaceDefinition[] {

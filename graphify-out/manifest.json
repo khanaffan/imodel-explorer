@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/frontend/engine/GraphEngine.ts": {
-    "mtime": 1790705415.8851097,
-    "ast_hash": "0c47bda8436fa8b0282688efd957fa4f",
+    "mtime": 1790715987.6947477,
+    "ast_hash": "86ae309b207759b0a197e518ccb7d6fa",
     "semantic_hash": ""
   },
   "src/frontend/engine/GraphModel.ts": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "src/frontend/engine/filters.ts": {
-    "mtime": 1790703341.5649118,
-    "ast_hash": "a0d7c93e73a3d2e2ae92aae348624007",
+    "mtime": 1790715987.695151,
+    "ast_hash": "a59127b02b8efe03502701b69372111a",
     "semantic_hash": ""
   },
   "src/frontend/engine/instanceProperties.ts": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "src/frontend/state/graphStore.ts": {
-    "mtime": 1790706668.39708,
-    "ast_hash": "52f27949110720a3d84b5a30d22d3ad7",
+    "mtime": 1790715990.917681,
+    "ast_hash": "5faa48367322dfdeb1da55d7373d6ad5",
     "semantic_hash": ""
   },
   "src/frontend/state/navigationHistory.ts": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "src/frontend/widgets/FiltersWidget.tsx": {
-    "mtime": 1790704262.5725076,
-    "ast_hash": "31d700bbcbe91f491cabcac64a71734f",
+    "mtime": 1790716024.2891555,
+    "ast_hash": "a475a7c93c2d7508614a11b0628f7b65",
     "semantic_hash": ""
   },
   "src/frontend/widgets/LegendWidget.tsx": {
@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "test/engine.test.ts": {
-    "mtime": 1790707352.9651062,
-    "ast_hash": "ec0720ba7bc1c20068c11e4e397cb7e0",
+    "mtime": 1790716048.2274852,
+    "ast_hash": "99d4dd09ef05d9131ead4878c31021f0",
     "semantic_hash": ""
   },
   "test/fixture.ts": {
@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1790714465.5806923,
-    "ast_hash": "b2635f916caf587256ca38f827176b97",
+    "mtime": 1790716129.5434752,
+    "ast_hash": "becc0768c8eb3330566871ea15dfddb5",
     "semantic_hash": ""
   },
   "index.html": {
@@ -302,6 +302,16 @@
   "test/useColorScheme.test.ts": {
     "mtime": 1790715641.6611907,
     "ast_hash": "b7c0868597403240bf2a0247d693c2e1",
+    "semantic_hash": ""
+  },
+  "src/frontend/engine/models.ts": {
+    "mtime": 1790715971.9317725,
+    "ast_hash": "ed52ed740625ac08982d396f382e7f5b",
+    "semantic_hash": ""
+  },
+  "test/models.test.ts": {
+    "mtime": 1790716048.2438958,
+    "ast_hash": "56d868fe05c9a06b884dd9eb3f3c993b",
     "semantic_hash": ""
   }
 }

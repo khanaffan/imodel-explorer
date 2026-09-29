@@ -263,8 +263,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "package_dependencies_bentley_icons_generic_webfont",
-      "community": 13,
-      "community_name": "dependencies",
+      "community": 4,
+      "community_name": "@bentley/icons-generic-webfont",
       "norm_label": "@bentley/icons-generic-webfont"
     },
     {
@@ -274,8 +274,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "bentley_icons_generic_webfont",
-      "community": 13,
-      "community_name": "dependencies",
+      "community": 4,
+      "community_name": "@bentley/icons-generic-webfont",
       "norm_label": "@bentley/icons-generic-webfont"
     },
     {
@@ -329,8 +329,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "package_dependencies_itwin_components_react",
-      "community": 21,
-      "community_name": "@itwin/components-react",
+      "community": 13,
+      "community_name": "dependencies",
       "norm_label": "@itwin/components-react"
     },
     {
@@ -340,8 +340,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "itwin_components_react",
-      "community": 21,
-      "community_name": "@itwin/components-react",
+      "community": 13,
+      "community_name": "dependencies",
       "norm_label": "@itwin/components-react"
     },
     {
@@ -1696,7 +1696,7 @@
       "_origin": "ast",
       "id": "src_backend_main",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "main.ts"
     },
     {
@@ -1708,7 +1708,7 @@
       "_origin": "ast",
       "id": "src_backend_main_main",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "main()"
     },
     {
@@ -1719,7 +1719,7 @@
       "_origin": "ast",
       "id": "src_common_appinfo",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "appinfo.ts"
     },
     {
@@ -1730,7 +1730,7 @@
       "_origin": "ast",
       "id": "src_common_appinfo_app_title",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "app_title"
     },
     {
@@ -1742,7 +1742,7 @@
       "_origin": "ast",
       "id": "src_common_appinfo_getrpcinterfaces",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "getrpcinterfaces()"
     },
     {
@@ -1753,7 +1753,7 @@
       "_origin": "ast",
       "id": "src_frontend_app",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "app.tsx"
     },
     {
@@ -1765,7 +1765,7 @@
       "_origin": "ast",
       "id": "src_frontend_app_app",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "app()"
     },
     {
@@ -1776,7 +1776,7 @@
       "_origin": "ast",
       "id": "src_frontend_welcomepage",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "welcomepage.tsx"
     },
     {
@@ -1788,7 +1788,7 @@
       "_origin": "ast",
       "id": "src_frontend_welcomepage_welcomepage",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "welcomepage()"
     },
     {
@@ -1799,7 +1799,7 @@
       "_origin": "ast",
       "id": "src_frontend_content_graphcontent",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "graphcontent.tsx"
     },
     {
@@ -1811,7 +1811,7 @@
       "_origin": "ast",
       "id": "src_frontend_content_graphcontent_graphcontent",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "graphcontent()"
     },
     {
@@ -1821,8 +1821,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_content_viewportcontent",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "viewportcontent.tsx"
     },
     {
@@ -1833,8 +1833,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_viewportcontent_viewportcontent",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "viewportcontent()"
     },
     {
@@ -1844,8 +1844,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_content_robustextents",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "robustextents.ts"
     },
     {
@@ -1857,8 +1857,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_box",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "box"
     },
     {
@@ -1868,8 +1868,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_strides",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "strides"
     },
     {
@@ -1880,8 +1880,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_queryrobustextents",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "queryrobustextents()"
     },
     {
@@ -1892,8 +1892,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_robustrange",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "robustrange()"
     },
     {
@@ -1904,8 +1904,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_intersects",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "intersects()"
     },
     {
@@ -1916,8 +1916,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_quantile",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "quantile()"
     },
     {
@@ -1928,8 +1928,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_robustextents_shouldrefit",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "shouldrefit()"
     },
     {
@@ -1939,8 +1939,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_content_viewportsync",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "viewportsync.ts"
     },
     {
@@ -1950,8 +1950,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_frontend_content_viewportsync_unsubscribers",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "unsubscribers"
     },
     {
@@ -1962,8 +1962,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_content_viewportsync_isgeometric",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "isgeometric()"
     },
     {
@@ -1973,8 +1973,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_frontend_content_viewportsync_viewportsync",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "viewportsync"
     },
     {
@@ -1984,8 +1984,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "classregistry.ts"
     },
     {
@@ -1997,8 +1997,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_viewclass",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "viewclass"
     },
     {
@@ -2011,7 +2011,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "classregistry"
     },
     {
@@ -2023,7 +2023,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_constructor",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".constructor()"
     },
     {
@@ -2034,8 +2034,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_create",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": ".create()"
     },
     {
@@ -2047,7 +2047,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_nameof",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".nameof()"
     },
     {
@@ -2059,7 +2059,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_idof",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".idof()"
     },
     {
@@ -2071,7 +2071,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_allclassnames",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".allclassnames()"
     },
     {
@@ -2083,7 +2083,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_findclass",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".findclass()"
     },
     {
@@ -2095,7 +2095,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_hierarchyof",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".hierarchyof()"
     },
     {
@@ -2107,7 +2107,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_isa",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".isa()"
     },
     {
@@ -2119,7 +2119,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_categoryof",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".categoryof()"
     },
     {
@@ -2131,7 +2131,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_classregistry_classregistry_kindof",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".kindof()"
     },
     {
@@ -2141,7 +2141,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "graphengine.ts"
     },
@@ -2149,20 +2149,20 @@
       "label": "TraversalOptions",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_traversaloptions",
-      "community": 7,
-      "community_name": "frontend.test.ts",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
       "norm_label": "traversaloptions"
     },
     {
       "label": "DEFAULT_OPTIONS",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L23",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_default_options",
       "community": 3,
@@ -2173,7 +2173,7 @@
       "label": "CancelToken",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L27",
+      "source_location": "L28",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -2186,7 +2186,7 @@
       "label": "TraversalCancelled",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -2199,7 +2199,7 @@
       "label": ".constructor()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L32",
+      "source_location": "L33",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_traversalcancelled_constructor",
@@ -2211,170 +2211,182 @@
       "label": "MutableGraph",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L35",
+      "source_location": "L36",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_mutablegraph",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "mutablegraph"
     },
     {
       "label": "toMutable()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L42",
+      "source_location": "L43",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_tomutable",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "tomutable()"
     },
     {
       "label": "freeze()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L46",
+      "source_location": "L47",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_freeze",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "freeze()"
     },
     {
       "label": "GraphEngine",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L54",
+      "source_location": "L55",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "graphengine"
     },
     {
       "label": ".constructor()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_constructor",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".constructor()"
+    },
+    {
+      "label": "._parentOf()",
+      "file_type": "code",
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L68",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_engine_graphengine_graphengine_parentof",
+      "community": 10,
+      "community_name": "ClassRegistry",
+      "norm_label": "._parentof()"
     },
     {
       "label": ".create()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L63",
+      "source_location": "L70",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_create",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": ".create()"
     },
     {
       "label": ".withStrategy()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L69",
+      "source_location": "L77",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_withstrategy",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": ".withstrategy()"
     },
     {
       "label": ".buildNeighbourhood()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L75",
+      "source_location": "L83",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".buildneighbourhood()"
     },
     {
       "label": ".expand()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L91",
+      "source_location": "L99",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_expand",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".expand()"
     },
     {
       "label": ".openAggregate()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L101",
+      "source_location": "L109",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_openaggregate",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".openaggregate()"
     },
     {
       "label": ".collapse()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L116",
+      "source_location": "L124",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_collapse",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".collapse()"
     },
     {
       "label": "._checkCancelled()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L158",
+      "source_location": "L166",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_checkcancelled",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "._checkcancelled()"
     },
     {
       "label": "._expandFrontier()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L165",
+      "source_location": "L173",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_expandfrontier",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "._expandfrontier()"
     },
     {
       "label": "._edgeFor()",
       "file_type": "code",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L289",
+      "source_location": "L297",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphengine_graphengine_edgefor",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "._edgefor()"
     },
     {
@@ -2384,8 +2396,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "graphmodel.ts"
     },
     {
@@ -2460,8 +2472,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_nodecategory",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "nodecategory"
     },
     {
@@ -2471,8 +2483,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_node_categories",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "node_categories"
     },
     {
@@ -2484,8 +2496,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_graphnode",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "graphnode"
     },
     {
@@ -2497,8 +2509,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_aggregateinfo",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "aggregateinfo"
     },
     {
@@ -2510,8 +2522,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_edgekind",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "edgekind"
     },
     {
@@ -2523,8 +2535,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_cardinality",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "cardinality"
     },
     {
@@ -2536,8 +2548,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_graphedge",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "graphedge"
     },
     {
@@ -2550,7 +2562,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_graphdata",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "graphdata"
     },
     {
@@ -2586,8 +2598,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_edgekeyfor",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 3,
+      "community_name": "engine.test.ts",
       "norm_label": "edgekeyfor()"
     },
     {
@@ -2611,7 +2623,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_graphmodel_parseaggregatekey",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "parseaggregatekey()"
     },
     {
@@ -2697,8 +2709,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_imodelqueryport_imodelqueryport",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": "imodelqueryport"
     },
     {
@@ -2721,8 +2733,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_imodelqueryport_imodelqueryport_getschemaview",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": ".getschemaview()"
     },
     {
@@ -2757,8 +2769,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_traversalstrategy_strategyname",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": "strategyname"
     },
     {
@@ -2881,8 +2893,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_traversalstrategy_relationstraversal_constructor",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": ".constructor()"
     },
     {
@@ -3019,7 +3031,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_traversalstrategy_fallbacktraversal_constructor",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".constructor()"
     },
     {
@@ -3245,8 +3257,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_ecsql_buildclasscatalogquery",
-      "community": 0,
-      "community_name": "TraversalStrategy.ts",
+      "community": 10,
+      "community_name": "ClassRegistry",
       "norm_label": "buildclasscatalogquery()"
     },
     {
@@ -3339,7 +3351,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_filters",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "filters.ts"
     },
@@ -3353,7 +3365,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_filters_filterstate",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "filterstate"
     },
     {
@@ -3366,7 +3378,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_filters_classfilterentry",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "classfilterentry"
     },
     {
@@ -3378,8 +3390,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_filterspec",
-      "community": 7,
-      "community_name": "frontend.test.ts",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
       "norm_label": "filterspec"
     },
     {
@@ -3389,7 +3401,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_frontend_engine_filters_empty_filters",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "empty_filters"
     },
@@ -3402,7 +3414,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_filters_isfilterempty",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "isfilterempty()"
     },
     {
@@ -3413,7 +3425,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_passes",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "passes()"
     },
@@ -3425,7 +3437,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_samename",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "samename()"
     },
@@ -3437,7 +3449,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_classmatches",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "classmatches()"
     },
@@ -3449,7 +3461,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_passesclassfilters",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "passesclassfilters()"
     },
@@ -3461,7 +3473,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_passesrelationshipfilters",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "passesrelationshipfilters()"
     },
@@ -3469,11 +3481,11 @@
       "label": "passesModelFilters()",
       "file_type": "code",
       "source_file": "src/frontend/engine/filters.ts",
-      "source_location": "L61",
+      "source_location": "L62",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_passesmodelfilters",
-      "community": 10,
+      "community": 55,
       "community_name": "GraphEngine.ts",
       "norm_label": "passesmodelfilters()"
     },
@@ -3481,12 +3493,12 @@
       "label": "cycleFilterState()",
       "file_type": "code",
       "source_file": "src/frontend/engine/filters.ts",
-      "source_location": "L67",
+      "source_location": "L76",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_filters_cyclefilterstate",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "cyclefilterstate()"
     },
     {
@@ -3522,8 +3534,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_instanceproperties_propertyrecord",
-      "community": 3,
-      "community_name": "engine.test.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "propertyrecord"
     },
     {
@@ -3569,8 +3581,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_engine_instanceproperties_resolvenavtargetclassid",
-      "community": 3,
-      "community_name": "engine.test.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "resolvenavtargetclassid()"
     },
     {
@@ -3586,14 +3598,75 @@
       "norm_label": "resolveclassidforid()"
     },
     {
+      "label": "models.ts",
+      "file_type": "code",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_frontend_engine_models",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "models.ts"
+    },
+    {
+      "label": "ModelInfo",
+      "file_type": "code",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L4",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "src_frontend_engine_models_modelinfo",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "modelinfo"
+    },
+    {
+      "label": "ModelTreeNode",
+      "file_type": "code",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L12",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "src_frontend_engine_models_modeltreenode",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "modeltreenode"
+    },
+    {
+      "label": "loadModels()",
+      "file_type": "code",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L19",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_engine_models_loadmodels",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "loadmodels()"
+    },
+    {
+      "label": "buildModelTree()",
+      "file_type": "code",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L32",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_engine_models_buildmodeltree",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "buildmodeltree()"
+    },
+    {
       "label": "relationshipInfo.ts",
       "file_type": "code",
       "source_file": "src/frontend/engine/relationshipInfo.ts",
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "relationshipinfo.ts"
     },
     {
@@ -3605,8 +3678,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_constraintinfo",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "constraintinfo"
     },
     {
@@ -3618,8 +3691,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfo",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "relationshipinfo"
     },
     {
@@ -3631,7 +3704,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_formatmultiplicity",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "formatmultiplicity()"
     },
     {
@@ -3641,8 +3714,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_strength",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "strength"
     },
     {
@@ -3655,7 +3728,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "relationshipinfocache"
     },
     {
@@ -3667,7 +3740,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache_constructor",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".constructor()"
     },
     {
@@ -3679,7 +3752,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache_get",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".get()"
     },
     {
@@ -3691,7 +3764,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_relationshipinfo_relationshipinfocache_compute",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "._compute()"
     },
     {
@@ -3752,7 +3825,7 @@
       "_origin": "ast",
       "id": "src_frontend_engine_resolvenodes_noderesolver_constructor",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": ".constructor()"
     },
     {
@@ -3928,7 +4001,7 @@
       "_origin": "ast",
       "id": "src_frontend_frontstages_instancegraphuiprovider",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "instancegraphuiprovider.tsx"
     },
     {
@@ -3939,7 +4012,7 @@
       "_origin": "ast",
       "id": "src_frontend_frontstages_instancegraphuiprovider_instancegraphuiprovider",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "instancegraphuiprovider"
     },
     {
@@ -3950,7 +4023,7 @@
       "_origin": "ast",
       "id": "src_frontend_frontstages_mainfrontstage",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "mainfrontstage.tsx"
     },
     {
@@ -3961,7 +4034,7 @@
       "_origin": "ast",
       "id": "src_frontend_frontstages_mainfrontstage_main_stage_id",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "main_stage_id"
     },
     {
@@ -3973,7 +4046,7 @@
       "_origin": "ast",
       "id": "src_frontend_frontstages_mainfrontstage_createmainfrontstage",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "createmainfrontstage()"
     },
     {
@@ -4018,8 +4091,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_graph_graphcanvas_leaving",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "leaving"
     },
     {
@@ -4054,8 +4127,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_graph_graphcanvas_graphemptystate",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "graphemptystate()"
     },
     {
@@ -4067,7 +4140,7 @@
       "_origin": "ast",
       "id": "src_frontend_graph_graphcanvas_graphcanvas",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "graphcanvas()"
     },
     {
@@ -4365,8 +4438,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_graph_layout_layoutmode",
-      "community": 7,
-      "community_name": "frontend.test.ts",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
       "norm_label": "layoutmode"
     },
     {
@@ -4781,7 +4854,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "apphost.ts"
     },
     {
@@ -4794,7 +4867,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_apphost",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "apphost"
     },
     {
@@ -4806,7 +4879,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_apphost_pickimodelfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".pickimodelfile()"
     },
     {
@@ -4818,7 +4891,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_apphost_getrecentfiles",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".getrecentfiles()"
     },
     {
@@ -4830,7 +4903,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_apphost_addrecentfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".addrecentfile()"
     },
     {
@@ -4842,7 +4915,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_apphost_removerecentfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".removerecentfile()"
     },
     {
@@ -4855,7 +4928,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_electronapphost",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "electronapphost"
     },
     {
@@ -4867,7 +4940,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_electronapphost_pickimodelfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".pickimodelfile()"
     },
     {
@@ -4879,7 +4952,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_electronapphost_getrecentfiles",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".getrecentfiles()"
     },
     {
@@ -4891,7 +4964,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_electronapphost_addrecentfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".addrecentfile()"
     },
     {
@@ -4903,7 +4976,7 @@
       "_origin": "ast",
       "id": "src_frontend_host_apphost_electronapphost_removerecentfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": ".removerecentfile()"
     },
     {
@@ -4914,7 +4987,7 @@
       "_origin": "ast",
       "id": "src_frontend_imodel_openimodel",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "openimodel.ts"
     },
     {
@@ -4926,7 +4999,7 @@
       "_origin": "ast",
       "id": "src_frontend_imodel_openimodel_openimodelfile",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "openimodelfile()"
     },
     {
@@ -4938,7 +5011,7 @@
       "_origin": "ast",
       "id": "src_frontend_imodel_openimodel_closeimodel",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "closeimodel()"
     },
     {
@@ -4949,7 +5022,7 @@
       "_origin": "ast",
       "id": "src_frontend_imodel_session",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "session.ts"
     },
     {
@@ -4961,7 +5034,7 @@
       "_origin": "ast",
       "id": "src_frontend_imodel_session_openandshow",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "openandshow()"
     },
     {
@@ -4973,7 +5046,7 @@
       "_origin": "ast",
       "id": "src_frontend_imodel_session_closecurrent",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "closecurrent()"
     },
     {
@@ -4984,7 +5057,7 @@
       "_origin": "ast",
       "id": "src_frontend_index",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "index.tsx"
     },
     {
@@ -4996,7 +5069,7 @@
       "_origin": "ast",
       "id": "src_frontend_index_start",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "start()"
     },
     {
@@ -5139,8 +5212,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_services_sessionstore_savedsession",
-      "community": 7,
-      "community_name": "frontend.test.ts",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
       "norm_label": "savedsession"
     },
     {
@@ -5210,8 +5283,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_state_colortheme",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "colortheme.ts"
     },
     {
@@ -5223,8 +5296,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_colorrule",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "colorrule"
     },
     {
@@ -5236,8 +5309,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_colortheme",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "colortheme"
     },
     {
@@ -5247,8 +5320,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_category_labels",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "category_labels"
     },
     {
@@ -5258,8 +5331,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_default_theme",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "default_theme"
     },
     {
@@ -5270,8 +5343,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_colorfor",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 5,
+      "community_name": "GraphCanvas.tsx",
       "norm_label": "colorfor()"
     },
     {
@@ -5282,8 +5355,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_colortheme_loadtheme",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "loadtheme()"
     },
     {
@@ -5348,48 +5421,35 @@
       "norm_label": "selection"
     },
     {
-      "label": "ModelInfo",
-      "file_type": "code",
-      "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L22",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "src_frontend_state_graphstore_modelinfo",
-      "community": 2,
-      "community_name": "graphStore.ts",
-      "norm_label": "modelinfo"
-    },
-    {
       "label": "GraphState",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L28",
+      "source_location": "L25",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_graphstate",
-      "community": 7,
-      "community_name": "frontend.test.ts",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
       "norm_label": "graphstate"
     },
     {
       "label": "loadOptions()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L49",
+      "source_location": "L46",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_loadoptions",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "loadoptions()"
     },
     {
       "label": "saveOptions()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L58",
+      "source_location": "L55",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_saveoptions",
@@ -5401,18 +5461,18 @@
       "label": "useGraphStore",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L63",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_usegraphstore",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "usegraphstore"
     },
     {
       "label": "history",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L76",
+      "source_location": "L73",
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_history",
       "community": 2,
@@ -5423,7 +5483,7 @@
       "label": "beginWork()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L83",
+      "source_location": "L80",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_beginwork",
@@ -5435,7 +5495,7 @@
       "label": "syncHistoryFlags()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L91",
+      "source_location": "L88",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_synchistoryflags",
@@ -5447,19 +5507,19 @@
       "label": "recordHistory()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L95",
+      "source_location": "L92",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_recordhistory",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "recordhistory()"
     },
     {
       "label": "fail()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L103",
+      "source_location": "L100",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_fail",
@@ -5471,7 +5531,7 @@
       "label": "describe()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L108",
+      "source_location": "L105",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_describe",
@@ -5483,7 +5543,7 @@
       "label": "mergeProgress()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L118",
+      "source_location": "L115",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_mergeprogress",
@@ -5492,33 +5552,21 @@
       "norm_label": "mergeprogress()"
     },
     {
-      "label": "loadModels()",
-      "file_type": "code",
-      "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L130",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "src_frontend_state_graphstore_loadmodels",
-      "community": 2,
-      "community_name": "graphStore.ts",
-      "norm_label": "loadmodels()"
-    },
-    {
       "label": "graphActions",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L138",
+      "source_location": "L127",
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_graphactions",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "graphactions"
     },
     {
       "label": "restore()",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L292",
+      "source_location": "L280",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_restore",
@@ -5530,7 +5578,7 @@
       "label": "graphHistory",
       "file_type": "code",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L306",
+      "source_location": "L294",
       "_origin": "ast",
       "id": "src_frontend_state_graphstore_graphhistory",
       "community": 2,
@@ -5545,7 +5593,7 @@
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "navigationhistory.ts"
     },
     {
@@ -5558,7 +5606,7 @@
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_historyentry",
       "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community_name": "ClassRegistry",
       "norm_label": "historyentry"
     },
     {
@@ -5570,8 +5618,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "navigationhistory"
     },
     {
@@ -5582,8 +5630,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_constructor",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -5594,8 +5642,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_current",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".current()"
     },
     {
@@ -5606,8 +5654,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_cangoback",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".cangoback()"
     },
     {
@@ -5618,8 +5666,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_cangoforward",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".cangoforward()"
     },
     {
@@ -5630,8 +5678,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_entries",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".entries()"
     },
     {
@@ -5642,8 +5690,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_index",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".index()"
     },
     {
@@ -5654,8 +5702,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_push",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".push()"
     },
     {
@@ -5666,8 +5714,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_replacecurrent",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".replacecurrent()"
     },
     {
@@ -5678,8 +5726,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_back",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".back()"
     },
     {
@@ -5690,8 +5738,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_forward",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".forward()"
     },
     {
@@ -5702,8 +5750,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_state_navigationhistory_navigationhistory_clear",
-      "community": 4,
-      "community_name": "NavigationHistory",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": ".clear()"
     },
     {
@@ -5714,7 +5762,7 @@
       "_origin": "ast",
       "id": "src_frontend_state_selectionstorage",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "selectionstorage.ts"
     },
     {
@@ -5726,7 +5774,7 @@
       "_origin": "ast",
       "id": "src_frontend_state_selectionstorage_getunifiedselectionstorage",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "getunifiedselectionstorage()"
     },
     {
@@ -5738,7 +5786,7 @@
       "_origin": "ast",
       "id": "src_frontend_state_selectionstorage_synctreeselectiontograph",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "synctreeselectiontograph()"
     },
     {
@@ -5749,7 +5797,7 @@
       "_origin": "ast",
       "id": "src_frontend_usecolorscheme",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "usecolorscheme.ts"
     },
     {
@@ -5762,7 +5810,7 @@
       "_origin": "ast",
       "id": "src_frontend_usecolorscheme_colorscheme",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "colorscheme"
     },
     {
@@ -5774,7 +5822,7 @@
       "_origin": "ast",
       "id": "src_frontend_usecolorscheme_resolvecolorscheme",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "resolvecolorscheme()"
     },
     {
@@ -5786,7 +5834,7 @@
       "_origin": "ast",
       "id": "src_frontend_usecolorscheme_current",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "current()"
     },
     {
@@ -5798,7 +5846,7 @@
       "_origin": "ast",
       "id": "src_frontend_usecolorscheme_subscribe",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "subscribe()"
     },
     {
@@ -5810,7 +5858,7 @@
       "_origin": "ast",
       "id": "src_frontend_usecolorscheme_usecolorscheme",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "usecolorscheme()"
     },
     {
@@ -5821,114 +5869,138 @@
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "filterswidget.tsx"
     },
     {
       "label": "TriState()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_tristate",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "tristate()"
     },
     {
       "label": "setIn()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L15",
+      "source_location": "L25",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_setin",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "setin()"
     },
     {
       "label": "updateFilters()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L22",
+      "source_location": "L32",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_updatefilters",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "updatefilters()"
     },
     {
       "label": "Section()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L26",
+      "source_location": "L36",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_section",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "section()"
     },
     {
       "label": "countLabel()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L35",
+      "source_location": "L45",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_countlabel",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "countlabel()"
     },
     {
       "label": "ClassFilterSection()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L40",
+      "source_location": "L50",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_classfiltersection",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "classfiltersection()"
     },
     {
       "label": "StateList()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L79",
+      "source_location": "L89",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_statelist",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "statelist()"
+    },
+    {
+      "label": "modelDetail()",
+      "file_type": "code",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L115",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_widgets_filterswidget_modeldetail",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "modeldetail()"
+    },
+    {
+      "label": "ModelTreeList()",
+      "file_type": "code",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L119",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_frontend_widgets_filterswidget_modeltreelist",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "modeltreelist()"
     },
     {
       "label": "FiltersWidget()",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L105",
+      "source_location": "L179",
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_filterswidget",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "filterswidget()"
     },
     {
       "label": "filterEdits",
       "file_type": "code",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L164",
+      "source_location": "L236",
       "_origin": "ast",
       "id": "src_frontend_widgets_filterswidget_filteredits",
       "community": 55,
-      "community_name": "FiltersWidget.tsx",
+      "community_name": "GraphEngine.ts",
       "norm_label": "filteredits"
     },
     {
@@ -5938,8 +6010,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_widgets_legendwidget",
-      "community": 10,
-      "community_name": "GraphEngine.ts",
+      "community": 2,
+      "community_name": "graphStore.ts",
       "norm_label": "legendwidget.tsx"
     },
     {
@@ -5950,8 +6022,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_legendwidget_legendwidget",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "legendwidget()"
     },
     {
@@ -5961,8 +6033,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "propertieswidget.tsx"
     },
     {
@@ -5973,8 +6045,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_usepropertyrecords",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "usepropertyrecords()"
     },
     {
@@ -5985,8 +6057,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_gotonavtarget",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "gotonavtarget()"
     },
     {
@@ -5997,8 +6069,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_propertyrow",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "propertyrow()"
     },
     {
@@ -6009,8 +6081,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_propertytable",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "propertytable()"
     },
     {
@@ -6021,8 +6093,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_nodedetails",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "nodedetails()"
     },
     {
@@ -6033,8 +6105,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_constraint",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "constraint()"
     },
     {
@@ -6045,8 +6117,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_edgedetails",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "edgedetails()"
     },
     {
@@ -6057,8 +6129,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_frontend_widgets_propertieswidget_propertieswidget",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "propertieswidget()"
     },
     {
@@ -6115,7 +6187,7 @@
       "_origin": "ast",
       "id": "src_frontend_widgets_visibilitytreeswidget",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "visibilitytreeswidget.tsx"
     },
     {
@@ -6128,7 +6200,7 @@
       "_origin": "ast",
       "id": "src_frontend_widgets_visibilitytreeswidget_classificationsystem",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "classificationsystem"
     },
     {
@@ -6140,7 +6212,7 @@
       "_origin": "ast",
       "id": "src_frontend_widgets_visibilitytreeswidget_queryclassificationsystems",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "queryclassificationsystems()"
     },
     {
@@ -6152,7 +6224,7 @@
       "_origin": "ast",
       "id": "src_frontend_widgets_visibilitytreeswidget_visibilitytreeswidget",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "visibilitytreeswidget()"
     },
     {
@@ -6341,8 +6413,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "test_frontend_test_fakescheduler",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": "fakescheduler"
     },
     {
@@ -6353,8 +6425,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "test_frontend_test_fakescheduler_now",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": ".now()"
     },
     {
@@ -6365,8 +6437,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "test_frontend_test_fakescheduler_request",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": ".request()"
     },
     {
@@ -6377,8 +6449,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "test_frontend_test_fakescheduler_cancel",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": ".cancel()"
     },
     {
@@ -6389,9 +6461,78 @@
       "_callable": true,
       "_origin": "ast",
       "id": "test_frontend_test_fakescheduler_tick",
-      "community": 5,
-      "community_name": "GraphCanvas.tsx",
+      "community": 7,
+      "community_name": "frontend.test.ts",
       "norm_label": ".tick()"
+    },
+    {
+      "label": "models.test.ts",
+      "file_type": "code",
+      "source_file": "test/models.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "test_models_test",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "models.test.ts"
+    },
+    {
+      "label": "m()",
+      "file_type": "code",
+      "source_file": "test/models.test.ts",
+      "source_location": "L5",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "test_models_test_m",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "m()"
+    },
+    {
+      "label": "models",
+      "file_type": "code",
+      "source_file": "test/models.test.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "test_models_test_models",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "models"
+    },
+    {
+      "label": "parents",
+      "file_type": "code",
+      "source_file": "test/models.test.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "test_models_test_parents",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "parents"
+    },
+    {
+      "label": "parentOf()",
+      "file_type": "code",
+      "source_file": "test/models.test.ts",
+      "source_location": "L10",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "test_models_test_parentof",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "parentof()"
+    },
+    {
+      "label": "passes()",
+      "file_type": "code",
+      "source_file": "test/models.test.ts",
+      "source_location": "L11",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "test_models_test_passes",
+      "community": 55,
+      "community_name": "GraphEngine.ts",
+      "norm_label": "passes()"
     },
     {
       "label": "robustExtents.test.ts",
@@ -6400,8 +6541,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_robustextents_test",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "robustextents.test.ts"
     },
     {
@@ -6412,8 +6553,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "test_robustextents_test_box",
-      "community": 2,
-      "community_name": "graphStore.ts",
+      "community": 1,
+      "community_name": "useGraphStore",
       "norm_label": "box()"
     },
     {
@@ -6424,7 +6565,7 @@
       "_origin": "ast",
       "id": "test_usecolorscheme_test",
       "community": 1,
-      "community_name": "InstanceGraphUiProvider.tsx",
+      "community_name": "useGraphStore",
       "norm_label": "usecolorscheme.test.ts"
     },
     {
@@ -9845,6 +9986,18 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_classregistry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/relationshipInfo.ts",
       "source_location": "L1",
       "weight": 1.0,
@@ -10004,7 +10157,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_constructor",
@@ -10020,6 +10173,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_instanceproperties",
+      "target": "src_frontend_engine_classregistry_classregistry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
       "target": "src_frontend_engine_classregistry_classregistry",
       "confidence_score": 1.0
     },
@@ -10149,7 +10314,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L64",
+      "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_create",
@@ -10173,7 +10338,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L293",
+      "source_location": "L301",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_edgefor",
@@ -10185,7 +10350,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L274",
+      "source_location": "L282",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -10201,6 +10366,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_instanceproperties_loadinstanceproperties",
+      "target": "src_frontend_engine_classregistry_classregistry_nameof"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models_loadmodels",
       "target": "src_frontend_engine_classregistry_classregistry_nameof"
     },
     {
@@ -10305,7 +10482,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L186",
+      "source_location": "L194",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -10388,7 +10565,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L302",
+      "source_location": "L310",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10459,7 +10636,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10470,7 +10647,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L23",
+      "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10481,7 +10658,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L46",
+      "source_location": "L47",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10492,7 +10669,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10503,7 +10680,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L35",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10514,7 +10691,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10525,7 +10702,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10536,7 +10713,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10548,7 +10725,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10716,7 +10893,43 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L8",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_graphengine",
+      "target": "src_frontend_engine_models",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_graphengine",
+      "target": "src_frontend_engine_models_loadmodels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_graphengine",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10728,7 +10941,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L8",
+      "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10740,7 +10953,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10752,7 +10965,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10764,7 +10977,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10776,7 +10989,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10788,7 +11001,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10800,7 +11013,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine",
@@ -10872,7 +11085,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_traversaloptions",
@@ -10884,7 +11097,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_traversaloptions",
@@ -10932,7 +11145,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L33",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_graphstate",
@@ -11003,7 +11216,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_traversalcancelled",
@@ -11039,7 +11252,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_mutablegraph",
@@ -11051,7 +11264,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_mutablegraph",
@@ -11063,7 +11276,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L92",
+      "source_location": "L100",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expand",
@@ -11075,7 +11288,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L107",
+      "source_location": "L115",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_openaggregate",
@@ -11087,7 +11300,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L85",
+      "source_location": "L93",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11099,7 +11312,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L97",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expand",
@@ -11111,7 +11324,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L112",
+      "source_location": "L120",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_openaggregate",
@@ -11122,7 +11335,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L75",
+      "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11133,7 +11346,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L158",
+      "source_location": "L166",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11144,7 +11357,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L116",
+      "source_location": "L124",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11155,7 +11368,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11166,7 +11379,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L63",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11177,7 +11390,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L289",
+      "source_location": "L297",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11188,7 +11401,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L91",
+      "source_location": "L99",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11199,7 +11412,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L165",
+      "source_location": "L173",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11210,7 +11423,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L101",
+      "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11221,7 +11434,18 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L69",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_graphengine_graphengine",
+      "target": "src_frontend_engine_graphengine_graphengine_parentof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine",
@@ -11257,7 +11481,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L31",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_graphstate",
@@ -11281,7 +11505,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_constructor",
@@ -11293,7 +11517,19 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_graphengine_graphengine_constructor",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_constructor",
@@ -11305,7 +11541,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_constructor",
@@ -11317,7 +11553,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_constructor",
@@ -11329,7 +11565,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L63",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_create",
@@ -11342,7 +11578,19 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L65",
+      "source_location": "L73",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_graphengine_graphengine_create",
+      "target": "src_frontend_engine_models_loadmodels"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/frontend/engine/GraphEngine.ts",
+      "source_location": "L72",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_create",
@@ -11353,7 +11601,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L63",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_create",
@@ -11365,7 +11613,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L69",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_withstrategy",
@@ -11377,7 +11625,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L78",
+      "source_location": "L86",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11389,7 +11637,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L84",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11401,7 +11649,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L75",
+      "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11413,7 +11661,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L75",
+      "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11426,7 +11674,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L76",
+      "source_location": "L84",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11438,7 +11686,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L77",
+      "source_location": "L85",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_buildneighbourhood",
@@ -11449,7 +11697,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L96",
+      "source_location": "L104",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expand",
@@ -11461,7 +11709,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L91",
+      "source_location": "L99",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expand",
@@ -11473,7 +11721,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L111",
+      "source_location": "L119",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_openaggregate",
@@ -11485,7 +11733,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L101",
+      "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_openaggregate",
@@ -11497,7 +11745,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L116",
+      "source_location": "L124",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_collapse",
@@ -11509,7 +11757,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L175",
+      "source_location": "L183",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11522,7 +11770,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L186",
+      "source_location": "L194",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11534,7 +11782,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L259",
+      "source_location": "L267",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11546,7 +11794,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L207",
+      "source_location": "L215",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11557,7 +11805,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L267",
+      "source_location": "L275",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11570,7 +11818,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L200",
+      "source_location": "L208",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11582,7 +11830,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L201",
+      "source_location": "L209",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11594,7 +11842,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L199",
+      "source_location": "L207",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11606,7 +11854,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L271",
+      "source_location": "L279",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11618,7 +11866,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L166",
+      "source_location": "L174",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11630,7 +11878,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L283",
+      "source_location": "L291",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11642,7 +11890,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L248",
+      "source_location": "L256",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11654,7 +11902,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L169",
+      "source_location": "L177",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_expandfrontier",
@@ -11665,7 +11913,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L289",
+      "source_location": "L297",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_edgefor",
@@ -11677,7 +11925,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L289",
+      "source_location": "L297",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_edgefor",
@@ -11690,7 +11938,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/engine/GraphEngine.ts",
-      "source_location": "L297",
+      "source_location": "L305",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_graphengine_graphengine_edgefor",
@@ -13027,7 +13275,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L32",
+      "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_graphstate",
@@ -13100,7 +13348,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L64",
+      "source_location": "L61",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_usegraphstore",
@@ -13309,6 +13557,18 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_imodelqueryport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/resolveNodes.ts",
       "source_location": "L4",
       "weight": 1.0,
@@ -13461,6 +13721,18 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_imodelqueryport_imodelqueryport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/resolveNodes.ts",
       "source_location": "L4",
       "weight": 1.0,
@@ -13551,6 +13823,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_instanceproperties_resolvenavtargetclassid",
+      "target": "src_frontend_engine_imodelqueryport_imodelqueryport_query"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models_loadmodels",
       "target": "src_frontend_engine_imodelqueryport_imodelqueryport_query"
     },
     {
@@ -15092,7 +15376,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/filters.ts",
-      "source_location": "L67",
+      "source_location": "L76",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_filters",
@@ -15169,7 +15453,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/engine/filters.ts",
-      "source_location": "L61",
+      "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_filters",
@@ -15243,6 +15527,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_engine_test",
+      "target": "src_frontend_engine_filters",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
       "target": "src_frontend_engine_filters",
       "confidence_score": 1.0
     },
@@ -15346,6 +15642,18 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "src_frontend_engine_filters_empty_filters",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -15360,7 +15668,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L146",
+      "source_location": "L220",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_filterswidget",
@@ -15375,18 +15683,6 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_engine_filters_passesclassfilters",
-      "target": "src_frontend_engine_filters_passes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/frontend/engine/filters.ts",
-      "source_location": "L64",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_frontend_engine_filters_passesmodelfilters",
       "target": "src_frontend_engine_filters_passes",
       "confidence_score": 1.0
     },
@@ -15478,6 +15774,30 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "src_frontend_engine_filters_passesmodelfilters",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test_passes",
+      "target": "src_frontend_engine_filters_passesmodelfilters",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -15492,7 +15812,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L11",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_tristate",
@@ -15766,6 +16086,194 @@
       "_origin": "ast",
       "source": "src_frontend_engine_seedquery_runseedquery",
       "target": "src_frontend_engine_instanceproperties_resolveclassidforid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_models_buildmodeltree",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_models_loadmodels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models",
+      "target": "src_frontend_engine_models_modeltreenode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/state/graphStore.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_state_graphstore",
+      "target": "src_frontend_engine_models",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget",
+      "target": "src_frontend_engine_models",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "src_frontend_engine_models",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/state/graphStore.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_state_graphstore",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/state/graphStore.ts",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_state_graphstore_graphstate",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "src_frontend_engine_models_modelinfo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget",
+      "target": "src_frontend_engine_models_modeltreenode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/frontend/engine/models.ts",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_engine_models_buildmodeltree",
+      "target": "test_models_test_m"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget",
+      "target": "src_frontend_engine_models_buildmodeltree",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L124",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget_modeltreelist",
+      "target": "src_frontend_engine_models_buildmodeltree",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "src_frontend_engine_models_buildmodeltree",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -17958,7 +18466,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L36",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_graphstate",
@@ -19763,7 +20271,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L37",
+      "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_graphstate",
@@ -19860,7 +20368,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L69",
+      "source_location": "L66",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_usegraphstore",
@@ -19918,7 +20426,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L83",
+      "source_location": "L80",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19929,7 +20437,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L108",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19940,7 +20448,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L103",
+      "source_location": "L100",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19951,7 +20459,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L138",
+      "source_location": "L127",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19962,7 +20470,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L306",
+      "source_location": "L294",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19973,7 +20481,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L28",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19984,7 +20492,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L76",
+      "source_location": "L73",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -19995,18 +20503,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L130",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_frontend_state_graphstore",
-      "target": "src_frontend_state_graphstore_loadmodels",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L49",
+      "source_location": "L46",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20017,7 +20514,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L118",
+      "source_location": "L115",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20028,18 +20525,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L22",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_frontend_state_graphstore",
-      "target": "src_frontend_state_graphstore_modelinfo",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L95",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20050,7 +20536,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L292",
+      "source_location": "L280",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20061,7 +20547,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L58",
+      "source_location": "L55",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20094,7 +20580,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L91",
+      "source_location": "L88",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20105,7 +20591,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L63",
+      "source_location": "L60",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore",
@@ -20153,7 +20639,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20225,7 +20711,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L65",
+      "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_usegraphstore",
@@ -20237,7 +20723,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20250,7 +20736,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L106",
+      "source_location": "L180",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_filterswidget",
@@ -20417,7 +20903,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L100",
+      "source_location": "L97",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_recordhistory",
@@ -20429,7 +20915,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L303",
+      "source_location": "L291",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_restore",
@@ -20442,7 +20928,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L99",
+      "source_location": "L96",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_recordhistory",
@@ -20454,7 +20940,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L98",
+      "source_location": "L95",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_recordhistory",
@@ -20465,7 +20951,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/state/graphStore.ts",
-      "source_location": "L301",
+      "source_location": "L289",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_state_graphstore_restore",
@@ -20489,7 +20975,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20936,7 +21422,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L40",
+      "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20947,7 +21433,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L35",
+      "source_location": "L45",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20958,7 +21444,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L164",
+      "source_location": "L236",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20969,7 +21455,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L105",
+      "source_location": "L179",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20980,7 +21466,29 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L26",
+      "source_location": "L115",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget",
+      "target": "src_frontend_widgets_filterswidget_modeldetail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget",
+      "target": "src_frontend_widgets_filterswidget_modeltreelist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -20991,7 +21499,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L15",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -21002,7 +21510,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L79",
+      "source_location": "L89",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -21013,7 +21521,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -21024,7 +21532,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L22",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget",
@@ -21048,7 +21556,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L61",
+      "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_classfiltersection",
@@ -21060,7 +21568,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L95",
+      "source_location": "L131",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget_modeltreelist",
+      "target": "src_frontend_widgets_filterswidget_setin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_statelist",
@@ -21072,7 +21592,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L152",
+      "source_location": "L224",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_filterswidget",
@@ -21084,11 +21604,23 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/frontend/widgets/FiltersWidget.tsx",
-      "source_location": "L29",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_frontend_widgets_filterswidget_section",
       "target": "src_frontend_widgets_filterswidget_countlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/frontend/widgets/FiltersWidget.tsx",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_frontend_widgets_filterswidget_modeltreelist",
+      "target": "src_frontend_widgets_filterswidget_modeldetail",
       "confidence_score": 1.0
     },
     {
@@ -21551,6 +22083,73 @@
       "source": "test_frontend_test_fakescheduler",
       "target": "test_frontend_test_fakescheduler_tick",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "test_models_test_m",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "test_models_test_models",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "test_models_test_parentof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "test_models_test_parents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test",
+      "target": "test_models_test_passes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "test/models.test.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_models_test_passes",
+      "target": "test_models_test_parentof",
+      "confidence_score": 0.5
     },
     {
       "relation": "contains",
@@ -22151,5 +22750,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "2b49ac25b21fa37f2fb3dcaa35ac29613bfe8f0a"
+  "built_at_commit": "89e487fa73b7245d27509ee9a3d061a226dcf745"
 }

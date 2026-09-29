@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as path from "node:path";
 import { app } from "electron";
 import { IModelHost } from "@itwin/core-backend";
@@ -10,6 +11,7 @@ import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
  * backend only needs to open files and serve tiles, so no custom IPC handlers are registered.
  * This is the only file that knows about Electron — a Studio host would replace it. */
 async function main() {
+  migrateLocalStorage();
   const dev = process.env.IG_DEV === "1";
   await ElectronHost.startup({
     electronHost: {
@@ -37,3 +39,17 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+/** The app was called InstanceGraph (user-data folder `instance-graph`). Carry its localStorage
+ * (sessions, recent files, colours, options) over once, before Chromium opens the new profile. */
+function migrateLocalStorage() {
+  try {
+    const target = path.join(app.getPath("userData"), "Local Storage");
+    const source = path.join(app.getPath("appData"), "instance-graph", "Local Storage");
+    if (!fs.existsSync(target) && fs.existsSync(source))
+      fs.cpSync(source, target, { recursive: true });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn("Could not migrate settings from InstanceGraph:", e);
+  }
+}

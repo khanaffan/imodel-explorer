@@ -1,3 +1,4 @@
+import { APP_TITLE } from "../../common/appInfo";
 import { UiFramework } from "@itwin/appui-react";
 import { createMainFrontstage, MAIN_STAGE_ID } from "../frontstages/MainFrontstage";
 import { appHost } from "../host/AppHost";
@@ -17,7 +18,7 @@ export async function openAndShow(fileName: string): Promise<void> {
     stageRegistered = true;
   }
   await UiFramework.frontstages.setActiveFrontstage(MAIN_STAGE_ID);
-  document.title = `InstanceGraph — ${fileName.split(/[\\/]/).pop()}`;
+  document.title = `${APP_TITLE} — ${fileName.split(/[\\/]/).pop()}`;
   await graphActions.attach(connection, fileName);
 }
 
@@ -26,6 +27,6 @@ export async function closeCurrent(): Promise<void> {
   if (!connection) return;
   graphActions.detach();
   UiFramework.setIModelConnection(undefined, true);
-  document.title = "InstanceGraph";
+  document.title = APP_TITLE;
   await closeIModel(connection);
 }

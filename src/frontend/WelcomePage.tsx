@@ -1,3 +1,4 @@
+import { APP_TITLE } from "../common/appInfo";
 import { SvgFolderOpened, SvgNetwork } from "@itwin/itwinui-icons-react";
 import { Button, Text } from "@itwin/itwinui-react";
 import { useState } from "react";
@@ -26,7 +27,7 @@ export function WelcomePage() {
   return (
     <div className="ig-welcome">
       <div className="ig-welcome__panel">
-        <div className="ig-welcome__title"><SvgNetwork /> <span>InstanceGraph</span></div>
+        <div className="ig-welcome__title"><SvgNetwork /> <span>{APP_TITLE}</span></div>
         <Text isMuted>Explore how EC instances in an iModel relate to each other — navigation properties, link-table relationships, models and aspects — starting from any instance you pick with ECSQL.</Text>
         <Button styleType="high-visibility" startIcon={<SvgFolderOpened />} disabled={!!busy}
           onClick={async () => open(await appHost.pickIModelFile())}>Open iModel…</Button>

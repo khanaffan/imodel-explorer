@@ -1,4 +1,4 @@
-# InstanceGraph
+# iModel Data Explorer
 
 A developer tool for looking at the **instance graph** of an iModel: the actual EC instances and the
 relationships between them, rather than the schema. Open a `.bim` file, pick a starting instance
@@ -116,5 +116,5 @@ src/
 | `npm run smoke [file.bim] [ecsql]` | Playwright-driven end-to-end run of the built app; writes screenshots to `dist/smoke/` |
 | `npm run bench -- file.bim "<ecsql>"…` | Times seed queries, depth 1–3 traversals and property loads with both strategies, read-only (`MAX_DEPTH=2` for huge files) |
 
-In the renderer devtools console, `instanceGraph.openAndShow(path)`, `instanceGraph.graphActions`
-and `instanceGraph.getState()` are available for scripting, plus `instanceGraph.IModelApp`.
+In the renderer devtools console, `imodelExplorer.openAndShow(path)`, `imodelExplorer.graphActions`
+and `imodelExplorer.getState()` are available for scripting, plus `imodelExplorer.IModelApp`.

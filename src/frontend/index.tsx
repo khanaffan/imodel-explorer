@@ -7,7 +7,7 @@ import { ITwinLocalization } from "@itwin/core-i18n";
 import { Presentation } from "@itwin/presentation-frontend";
 import { LOCALIZATION_NAMESPACES as TREE_WIDGET_NAMESPACES } from "@itwin/tree-widget-react";
 import { createRoot } from "react-dom/client";
-import { getRpcInterfaces } from "../common/appInfo";
+import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
 import { App } from "./App";
 import { instanceGraphUiProvider } from "./frontstages/InstanceGraphUiProvider";
 import { MAIN_STAGE_ID } from "./frontstages/MainFrontstage";
@@ -28,10 +28,10 @@ async function start() {
   UiItemsManager.register(instanceGraphUiProvider);
   StandardNavigationToolsProvider.register("InstanceGraph:Navigation", undefined, (stageId) => stageId === MAIN_STAGE_ID);
   // Automation / console hook for developers and smoke tests.
-  (globalThis as Record<string, unknown>).instanceGraph = { openAndShow, graphActions, getState: useGraphStore.getState, IModelApp };
+  (globalThis as Record<string, unknown>).imodelExplorer = { openAndShow, graphActions, getState: useGraphStore.getState, IModelApp };
   createRoot(document.getElementById("root")!).render(<App />);
 }
 
 start().catch((err) => {
-  document.body.innerText = `Failed to start InstanceGraph:\n${err instanceof Error ? err.stack ?? err.message : String(err)}`;
+  document.body.innerText = `Failed to start ${APP_TITLE}:\n${err instanceof Error ? err.stack ?? err.message : String(err)}`;
 });

@@ -41,7 +41,7 @@ export function captureSession(name: string, fileName: string, graph: GraphData,
 export function parseSession(value: unknown): SavedSession {
   const v = value as Partial<SavedSession> | null;
   if (!v || v.format !== "instance-graph-session" || v.version !== 1)
-    throw new Error("Not an InstanceGraph session file");
+    throw new Error("Not an iModel Data Explorer session file");
   if (!v.centre || typeof v.centre.id !== "string" || typeof v.centre.classId !== "string")
     throw new Error("Session has no centre instance");
   const num = (x: unknown, d: number) => (typeof x === "number" && Number.isFinite(x) && x > 0 ? x : d);

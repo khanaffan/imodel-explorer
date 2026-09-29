@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "src/frontend/App.tsx": {
-    "mtime": 1790713546.9985514,
-    "ast_hash": "df4c0017e83402ab768f8fcaf7671232",
+    "mtime": 1790715641.6425977,
+    "ast_hash": "78453a66a92429c898c61d15a50557dc",
     "semantic_hash": ""
   },
   "src/frontend/WelcomePage.tsx": {
@@ -292,6 +292,16 @@
   "src/frontend/widgets/VisibilityTreesWidget.tsx": {
     "mtime": 1790713518.2000015,
     "ast_hash": "5bcc338a7b4028bcfc136752f783b853",
+    "semantic_hash": ""
+  },
+  "src/frontend/useColorScheme.ts": {
+    "mtime": 1790715641.512511,
+    "ast_hash": "ed6e8845f789c0edefa485a3922a5b94",
+    "semantic_hash": ""
+  },
+  "test/useColorScheme.test.ts": {
+    "mtime": 1790715641.6611907,
+    "ast_hash": "b7c0868597403240bf2a0247d693c2e1",
     "semantic_hash": ""
   }
 }
