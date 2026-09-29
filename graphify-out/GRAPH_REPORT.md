@@ -1,23 +1,28 @@
 # Graph Report - InstanceGraph  (2026-09-29)
 
 ## Corpus Check
-- 56 files · ~26,625 words
+- 58 files · ~27,607 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 563 nodes · 1232 edges · 43 communities (18 shown, 25 thin omitted)
+- 599 nodes · 1284 edges · 55 communities (17 shown, 38 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `5619bff6`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
 - TraversalStrategy.ts
-- useGraphStore
-- GraphModel.ts
-- engine.test.ts
-- ClassRegistry
-- layout.ts
-- devDependencies
+- InstanceGraphUiProvider.tsx
 - graphStore.ts
+- engine.test.ts
+- NavigationHistory
+- GraphCanvas.tsx
+- devDependencies
+- frontend.test.ts
 - html-to-image
 - compilerOptions
 - GraphEngine.ts
@@ -28,22 +33,23 @@
 - smoke.mjs
 - copy-assets.mjs
 - vite.config.ts
+- @bentley/icons-generic-webfont
 - @itwin/appui-abstract
 - @itwin/appui-react
 - @itwin/components-react
 - @itwin/core-bentley
 - @itwin/core-common
 - @itwin/core-electron
-- @itwin/core-frontend
+- @itwin/core-backend
 - @itwin/core-geometry
 - @itwin/core-i18n
-- @itwin/core-orbitgt
+- @itwin/ecschema-rpcinterface-impl
 - @itwin/core-quantity
-- @itwin/core-react
+- @itwin/imodel-components-react
 - @itwin/ecschema-metadata
 - @itwin/ecschema-rpcinterface-common
 - @itwin/itwinui-icons-react
-- @itwin/itwinui-react
+- @itwin/presentation-backend
 - @itwin/webgl-compatibility
 - react
 - react-dom
@@ -51,9 +57,20 @@
 - redux
 - @xyflow/react
 - zustand
+- @itwin/presentation-common
+- @itwin/presentation-components
+- @itwin/presentation-frontend
+- @itwin/tree-widget-react
+- @itwin/unified-selection
+- @mui/material
+- @stratakit/bricks
+- @stratakit/foundations
+- @stratakit/icons
+- @stratakit/mui
+- @stratakit/structures
 
 ## God Nodes (most connected - your core abstractions)
-1. `useGraphStore` - 30 edges
+1. `useGraphStore` - 32 edges
 2. `ClassRegistry` - 20 edges
 3. `NodeKey` - 19 edges
 4. `nodeKeyString()` - 17 edges
@@ -79,47 +96,43 @@
 ## Import Cycles
 - None detected.
 
-## Communities (43 total, 25 thin omitted)
+## Communities (55 total, 38 thin omitted)
 
 ### Community 0 - "TraversalStrategy.ts"
+Cohesion: 0.06
+Nodes (47): ClassRegistry, ViewClass, assertId(), buildAspectResolveQuery(), buildClassCatalogQuery(), buildElementResolveQuery(), buildModelResolveQuery(), buildRelationsCappedQuery() (+39 more)
+
+### Community 1 - "InstanceGraphUiProvider.tsx"
 Cohesion: 0.10
-Nodes (37): assertId(), buildAspectResolveQuery(), buildElementResolveQuery(), buildModelResolveQuery(), buildRelationsCappedQuery(), buildRelationsProbeQuery(), buildRelationsQuery(), buildTraversalRecipe() (+29 more)
+Nodes (20): main(), APP_TITLE, getRpcInterfaces(), App(), instanceGraphUiProvider, createMainFrontstage(), MAIN_STAGE_ID, AppHost (+12 more)
 
-### Community 1 - "useGraphStore"
+### Community 2 - "graphStore.ts"
 Cohesion: 0.07
-Nodes (30): main(), APP_TITLE, getRpcInterfaces(), App(), GraphContent(), Box, quantile(), queryRobustExtents() (+22 more)
-
-### Community 2 - "GraphModel.ts"
-Cohesion: 0.09
-Nodes (38): MutableGraph, AggregateInfo, EdgeKind, GraphEdge, GraphNode, NODE_CATEGORIES, NodeCategory, boundsOf() (+30 more)
+Nodes (40): Box, intersects(), quantile(), queryRobustExtents(), robustRange(), shouldRefit(), STRIDES, ViewportContent() (+32 more)
 
 ### Community 3 - "engine.test.ts"
-Cohesion: 0.06
-Nodes (39): main(), main(), buildClassIdLookupQuery(), buildInstanceQuery(), EXPERIMENTAL_OPTION, quoteClassName(), DEFAULT_OPTIONS, TraversalCancelled (+31 more)
-
-### Community 4 - "ClassRegistry"
 Cohesion: 0.08
-Nodes (17): ClassRegistry, ViewClass, buildClassCatalogQuery(), freeze(), GraphEngine, toMutable(), Cardinality, edgeKeyFor() (+9 more)
+Nodes (32): main(), main(), buildClassIdLookupQuery(), buildInstanceQuery(), EXPERIMENTAL_OPTION, DEFAULT_OPTIONS, TraversalCancelled, nodeKeyString() (+24 more)
 
-### Community 5 - "layout.ts"
-Cohesion: 0.09
-Nodes (24): adjacencyOf(), angularGap(), arcFootprint(), bfsDepths(), centreOnOrigin(), computeLayout(), getElk(), layeredLayout() (+16 more)
+### Community 5 - "GraphCanvas.tsx"
+Cohesion: 0.05
+Nodes (54): GraphContent(), MutableGraph, GraphEdge, GraphNode, PropertyRecord, boundsOf(), edgeTypes, GraphCanvas() (+46 more)
 
 ### Community 6 - "devDependencies"
 Cohesion: 0.06
 Nodes (35): concurrently, cross-env, electron, eslint, eslint-plugin-react-hooks, jsdom, devDependencies, concurrently (+27 more)
 
-### Community 7 - "graphStore.ts"
-Cohesion: 0.06
-Nodes (43): FilterSpec, CancelToken, TraversalOptions, GraphData, parseNodeKey(), DEPTHS, DIRECTIONS, GraphToolbar() (+35 more)
+### Community 7 - "frontend.test.ts"
+Cohesion: 0.18
+Nodes (24): parseNodeKey(), DEPTHS, DIRECTIONS, GraphToolbar(), LayoutMode, downloadText(), downloadUrl(), exportPng() (+16 more)
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.07
 Nodes (26): DOM, DOM.Iterable, src/frontend, test, vite/client, vite.config.ts, vitest.config.ts, WebWorker (+18 more)
 
 ### Community 10 - "GraphEngine.ts"
-Cohesion: 0.17
-Nodes (20): ClassFilterEntry, classMatches(), cycleFilterState(), EMPTY_FILTERS, FilterState, isFilterEmpty(), passes(), passesClassFilters() (+12 more)
+Cohesion: 0.09
+Nodes (35): ClassFilterEntry, classMatches(), cycleFilterState(), EMPTY_FILTERS, FilterSpec, FilterState, isFilterEmpty(), passes() (+27 more)
 
 ### Community 11 - "scripts"
 Cohesion: 0.10
@@ -130,8 +143,8 @@ Cohesion: 0.10
 Nodes (19): node, src/backend, compilerOptions, esModuleInterop, lib, module, moduleResolution, noUnusedLocals (+11 more)
 
 ### Community 13 - "dependencies"
-Cohesion: 0.29
-Nodes (7): elkjs, @itwin/core-backend, @itwin/imodel-components-react, dependencies, elkjs, @itwin/core-backend, @itwin/imodel-components-react
+Cohesion: 0.18
+Nodes (11): elkjs, @itwin/core-frontend, @itwin/core-orbitgt, @itwin/core-react, @itwin/itwinui-react, dependencies, elkjs, @itwin/core-frontend (+3 more)
 
 ### Community 14 - "InstanceGraph"
 Cohesion: 0.33
@@ -146,24 +159,24 @@ Cohesion: 0.50
 Nodes (3): out, root, scope
 
 ## Knowledge Gaps
-- **143 isolated node(s):** `name`, `version`, `private`, `description`, `main` (+138 more)
+- **158 isolated node(s):** `name`, `version`, `private`, `description`, `main` (+153 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **38 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useGraphStore` connect `useGraphStore` to `engine.test.ts`, `GraphModel.ts`, `GraphEngine.ts`, `graphStore.ts`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `dependencies` to `html-to-image`, `scripts`, `@itwin/appui-abstract`, `@itwin/appui-react`, `@itwin/components-react`, `@itwin/core-bentley`, `@itwin/core-common`, `@itwin/core-electron`, `@itwin/core-frontend`, `@itwin/core-geometry`, `@itwin/core-i18n`, `@itwin/core-orbitgt`, `@itwin/core-quantity`, `@itwin/core-react`, `@itwin/ecschema-metadata`, `@itwin/ecschema-rpcinterface-common`, `@itwin/itwinui-icons-react`, `@itwin/itwinui-react`, `@itwin/webgl-compatibility`, `react`, `react-dom`, `react-redux`, `redux`, `@xyflow/react`, `zustand`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `dependencies` to `html-to-image`, `scripts`, `@bentley/icons-generic-webfont`, `@itwin/appui-abstract`, `@itwin/appui-react`, `@itwin/components-react`, `@itwin/core-bentley`, `@itwin/core-common`, `@itwin/core-electron`, `@itwin/core-backend`, `@itwin/core-geometry`, `@itwin/core-i18n`, `@itwin/ecschema-rpcinterface-impl`, `@itwin/core-quantity`, `@itwin/imodel-components-react`, `@itwin/ecschema-metadata`, `@itwin/ecschema-rpcinterface-common`, `@itwin/itwinui-icons-react`, `@itwin/presentation-backend`, `@itwin/webgl-compatibility`, `react`, `react-dom`, `react-redux`, `redux`, `@xyflow/react`, `zustand`, `@itwin/presentation-common`, `@itwin/presentation-components`, `@itwin/presentation-frontend`, `@itwin/tree-widget-react`, `@itwin/unified-selection`, `@mui/material`, `@stratakit/bricks`, `@stratakit/foundations`, `@stratakit/icons`, `@stratakit/mui`, `@stratakit/structures`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `useGraphStore` connect `graphStore.ts` to `InstanceGraphUiProvider.tsx`, `engine.test.ts`, `GraphCanvas.tsx`, `frontend.test.ts`, `GraphEngine.ts`?**
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
+- **Why does `devDependencies` connect `devDependencies` to `scripts`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `name`, `version`, `private` to the rest of the system?**
-  _143 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _158 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `TraversalStrategy.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.09714285714285714 - nodes in this community are weakly interconnected._
-- **Should `useGraphStore` be split into smaller, more focused modules?**
-  _Cohesion score 0.07003367003367003 - nodes in this community are weakly interconnected._
-- **Should `GraphModel.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.08985200845665962 - nodes in this community are weakly interconnected._
-- **Should `engine.test.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06390977443609022 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.056669339748730285 - nodes in this community are weakly interconnected._
+- **Should `InstanceGraphUiProvider.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.10256410256410256 - nodes in this community are weakly interconnected._
+- **Should `graphStore.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.06623376623376623 - nodes in this community are weakly interconnected._

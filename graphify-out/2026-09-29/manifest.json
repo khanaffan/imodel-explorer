@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "src/frontend/content/ViewportContent.tsx": {
-    "mtime": 1790704169.0039704,
-    "ast_hash": "62e1ebf15240d101a1691f6086d8a831",
+    "mtime": 1790708108.507582,
+    "ast_hash": "53abd612bd73a500d82d9732ecbd5cd8",
     "semantic_hash": ""
   },
   "src/frontend/content/viewportSync.ts": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "src/frontend/index.tsx": {
-    "mtime": 1790704448.1109812,
-    "ast_hash": "fd89e756a20273adb775d97c18895f13",
+    "mtime": 1790707948.778347,
+    "ast_hash": "8f600a47b8ea0672fa147e77cd7b7bb4",
     "semantic_hash": ""
   },
   "src/frontend/services/exporters.ts": {
@@ -265,13 +265,23 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1790707495.2655122,
-    "ast_hash": "e03ddcf9d7329d5157abfe392da2ae25",
+    "mtime": 1790708201.9696577,
+    "ast_hash": "a2791ec4357a233956b9a8414e08dd4c",
     "semantic_hash": ""
   },
   "index.html": {
     "mtime": 1790703153.2451036,
     "ast_hash": "d377385d57e89140cbcc4b3e48e56536",
+    "semantic_hash": ""
+  },
+  "src/frontend/content/robustExtents.ts": {
+    "mtime": 1790708053.625675,
+    "ast_hash": "5d72e3ea25759f91c8d797e63f702e58",
+    "semantic_hash": ""
+  },
+  "test/robustExtents.test.ts": {
+    "mtime": 1790708201.8590298,
+    "ast_hash": "f5561b32861176485d3eb7854e4e9bd2",
     "semantic_hash": ""
   }
 }

@@ -8,6 +8,12 @@
   --ig-muted: var(--iui-color-text-muted, #777);
 }
 
+/* StrataKit's reset sets `svg { max-inline-size: 100% }`; React Flow's edge layer is 0px wide,
+   which would collapse the edge SVGs to zero width and hide every edge. */
+.ig-canvas .react-flow svg {
+  max-inline-size: none;
+}
+
 .ig-canvas .react-flow__node {
   /* Positions are animated in JS; no CSS transition on transform or edges would detach. */
   transition: none;

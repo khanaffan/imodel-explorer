@@ -50,6 +50,11 @@ try {
     return { centre: s.graph.centreKey, nodes: s.graph.nodes.size, edges: s.graph.edges.size, rendered: document.querySelectorAll(".react-flow__node").length };
   });
   console.log("after seed:", JSON.stringify(summary));
+  // Edges exist in the DOM even when CSS collapses their SVG, so check that they actually paint.
+  const paintedEdges = await page.evaluate(() => [...document.querySelectorAll(".react-flow__edge")]
+    .filter((e) => { const svg = e.closest("svg"); return svg && svg.getBoundingClientRect().width > 0; }).length);
+  console.log(`painted edges: ${paintedEdges}`);
+  if (summary.edges > 0 && paintedEdges === 0) throw new Error("edges are in the DOM but not painted");
   await page.screenshot({ path: `${outDir}/02-graph.png` });
 
   // Depth 2 then recentre by clicking a neighbour node.
