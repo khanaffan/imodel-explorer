@@ -1,6 +1,7 @@
 import { StagePanelLocation, StagePanelSection, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
-import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgList, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
+import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgList, SvgModel, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
 import { FiltersWidget } from "../widgets/FiltersWidget";
+import { GeometryWidget } from "../widgets/GeometryWidget";
 import { OverviewWidget } from "../widgets/OverviewWidget";
 import { LegendWidget } from "../widgets/LegendWidget";
 import { PropertiesWidget } from "../widgets/PropertiesWidget";
@@ -31,6 +32,7 @@ export const instanceGraphUiProvider: UiItemsProvider = {
       return [
         { id: "ig-properties", label: "Properties", iconNode: <SvgInfo />, content: <PropertiesWidget />, defaultState: WidgetState.Open, canPopout: false },
         { id: SCHEMA_WIDGET_ID, label: "Schema", iconNode: <SvgPropertiesList />, content: <SchemaWidget />, canPopout: false },
+        { id: "ig-geometry", label: "Geometry", iconNode: <SvgModel />, content: <GeometryWidget />, canPopout: false },
       ];
     if (location === StagePanelLocation.Right && section === StagePanelSection.End)
       return [{ id: "ig-legend", label: "Legend & colours", iconNode: <SvgPalette />, content: <LegendWidget />, defaultState: WidgetState.Open, canPopout: false }];

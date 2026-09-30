@@ -23,6 +23,10 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Cardinality** from the `ECRelationshipClass` constraints, shown at each end of an edge.
 - **Properties and Schema panels.** The Properties panel shows a node's readable properties. The
   Schema panel shows its class definition: hierarchy, mixins, property types and derived classes.
+- **Geometry panel.** The selected element's geometry stream, op by op: a graphical stack of the
+  stream (with a rail showing which appearance governs which primitives), formatted facts per
+  primitive, inline `GeometryPart` drill-down, placement / category / view / iModel-frame facts,
+  a 3D range-and-axes decorator, and JSON export.
 - **Overview.** A census of the iModel: instances per schema, class, relationship and model, with
   how much of each schema the authoring app actually used, a treemap of where the data lives, and
   CSV/Markdown export. Click a class to list its instances, or filter the traversal straight from

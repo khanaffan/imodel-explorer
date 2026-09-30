@@ -66,4 +66,9 @@ export const viewportSync = {
     if (!viewport) return;
     void viewport.zoomToElements([id], { animateFrustumChange: true, marginPercent: { left: 0.3, right: 0.3, top: 0.3, bottom: 0.3 } });
   },
+
+  /** The attached viewport, for decorators and view-state facts. */
+  current(): ScreenViewport | undefined {
+    return viewport;
+  },
 };

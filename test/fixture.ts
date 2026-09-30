@@ -1,7 +1,11 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { IModelHost, PhysicalModel, SnapshotDb, SpatialCategory } from "@itwin/core-backend";
-import { Code, IModel, SubCategoryAppearance } from "@itwin/core-common";
+import { GeometryPart, IModelHost, PhysicalModel, SnapshotDb, SpatialCategory, SubCategory } from "@itwin/core-backend";
+import {
+  Code, ColorDef, GeometryParams, type GeometryPartProps, GeometryStreamBuilder, IModel,
+  SubCategoryAppearance, TextString,
+} from "@itwin/core-common";
+import { Arc3d, Box, Cone, LineString3d, Point3d, Range3d } from "@itwin/core-geometry";
 
 const SCHEMA = `<?xml version="1.0" encoding="UTF-8"?>
 <ECSchema schemaName="TestIG" alias="tig" version="01.00.00" xmlns="http://www.bentley.com/schemas/Bentley.ECXML.3.2">
@@ -76,12 +80,19 @@ export interface Fixture {
     plantA: string; plantB: string; category: string;
     pump1: string; pump2: string; hub: string;
     pipeA: string; pipeB: string; hubPipes: string[];
+    geomPart: string; trimSubCat: string;
   };
   classIds: Record<string, string>;
   close(): Promise<void>;
 }
 
 export const HUB_FANOUT = 30;
+
+/** Raw op keys of Pump-1's persisted geometry stream, in order. */
+export const PUMP1_STREAM_KEYS = [
+  "header", "appearance", "subRange", "box", "subRange", "lineString",
+  "appearance", "geomPart", "subRange", "arc", "subRange", "textString",
+] as const;
 
 /** Pump1 -feeds-> PipeA (link table, FlowRate), PipeA -owned by-> Pump1 (nav): a multi-edge pair.
  *  Pump2 -feeds-> PipeA and PipeB; PipeB owned by Pump1: a cycle Pump1-PipeA-Pump2-PipeB-Pump1.
@@ -100,16 +111,56 @@ export async function createFixture(opts: { file?: string; keep?: boolean } = {}
   const plantA = PhysicalModel.insert(db, IModel.rootSubjectId, "PlantA");
   const plantB = PhysicalModel.insert(db, IModel.rootSubjectId, "PlantB");
   const category = SpatialCategory.insert(db, IModel.dictionaryId, "Equipment", new SubCategoryAppearance());
+  const trimSubCat = SubCategory.insert(db, category, "Trim",
+    new SubCategoryAppearance({ color: ColorDef.blue.toJSON(), weight: 2 }));
+
+  // A reusable part (box + arc) referenced from Pump-1's stream.
+  const partBuilder = new GeometryStreamBuilder();
+  partBuilder.appendGeometry(Box.createRange(Range3d.createXYZXYZ(-0.5, -0.5, 0, 0.5, 0.5, 0.8), true)!);
+  partBuilder.appendGeometry(Arc3d.createXY(Point3d.create(0, 0, 0.8), 0.4));
+  const geomPart = db.elements.insertElement({
+    classFullName: GeometryPart.classFullName,
+    model: IModel.dictionaryId,
+    code: GeometryPart.createCode(db, IModel.dictionaryId, "PumpBody"),
+    geom: partBuilder.geometryStream,
+  } as GeometryPartProps);
+
+  /** Pump-1's stream: Trim+red override → box, line string → reset → part ref → arc → text. */
+  const pump1Stream = () => {
+    const b = new GeometryStreamBuilder();
+    b.appendGeometryRanges();
+    const trimParams = new GeometryParams(category, trimSubCat);
+    trimParams.lineColor = ColorDef.red;
+    b.appendGeometryParamsChange(trimParams);
+    b.appendGeometry(Box.createRange(Range3d.createXYZXYZ(0, 0, 0, 2, 1, 1), true)!);
+    b.appendGeometry(LineString3d.create([0, 0, 1], [2, 0, 1], [2, 1, 1]));
+    b.appendGeometryParamsChange(new GeometryParams(category));
+    b.appendGeometryPart3d(geomPart, Point3d.create(0.5, 0.5, 1));
+    b.appendGeometry(Arc3d.createXY(Point3d.create(1, 0.5, 2), 0.5));
+    b.appendTextString(new TextString({ text: "P-1", font: 1, height: 0.3, origin: Point3d.create(0, -0.5, 0) }));
+    return b.geometryStream;
+  };
+  const pipeStream = (length: number, radius: number) => {
+    const b = new GeometryStreamBuilder();
+    b.appendGeometry(Cone.createAxisPoints(Point3d.create(0, 0, 0), Point3d.create(length, 0, 0), radius, radius, true)!);
+    return b.geometryStream;
+  };
 
   const insert = (cls: string, model: string, label: string, extra: object = {}) => db.elements.insertElement({
     classFullName: `TestIG:${cls}`, model, category, code: Code.createEmpty(), userLabel: label, ...extra,
   } as any);
-  const pump1 = insert("Pump", plantA, "Pump-1");
+  const pump1 = insert("Pump", plantA, "Pump-1", {
+    placement: { origin: [1, 2, 0], angles: { yaw: 30 } }, geom: pump1Stream(),
+  });
   const pump2 = insert("Pump", plantA, "Pump-2");
   const hub = insert("Pump", plantA, "Header");
   const own = (id: string) => ({ ownerPump: { id, relClassName: "TestIG:PumpOwnsPipes" } });
-  const pipeA = insert("Pipe", plantA, "Pipe-A", own(pump1));
-  const pipeB = insert("Pipe", plantB, "Pipe-B", own(pump1));
+  const pipeA = insert("Pipe", plantA, "Pipe-A", {
+    ...own(pump1), placement: { origin: [3, 2, 0.5], angles: {} }, geom: pipeStream(3, 0.2),
+  });
+  const pipeB = insert("Pipe", plantB, "Pipe-B", {
+    ...own(pump1), placement: { origin: [6, 2, 0.5], angles: { yaw: 90 } }, geom: pipeStream(2, 0.15),
+  });
   const feeds = (sourceId: string, targetId: string, flow: number) =>
     db.relationships.insertInstance({ classFullName: "TestIG:PumpFeedsPipe", sourceId, targetId, flowRate: flow } as any);
   feeds(pump1, pipeA, 12.5);
@@ -130,7 +181,7 @@ export async function createFixture(opts: { file?: string; keep?: boolean } = {}
 
   return {
     db,
-    ids: { plantA, plantB, category, pump1, pump2, hub, pipeA, pipeB, hubPipes },
+    ids: { plantA, plantB, category, pump1, pump2, hub, pipeA, pipeB, hubPipes, geomPart, trimSubCat },
     classIds,
     async close() {
       db.close();

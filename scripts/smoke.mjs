@@ -204,7 +204,8 @@ try {
     return !s.building && s.imodelGraph && s.imodelGraph.nodes.size > 0;
   }, undefined, { timeout: 60_000 });
   await page.locator(".ig-classnode", { hasText: "PumpSpec" }).first().waitFor({ timeout: 30_000 });
-  const wholeClasses = await page.locator(".ig-classnode").count();
+  // React Flow renders only in-viewport nodes; count from state, not the DOM.
+  const wholeClasses = await page.evaluate(() => globalThis.imodelExplorer.getClassState().imodelGraph.nodes.size);
   console.log(`class graph: neighbourhood ${hoodClasses} classes, whole iModel ${wholeClasses}`);
   if (wholeClasses <= hoodClasses) throw new Error("whole-iModel class graph is not larger than the neighbourhood");
   await page.screenshot({ path: `${outDir}/11-class-graph.png` });
@@ -221,6 +222,31 @@ try {
   console.log(`ranking: top seed = ${topSeed}`);
   if (topSeed !== "Header") throw new Error(`ranking put ${topSeed} first, expected Header`);
   await page.screenshot({ path: `${outDir}/12-ranked.png` });
+
+  // Geometry widget: Pump-1's stream shows the stack, formatted ops and an expandable part.
+  await page.evaluate(async (k) => {
+    const [classId, id] = k.split(":");
+    await globalThis.imodelExplorer.graphActions.seedExternal({ classId, id });
+  }, summary.centre);
+  await idle();
+  await page.waitForTimeout(800);
+  await page.getByRole("tab", { name: "Geometry" }).click();
+  const geom = page.locator('[id="content-container:ig-geometry"]');
+  await geom.locator(".ig-stream-stack").waitFor({ timeout: 30_000 });
+  const bands = await geom.locator(".ig-stream-stack g rect").count();
+  const opLabels = await geom.locator(".ig-geom-op__label").allTextContents();
+  console.log(`geometry: ${bands} stack bands, ops: ${opLabels.join(",")}`);
+  if (bands < 8) throw new Error(`geometry stack rendered ${bands} bands, expected at least 8`);
+  if (!opLabels.includes("Box") || !opLabels.includes("Part reference"))
+    throw new Error(`geometry ops missing Box/Part reference: ${opLabels.join(",")}`);
+  const partRow = geom.locator(".ig-geom-op", { hasText: "Part reference" }).first();
+  await partRow.locator(".ig-caret").click();
+  await geom.getByRole("button", { name: "Expand part" }).click();
+  await geom.locator(".ig-geom-part .ig-geom-op__label", { hasText: "Box" }).first().waitFor({ timeout: 30_000 });
+  console.log("geometry: part expanded inline");
+  await geom.getByText("Range & axes").click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${outDir}/13-geometry.png` });
 
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");

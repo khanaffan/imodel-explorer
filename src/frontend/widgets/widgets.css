@@ -371,3 +371,56 @@ span.ig-tree-row__twist { cursor: default; }
 .ig-treemap__cell:hover rect {
   filter: brightness(1.15);
 }
+
+/* Geometry widget */
+.ig-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  border: 1px solid var(--iui-color-border, #666);
+  vertical-align: baseline;
+}
+.ig-chip--override { color: var(--iui-color-text-warning, #e8a04a); border-color: currentColor; margin-left: 4px; }
+.ig-chip--inherited { margin-left: 4px; }
+.ig-geom-ops {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.ig-geom-op {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: var(--iui-font-size-0, 12px);
+}
+.ig-geom-op:hover { background: var(--iui-color-background-hover, rgba(128, 128, 128, 0.15)); }
+.ig-geom-op--selected { background: var(--iui-color-background-accent-muted, rgba(47, 128, 237, 0.2)); }
+.ig-geom-op--error { opacity: 0.75; }
+.ig-geom-op__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.ig-geom-op__index { flex: none; color: var(--iui-color-text-muted); min-width: 24px; }
+.ig-geom-op__label { flex: none; font-weight: 500; white-space: nowrap; }
+.ig-geom-op__detail {
+  flex: 1;
+  color: var(--iui-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ig-geom-op__facts { padding: 2px 4px 6px 36px; }
+.ig-geom-part {
+  margin-left: 20px;
+  padding-left: 6px;
+  border-left: 2px solid var(--iui-color-border, #555);
+}
+.ig-stream-stack { user-select: none; }

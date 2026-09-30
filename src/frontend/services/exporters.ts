@@ -215,3 +215,16 @@ export function censusToMarkdown(census: Census): string {
   ];
   return lines.join("\n");
 }
+
+/** The raw geometry stream plus its context (identity, placement, category), pretty-printed. */
+export function geometryStreamToJson(args: {
+  id: string; className?: string; label?: string;
+  placement?: unknown; category?: string; geom: unknown;
+}): string {
+  return JSON.stringify({
+    element: { id: args.id, className: args.className, label: args.label },
+    category: args.category,
+    placement: args.placement,
+    geometryStream: args.geom,
+  }, undefined, 2) + "\n";
+}
