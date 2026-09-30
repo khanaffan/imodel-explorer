@@ -1,3 +1,4 @@
+import type { SchemaView } from "@itwin/ecschema-metadata";
 import type { ClassRegistry } from "./ClassRegistry";
 import type { Cardinality } from "./GraphModel";
 
@@ -5,6 +6,7 @@ export interface ConstraintInfo {
   readonly multiplicity: string;
   readonly roleLabel: string;
   readonly polymorphic: boolean;
+  readonly abstractConstraint?: string;
   readonly classes: readonly string[];
 }
 
@@ -25,6 +27,23 @@ function formatMultiplicity(lower: number, upper: number): string {
 
 const STRENGTH = ["referencing", "holding", "embedding"] as const;
 
+export function describeConstraint(c: SchemaView.RelConstraint): ConstraintInfo {
+  return {
+    multiplicity: formatMultiplicity(c.multiplicityLower, c.multiplicityUpper),
+    roleLabel: c.roleLabel,
+    polymorphic: c.polymorphic,
+    abstractConstraint: c.abstractConstraint?.fullName,
+    classes: c.constraintClasses.map((k) => k.fullName),
+  };
+}
+
+export function describeStrength(rel: SchemaView.RelationshipClass): Pick<RelationshipInfo, "strength" | "strengthDirection"> {
+  return {
+    strength: STRENGTH[rel.strength] ?? "referencing",
+    strengthDirection: rel.strengthDirection === 2 ? "backward" : "forward",
+  };
+}
+
 /** Relationship metadata, read synchronously from the SchemaView and cached per class. */
 export class RelationshipInfoCache {
   private readonly _cache = new Map<string, RelationshipInfo | undefined>();
@@ -44,18 +63,11 @@ export class RelationshipInfoCache {
     const cls = this._registry.findClass(className);
     if (!cls || !cls.isRelationship() || !cls.source || !cls.target)
       return undefined;
-    const toInfo = (c: NonNullable<typeof cls.source>): ConstraintInfo => ({
-      multiplicity: formatMultiplicity(c.multiplicityLower, c.multiplicityUpper),
-      roleLabel: c.roleLabel,
-      polymorphic: c.polymorphic,
-      classes: c.constraintClasses.map((k) => k.fullName),
-    });
-    const source = toInfo(cls.source);
-    const target = toInfo(cls.target);
+    const source = describeConstraint(cls.source);
+    const target = describeConstraint(cls.target);
     return {
       className,
-      strength: STRENGTH[cls.strength] ?? "referencing",
-      strengthDirection: cls.strengthDirection === 2 ? "backward" : "forward",
+      ...describeStrength(cls),
       source,
       target,
       cardinality: { source: source.multiplicity, target: target.multiplicity },

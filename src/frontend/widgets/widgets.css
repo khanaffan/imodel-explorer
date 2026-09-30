@@ -288,3 +288,22 @@ span.ig-tree-row__twist { cursor: default; }
 .ig-tri--inherited { opacity: 0.55; border-style: dashed; }
 .ig-tri--inherited-include { color: #27ae60; border-color: #27ae60; }
 .ig-tri--inherited-exclude { color: #eb5757; border-color: #eb5757; }
+
+/* Schema (type explorer) widget. */
+.ig-card__title .ig-link { font-weight: inherit; word-break: break-all; }
+.ig-caret--spacer { display: inline-block; width: 21px; padding: 0; }
+.ig-badge {
+  font-size: 10px; padding: 0 6px; border-radius: 3px;
+  border: 1px solid rgba(128, 128, 128, 0.5); color: var(--iui-color-text-muted, #777);
+}
+.ig-badge--entity { border-color: #2f80ed; color: #2f80ed; }
+.ig-badge--relationship { border-color: #d9822b; color: #d9822b; }
+.ig-badge--struct, .ig-badge--customAttribute { border-color: #9b51e0; color: #9b51e0; }
+.ig-badge--mixin { border-color: #27ae60; color: #27ae60; }
+.ig-chip--neutral { color: var(--iui-color-text-accent, #2f80ed); border-color: currentColor; }
+.ig-chip--inherited { border-style: dashed; opacity: 0.8; }
+.ig-schema__section { display: flex; align-items: center; gap: 2px; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.ig-schema__section .ig-link { font-weight: 600; }
+.ig-schema__chain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.ig-schema__detail { margin: 2px 0 6px 22px; padding-left: 6px; border-left: 2px solid rgba(128, 128, 128, 0.25); font-size: 11px; }
+.ig-schema__enum { margin-top: 4px; }

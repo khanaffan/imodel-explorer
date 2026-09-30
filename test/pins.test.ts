@@ -157,6 +157,18 @@ describe("pins in the store", () => {
     expect(state().pins.size).toBe(0);
   });
 
+  it("keeps the Schema widget's explored class across a reload of the same selection", async () => {
+    const { graphActions, sameSelection } = store;
+    await graphActions.seedExternal(nk("TestIG:Pump", fx.ids.pump1));
+    graphActions.exploreSchema("BisCore:Element");
+    const before = state().selection;
+    await graphActions.refresh();
+    expect(state().selection).not.toBe(before);
+    expect(sameSelection(state().schemaFocus!.forSelection, state().selection)).toBe(true);
+    graphActions.select({ kind: "node", key: key("TestIG:Pipe", fx.ids.pipeA) });
+    expect(sameSelection(state().schemaFocus!.forSelection, state().selection)).toBe(false);
+  });
+
   it("restores saved pins, skipping instances that no longer exist", async () => {
     const { graphActions } = store;
     const pipeA = key("TestIG:Pipe", fx.ids.pipeA);

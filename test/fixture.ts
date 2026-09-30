@@ -6,6 +6,7 @@ import { Code, IModel, SubCategoryAppearance } from "@itwin/core-common";
 const SCHEMA = `<?xml version="1.0" encoding="UTF-8"?>
 <ECSchema schemaName="TestIG" alias="tig" version="01.00.00" xmlns="http://www.bentley.com/schemas/Bentley.ECXML.3.2">
   <ECSchemaReference name="BisCore" version="01.00.00" alias="bis"/>
+  <ECSchemaReference name="CoreCustomAttributes" version="01.00.00" alias="CoreCA"/>
   <ECEntityClass typeName="Pump">
     <BaseClass>bis:PhysicalElement</BaseClass>
   </ECEntityClass>
@@ -16,6 +17,46 @@ const SCHEMA = `<?xml version="1.0" encoding="UTF-8"?>
   <ECEntityClass typeName="PumpSpec">
     <BaseClass>bis:ElementUniqueAspect</BaseClass>
     <ECProperty propertyName="RatedPower" typeName="double"/>
+  </ECEntityClass>
+  <ECEnumeration typeName="PumpMode" backingTypeName="int" isStrict="true">
+    <ECEnumerator name="Off" value="0" displayLabel="Off"/>
+    <ECEnumerator name="Auto" value="1" displayLabel="Automatic"/>
+  </ECEnumeration>
+  <ECStructClass typeName="Rating">
+    <ECProperty propertyName="Value" typeName="double"/>
+  </ECStructClass>
+  <ECEntityClass typeName="IMonitored" modifier="Abstract">
+    <ECCustomAttributes>
+      <IsMixin xmlns="CoreCustomAttributes.01.00.00"><AppliesToEntityClass>bis:PhysicalElement</AppliesToEntityClass></IsMixin>
+    </ECCustomAttributes>
+    <ECProperty propertyName="SensorId" typeName="string"/>
+  </ECEntityClass>
+  <!-- Never instantiated: exercises the Schema widget's type formatting. -->
+  <ECEntityClass typeName="SmartPump" description="A pump with telemetry">
+    <BaseClass>Pump</BaseClass>
+    <BaseClass>IMonitored</BaseClass>
+    <ECProperty propertyName="Mode" typeName="PumpMode"/>
+    <ECProperty propertyName="Manual" typeName="string" extendedTypeName="URI" readOnly="true"/>
+    <ECArrayProperty propertyName="Tags" typeName="string"/>
+    <ECStructProperty propertyName="Nameplate" typeName="Rating"/>
+    <ECStructArrayProperty propertyName="Ratings" typeName="Rating" minOccurs="1" maxOccurs="4"/>
+  </ECEntityClass>
+  <ECEntityClass typeName="IAudited" modifier="Abstract">
+    <ECCustomAttributes>
+      <IsMixin xmlns="CoreCustomAttributes.01.00.00"><AppliesToEntityClass>bis:PhysicalElement</AppliesToEntityClass></IsMixin>
+    </ECCustomAttributes>
+    <ECProperty propertyName="AuditedBy" typeName="string"/>
+  </ECEntityClass>
+  <ECEntityClass typeName="ICalibrated" modifier="Abstract">
+    <ECCustomAttributes>
+      <IsMixin xmlns="CoreCustomAttributes.01.00.00"><AppliesToEntityClass>bis:PhysicalElement</AppliesToEntityClass></IsMixin>
+    </ECCustomAttributes>
+    <BaseClass>IAudited</BaseClass>
+  </ECEntityClass>
+  <!-- Inherits IMonitored from SmartPump; ICalibrated brings its base mixin IAudited. -->
+  <ECEntityClass typeName="SmartPumpMk2">
+    <BaseClass>SmartPump</BaseClass>
+    <BaseClass>ICalibrated</BaseClass>
   </ECEntityClass>
   <ECRelationshipClass typeName="PumpOwnsPipes" strength="referencing" modifier="Sealed">
     <Source multiplicity="(0..1)" roleLabel="owns" polymorphic="true"><Class class="Pump"/></Source>

@@ -1,8 +1,9 @@
 import { StagePanelLocation, StagePanelSection, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
-import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgPalette, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
+import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
 import { FiltersWidget } from "../widgets/FiltersWidget";
 import { LegendWidget } from "../widgets/LegendWidget";
 import { PropertiesWidget } from "../widgets/PropertiesWidget";
+import { SCHEMA_WIDGET_ID, SchemaWidget } from "../widgets/SchemaWidget";
 import { SeedQueryWidget } from "../widgets/SeedQueryWidget";
 import { SessionsWidget } from "../widgets/SessionsWidget";
 import { VisibilityTreesWidget } from "../widgets/VisibilityTreesWidget";
@@ -25,7 +26,10 @@ export const instanceGraphUiProvider: UiItemsProvider = {
         { id: "ig-visibility", label: "Models & categories", iconNode: <SvgHierarchyTree />, content: <VisibilityTreesWidget />, canPopout: false },
       ];
     if (location === StagePanelLocation.Right && section === StagePanelSection.Start)
-      return [{ id: "ig-properties", label: "Properties", iconNode: <SvgInfo />, content: <PropertiesWidget />, defaultState: WidgetState.Open, canPopout: false }];
+      return [
+        { id: "ig-properties", label: "Properties", iconNode: <SvgInfo />, content: <PropertiesWidget />, defaultState: WidgetState.Open, canPopout: false },
+        { id: SCHEMA_WIDGET_ID, label: "Schema", iconNode: <SvgPropertiesList />, content: <SchemaWidget />, canPopout: false },
+      ];
     if (location === StagePanelLocation.Right && section === StagePanelSection.End)
       return [{ id: "ig-legend", label: "Legend & colours", iconNode: <SvgPalette />, content: <LegendWidget />, defaultState: WidgetState.Open, canPopout: false }];
     return [];

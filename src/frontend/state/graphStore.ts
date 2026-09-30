@@ -20,6 +20,11 @@ export type Selection =
   | { readonly kind: "edge"; readonly key: string }
   | undefined;
 
+/** Selections are compared by value: reloads and re-clicks create new objects for the same thing. */
+export function sameSelection(a: Selection, b: Selection): boolean {
+  return a === b || (!!a && !!b && a.kind === b.kind && a.key === b.key);
+}
+
 import type { ModelInfo } from "../engine/models";
 export type { ModelInfo };
 
@@ -36,6 +41,10 @@ export interface GraphState {
   readonly pinEdges: ReadonlyMap<string, GraphEdge>;
   readonly options: TraversalOptions;
   readonly selection: Selection;
+  /** Class the Schema widget was navigated to. Only applies while {@link selection} still refers to
+   * the same node or edge (see {@link sameSelection}); selecting something else makes the widget
+   * follow the selection again. */
+  readonly schemaFocus?: { readonly className: string; readonly forSelection: Selection };
   readonly status: Status;
   readonly layoutMode: LayoutMode;
   readonly theme: ColorTheme;
@@ -168,7 +177,7 @@ export const graphActions = {
   async attach(connection: IModelConnection, fileName: string, prefer?: StrategyName): Promise<void> {
     beginWork("Reading schemas…");
     history.clear();
-    set({ connection, fileName, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, models: [], options: { ...get().options, expandedGroups: new Set() } });
+    set({ connection, fileName, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], options: { ...get().options, expandedGroups: new Set() } });
     syncHistoryFlags();
     try {
       const engine = await GraphEngine.create(createQueryPort(connection as unknown as QuerySource), prefer);
@@ -181,7 +190,7 @@ export const graphActions = {
   detach(): void {
     if (activeToken) activeToken.cancelled = true;
     history.clear();
-    set({ connection: undefined, fileName: undefined, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, models: [], status: { kind: "idle" } });
+    set({ connection: undefined, fileName: undefined, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], status: { kind: "idle" } });
     syncHistoryFlags();
   },
 
@@ -296,6 +305,11 @@ export const graphActions = {
   forward(): void { restore(history.forward()); },
 
   select(selection: Selection): void { set({ selection }); },
+
+  /** Point the Schema widget at a class; `undefined` returns it to following the selection. */
+  exploreSchema(className: string | undefined): void {
+    set({ schemaFocus: className ? { className, forSelection: get().selection } : undefined });
+  },
 
   setOptions(patch: Partial<TraversalOptions>, reload = true): void {
     const options = { ...get().options, ...patch };

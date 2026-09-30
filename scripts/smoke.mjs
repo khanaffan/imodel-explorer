@@ -138,6 +138,30 @@ try {
   console.log(`pins after external seed: ${pinsAfterSeed}`);
   if (pinsAfterSeed !== 0) throw new Error("external seed did not clear pins");
 
+  // Schema panel: the class link in Properties opens it; the explored class survives a reload.
+  await page.waitForTimeout(800);
+  await page.getByRole("tab", { name: "Properties" }).click();
+  const centreClass = await page.evaluate(() => {
+    const s = globalThis.imodelExplorer.getState();
+    return s.graph.nodes.get(s.graph.centreKey).className;
+  });
+  await page.locator(".ig-card__sub .ig-link", { hasText: centreClass }).click();
+  const schemaTitle = () => page.locator(".ig-card__title").first().textContent();
+  await page.getByPlaceholder("Search any class…").waitFor({ timeout: 5_000 });
+  if ((await schemaTitle()) !== centreClass) throw new Error(`schema panel shows ${await schemaTitle()}, expected ${centreClass}`);
+  await page.locator(".ig-schema__chain .ig-link").first().click();
+  const explored = await schemaTitle();
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.setOptions({ depth: 2 }));
+  await idle();
+  await page.waitForTimeout(800);
+  console.log(`schema panel: ${centreClass} -> ${explored}, after reload: ${await schemaTitle()}`);
+  if ((await schemaTitle()) !== explored) throw new Error("schema panel lost the explored class on reload");
+  await page.screenshot({ path: `${outDir}/09-schema.png` });
+  await page.getByRole("button", { name: "←", exact: true }).click();
+  if ((await schemaTitle()) !== centreClass) throw new Error("schema panel back did not return to the selected class");
+  await page.getByRole("tab", { name: "Properties" }).click();
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.setOptions({ depth: 1 }, false));
+
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");
 } finally {

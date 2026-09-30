@@ -6,6 +6,8 @@ import { graphActions, useGraphStore } from "../state/graphStore";
 import { colorFor } from "../state/colorTheme";
 import { filterEdits } from "./FiltersWidget";
 import { viewportSync } from "../content/viewportSync";
+import { Constraint } from "./Constraint";
+import { showSchemaFor } from "./SchemaWidget";
 import "./widgets.css";
 
 function usePropertyRecords(className: string | undefined, id: string | undefined) {
@@ -90,7 +92,7 @@ function NodeDetails({ node }: { node: GraphNode }) {
     <div className="ig-widget">
       <div className="ig-card" style={{ borderLeftColor: colorFor(node, theme) }}>
         <div className="ig-card__title">{node.label}</div>
-        <div className="ig-card__sub"><code>{node.className}</code></div>
+        <div className="ig-card__sub"><button className="ig-link" title="Show this class in the Schema panel" onClick={() => showSchemaFor(node.className)}><code>{node.className}</code></button></div>
         <div className="ig-card__sub">Id <code>{node.id}</code> · ClassId <code>{node.classId}</code></div>
         {node.modelName && <div className="ig-card__sub">Model {node.modelName} <code>{node.modelId}</code></div>}
         <div className="ig-card__sub">{node.depth} hop{node.depth === 1 ? "" : "s"} from centre · {edges} relationship{edges === 1 ? "" : "s"} shown</div>
@@ -109,15 +111,6 @@ function NodeDetails({ node }: { node: GraphNode }) {
   );
 }
 
-function Constraint({ title, c }: { title: string; c: { multiplicity: string; roleLabel: string; polymorphic: boolean; classes: readonly string[] } }) {
-  return (
-    <div className="ig-constraint">
-      <div><b>{title}</b> <code>({c.multiplicity})</code> {c.roleLabel && <i>“{c.roleLabel}”</i>}</div>
-      <div className="ig-card__sub">{c.classes.join(", ")}{c.polymorphic ? " (polymorphic)" : ""}</div>
-    </div>
-  );
-}
-
 function EdgeDetails({ edge }: { edge: GraphEdge }) {
   const engine = useGraphStore((s) => s.engine);
   const source = useGraphStore((s) => s.graph.nodes.get(edge.source));
@@ -129,7 +122,7 @@ function EdgeDetails({ edge }: { edge: GraphEdge }) {
   return (
     <div className="ig-widget">
       <div className="ig-card" style={{ borderLeftColor: edge.kind === "linkTable" ? "#d9822b" : "#7a8ca3" }}>
-        <div className="ig-card__title">{edge.relClassName}</div>
+        <div className="ig-card__title"><button className="ig-link" title="Show this relationship class in the Schema panel" onClick={() => showSchemaFor(edge.relClassName)}>{edge.relClassName}</button></div>
         <div className="ig-card__sub">
           {edge.kind === "linkTable" ? "Link-table relationship (has its own instance)" : edge.kind === "navigation" ? <>Navigation property <code>{edge.navPropertyName}</code></> : "Summary"}
         </div>

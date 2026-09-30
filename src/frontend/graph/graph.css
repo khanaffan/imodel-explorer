@@ -278,6 +278,7 @@
 
 .ig-toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   padding: 4px 6px;
