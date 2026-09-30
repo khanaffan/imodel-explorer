@@ -10,6 +10,8 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   readonly highlighted: boolean;
   readonly isSelected: boolean;
   readonly leaving: boolean;
+  /** Instance count, shown as `×N`; set by the class-level graph. */
+  readonly count?: number;
 }
 
 export type RelationshipFlowEdge = Edge<RelationshipEdgeData, "relationship">;
@@ -46,7 +48,7 @@ function RelationshipEdgeView({ id, source, target, data, markerEnd }: EdgeProps
   const zoomedIn = useStore((st) => st.transform[2] >= LABEL_ZOOM);
   if (!s || !t || !data) return null;
 
-  const { edge, parallelIndex, parallelCount, highlighted, isSelected, leaving } = data;
+  const { edge, parallelIndex, parallelCount, highlighted, isSelected, leaving, count } = data;
   const sc = centreOf(s);
   const tc = centreOf(t);
   const dx = tc.x - sc.x;
@@ -79,6 +81,7 @@ function RelationshipEdgeView({ id, source, target, data, markerEnd }: EdgeProps
             title={`${edge.relClassName}${edge.navPropertyName ? ` (nav: ${edge.navPropertyName})` : " (link table)"}`}>
             {edge.kind === "navigation" ? "⟶ " : edge.kind === "linkTable" ? "⬌ " : ""}{shortName(edge.relClassName)}
             {edge.navPropertyName && <span className="ig-edge-label__nav">.{edge.navPropertyName}</span>}
+            {count !== undefined && <span className="ig-edge-label__count"> ×{count.toLocaleString()}</span>}
           </div>
           {edge.cardinality && (
             <>

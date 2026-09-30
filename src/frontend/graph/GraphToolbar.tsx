@@ -5,6 +5,7 @@ import { type DirectionFilter, parseNodeKey } from "../engine/GraphModel";
 import { downloadText, exportPng, graphToCxl, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../services/exporters";
 import { colorFor } from "../state/colorTheme";
 import { NODE_HEIGHT, NODE_WIDTH } from "./layout";
+import { ModeToggle } from "./ModeToggle";
 import { graphActions, useGraphStore } from "../state/graphStore";
 
 const DEPTHS = [1, 2, 3, 4, 5, 6].map((d) => ({ value: d, label: `Depth ${d}` }));
@@ -63,6 +64,7 @@ export function GraphToolbar() {
   return (
     <>
       <Panel position="top-left" className="ig-toolbar">
+        <ModeToggle />
         <ButtonGroup>
           <IconButton size="small" styleType="borderless" label="Back (Alt+←)" disabled={!canGoBack} onClick={() => graphActions.back()}><SvgChevronLeft /></IconButton>
           <IconButton size="small" styleType="borderless" label="Forward (Alt+→)" disabled={!canGoForward} onClick={() => graphActions.forward()}><SvgChevronRight /></IconButton>

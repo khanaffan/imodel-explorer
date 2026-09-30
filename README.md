@@ -26,6 +26,10 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Overview.** A census of the iModel: instances per schema, class and model, with how much of
   each schema the authoring app actually used. Click a class to list its instances, or filter the
   traversal straight from a row.
+- **Class graph.** Switch the pane from Instances to Classes for the "observed schema": one node
+  per class, one edge per relationship class with instance counts — either collapsed from the
+  current neighbourhood or built for the whole iModel. Double-click a class to jump back to its
+  instances.
 - **Include or exclude filters** by model (as a hierarchy), schema, class or relationship.
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.
 - **Pinned nodes** stay in view as you click through the graph.

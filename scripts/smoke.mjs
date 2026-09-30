@@ -177,6 +177,26 @@ try {
   if (!seedSql.includes("FROM ONLY TestIG.Pump")) throw new Error(`overview did not fill the seed query: ${seedSql}`);
   await page.screenshot({ path: `${outDir}/10-overview.png` });
   await page.getByRole("tab", { name: "Seed query" }).click();
+
+  // Class-level graph: neighbourhood collapse, whole-iModel build, double-click back to instances.
+  await page.locator(".ig-toolbar").getByRole("button", { name: "Classes", exact: true }).click();
+  await page.locator(".ig-classnode", { hasText: "Pump" }).first().waitFor({ timeout: 30_000 });
+  const hoodClasses = await page.locator(".ig-classnode").count();
+  await page.evaluate(() => globalThis.imodelExplorer.classGraphActions.setScope("imodel"));
+  await page.waitForFunction(() => {
+    const s = globalThis.imodelExplorer.getClassState();
+    return !s.building && s.imodelGraph && s.imodelGraph.nodes.size > 0;
+  }, undefined, { timeout: 60_000 });
+  await page.locator(".ig-classnode", { hasText: "PumpSpec" }).first().waitFor({ timeout: 30_000 });
+  const wholeClasses = await page.locator(".ig-classnode").count();
+  console.log(`class graph: neighbourhood ${hoodClasses} classes, whole iModel ${wholeClasses}`);
+  if (wholeClasses <= hoodClasses) throw new Error("whole-iModel class graph is not larger than the neighbourhood");
+  await page.screenshot({ path: `${outDir}/11-class-graph.png` });
+  await page.locator(".ig-classnode", { hasText: "Pump" }).first().dblclick();
+  await page.locator(".ig-node").first().waitFor({ timeout: 30_000 });
+  const classSeed = await page.locator("textarea.ig-sql").first().inputValue();
+  if (!classSeed.includes("FROM ONLY TestIG.Pump")) throw new Error(`class double-click did not fill the seed query: ${classSeed}`);
+  await page.getByRole("tab", { name: "Seed query" }).click();
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");
 } finally {

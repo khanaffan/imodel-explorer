@@ -12,6 +12,7 @@ import { App } from "./App";
 import { instanceGraphUiProvider } from "./frontstages/InstanceGraphUiProvider";
 import { MAIN_STAGE_ID } from "./frontstages/MainFrontstage";
 import { openAndShow } from "./imodel/session";
+import { classGraphActions, useClassGraphStore } from "./state/classGraphStore";
 import { graphActions, useGraphStore } from "./state/graphStore";
 import { getUnifiedSelectionStorage } from "./state/selectionStorage";
 
@@ -28,7 +29,7 @@ async function start() {
   UiItemsManager.register(instanceGraphUiProvider);
   StandardNavigationToolsProvider.register("InstanceGraph:Navigation", undefined, (stageId) => stageId === MAIN_STAGE_ID);
   // Automation / console hook for developers and smoke tests.
-  (globalThis as Record<string, unknown>).imodelExplorer = { openAndShow, graphActions, getState: useGraphStore.getState, IModelApp };
+  (globalThis as Record<string, unknown>).imodelExplorer = { openAndShow, graphActions, getState: useGraphStore.getState, classGraphActions, getClassState: useClassGraphStore.getState, IModelApp };
   createRoot(document.getElementById("root")!).render(<App />);
 }
 
