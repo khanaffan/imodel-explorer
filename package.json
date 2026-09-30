@@ -2,6 +2,7 @@
   "name": "imodel-explorer",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "iModel Data Explorer: a developer tool that opens an iModel and renders an interactive EC instance graph.",
   "main": "dist/backend/main.js",
   "scripts": {
