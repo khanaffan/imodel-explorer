@@ -14,8 +14,8 @@ export function SessionsWidget() {
   const fileInput = useRef<HTMLInputElement>(null);
 
   const capture = (n: string) => {
-    const { graph, options, layoutMode } = useGraphStore.getState();
-    return fileName ? captureSession(n, fileName, graph, options, layoutMode) : undefined;
+    const { graph, options, layoutMode, pins } = useGraphStore.getState();
+    return fileName ? captureSession(n, fileName, graph, options, layoutMode, pins) : undefined;
   };
 
   const save = () => {

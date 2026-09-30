@@ -19,6 +19,8 @@ export interface NeighbourLimits {
   readonly unlimited: ReadonlySet<string>;
   /** Instances already on the graph: links from capped groups to these are still returned. */
   readonly knownIds: readonly string[];
+  /** Return only rows leading to `knownIds` (skips the per-group caps and probes). */
+  readonly onlyKnown?: boolean;
 }
 
 export interface NeighbourResult {
@@ -31,6 +33,13 @@ export interface TraversalStrategy {
   readonly name: StrategyName;
   /** Instances directly related to the seeds; without `limits`, every one of them. */
   neighbours(seeds: readonly NodeKey[], direction: DirectionFilter, limits?: NeighbourLimits): Promise<NeighbourResult>;
+  /** Direct relationships from `seeds` to any of `targets`, without enumerating whole fans where possible. */
+  linksBetween(seeds: readonly NodeKey[], targets: readonly NodeKey[], direction: DirectionFilter): Promise<RawRelation[]>;
+}
+
+function onlyTargets(relations: readonly RawRelation[], targets: readonly NodeKey[]): RawRelation[] {
+  const wanted = new Set(targets.map(nodeKeyString));
+  return relations.filter((r) => wanted.has(nodeKeyString(r.related)));
 }
 
 
@@ -93,6 +102,14 @@ export class RelationsTraversal implements TraversalStrategy {
       }
     });
     return { relations: batches.flat(), totals };
+  }
+
+  public async linksBetween(seeds: readonly NodeKey[], targets: readonly NodeKey[], direction: DirectionFilter): Promise<RawRelation[]> {
+    if (seeds.length === 0 || targets.length === 0) return [];
+    // Relations() can't filter by the related id before enumerating a fan; the fallback's indexed
+    // per-relationship queries can.
+    if (this._fallback) return this._fallback.linksBetween(seeds, targets, direction);
+    return onlyTargets((await this.neighbours(seeds, direction)).relations, targets);
   }
 
   private async _batch(batch: NodeKey[], direction: DirectionFilter, limits: NeighbourLimits | undefined, totals: Map<string, number>): Promise<RawRelation[]> {
@@ -248,12 +265,24 @@ export class FallbackTraversal implements TraversalStrategy {
     return { relations: results.flat(), totals };
   }
 
+  public async linksBetween(seeds: readonly NodeKey[], targets: readonly NodeKey[], direction: DirectionFilter): Promise<RawRelation[]> {
+    if (seeds.length === 0 || targets.length === 0) return [];
+    const limits: NeighbourLimits = { fetchLimit: 0, maxRows: 0, unlimited: new Set(), knownIds: [...new Set(targets.map((t) => t.id))], onlyKnown: true };
+    const { relations } = await this.neighbours(seeds, direction, limits);
+    return onlyTargets(relations, targets);
+  }
+
   /** Runs a per-seed statement that has a `Rel` column (relationship class id) and a related-id
    * column, capping any relationship class that has more rows than its limit. */
   private async _capped(base: string, binder: () => QueryBinder, idColumn: string, seed: NodeKey, dir: Direction,
     limits: NeighbourLimits | undefined, totals: Map<string, number>): Promise<Array<Record<string, any>>> {
     if (!limits)
       return this._safeQuery(base, binder());
+    if (limits.onlyKnown) {
+      const parts = await Promise.all(chunk([...limits.knownIds], ID_LIST_CHUNK).map(async (known) =>
+        this._safeQuery(`SELECT * FROM (${base}) WHERE ${idColumn} IN (${idList(known)})`, binder())));
+      return parts.flat();
+    }
     const owner = nodeKeyString(seed);
     const probeLimit = [...limits.unlimited].some((k) => k.startsWith(`agg|${owner}|`) && k.endsWith(`|${dir}`)) ? limits.maxRows : limits.fetchLimit;
     const probe = await this._safeQuery(`${base} LIMIT ${probeLimit + 1}`, binder());

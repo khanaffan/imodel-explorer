@@ -38,6 +38,8 @@ instance and read the answer off the graph.
   polymorphic) and relationship class, applied during traversal.
 - **Colouring** by category — 3D/2D geometric, definition, information, role, model, aspect — with
   customisable colours and custom rules by class or schema.
+- **Pinned nodes.** Pin the nodes you care about and they stay in view as you click through the
+  graph, so you can build up the subgraph you are studying.
 - **Hub safety.** Large fan-outs (a CodeSpec, a category, a root subject) collapse to `+N` summary
   nodes that you can open on demand; a node budget caps the whole graph.
 - **3D view** with two-way selection sync, plus ECPresentation **visibility trees** (models,
@@ -92,11 +94,12 @@ Open a snapshot or briefcase (`.bim`) from the welcome page. Briefcases open rea
 |---|---|
 | **Seed query** (left) | Run any ECSQL. The id comes from an `ECInstanceId`/`Id`/`ElementId` column, or the first id-looking value. The class comes from `ECClassId` or a class-name column, otherwise it is looked up. Click a result to centre the graph on it. **Examples** has ready-made queries. |
 | **Graph** (centre) | The selected instance sits in the middle, with one ring per hop around it. **Click** a node to recentre on it. Degree 1 loads first and deeper rings stream in. **Shift/⌘-click** selects without recentring. **+/−** expands or collapses a single node, and **▾** previews its properties inline. `+N` summary nodes stand in for large fan-outs; click one to load them. **Alt+←/→** goes back and forward, **F** fits the view. |
+| **Pin** (📌 on a node, **P**, or the Properties pane) | Keeps a node in view while you recentre, expand and collapse. See [Pinning nodes](#pinning-nodes). |
 | **Toolbar** | Back and forward, fit, radial or layered (elk) layout, depth (1–6), direction (in, out, both). **Export** to JSON or GraphML (yEd, Gephi, Cytoscape), save a PNG, or copy an ECSQL recipe that reproduces the traversal. |
 | **Traversal & filters** (left) | Depth, direction, group cap (edges per relationship class before a summary node is used), node budget, and a Relations()/fallback toggle. Filters are tri-state (· any, ✓ include only, ✗ exclude) per **Model**, **Schema**, **Class** (optionally polymorphic) and **Relationship**. Models are shown as a tree: a sub-model sits under the model that contains its modeled element (for example a DefinitionContainer's model, or an alignment model under a road network). A sub-model with no state of its own inherits its nearest ancestor's (drawn as a faint dashed mark), so excluding a model hides everything beneath it, and a sub-model can override it. The centre is never hidden. |
 | **Properties** (right) | For a node: class, id, model, hop distance, and every readable property; clicking a navigation value jumps to that instance. For an edge: the relationship class, strength and direction, source and target constraints with multiplicity, and, for **link-table** relationships, the relationship instance's own properties. |
 | **Legend & colours** (right) | Counts per category, plus colour pickers for each category (3D or 2D geometric, definition, information, role, model, aspect, other) and ordered custom rules by class (polymorphic or exact) or by schema. |
-| **Sessions** (left) | Save or restore the centre, options, filters and expanded nodes (stored in localStorage), and import or export them as JSON files. |
+| **Sessions** (left) | Save or restore the centre, options, filters, expanded nodes and pins (stored in localStorage), and import or export them as JSON files. |
 | **Models & categories** (left, next to Traversal & filters) | ECPresentation visibility trees from `@itwin/tree-widget-react` (the same trees OpenSite+ uses). Pick **Models**, **Categories** or **Classifications**, then use a row's eye button to show or hide that content in the 3D view (for example, hide terrain). **Classifications** only appears when the iModel has `ClassificationSystems` data; if there are several systems, a picker chooses between them, and it starts on the system with the most classified elements. Selecting an element node in a tree recentres the graph on it. |
 | **3D view** (right of graph) | Selecting a node selects and highlights the element in the view, and selecting one element in the view recentres the graph on it. **Show in 3D** zooms to it. |
 
@@ -104,6 +107,30 @@ Edges: a solid orange line is a **link-table** relationship (it has its own ECIn
 properties); a dashed line is a **navigation property** (the label shows `Rel.NavProp`); a dotted line
 leads to a summary node. The numbers near each end are the relationship's constraint multiplicities,
 for example `0..1` and `0..*`.
+
+### Pinning nodes
+
+Pins let you build up a subgraph while you walk through the data, for example keeping a pump in
+view while you click from pipe to pipe.
+
+- **Pin or unpin** with the node's 📌 button, the **P** key on the selected node, or **Pin** in
+  the Properties pane. Pinned nodes have a 📌 in their header and an accent outline. The toolbar's
+  **📌 N** menu lists every pin: you can centre on one, unpin it, or **Unpin all**.
+- **Placement.** A pin keeps its place relative to the centre, so it stays put on screen when you
+  recentre. Drag it to move it. The rest of the layout moves out of its way.
+- **Chain rule.** A pin stays while a relationship links it to the centre, to a pin in the current
+  neighbourhood, or to another pin that is itself kept. The links are found with a targeted query
+  after each recentre, so they are found even across capped `+N` groups. A pin that loses its chain
+  is unpinned and fades out. A link to an ordinary (unpinned) neighbour is drawn, but it does not
+  keep a pin alive.
+- **What keeps pins:** clicking a node, **Centre here**, navigation-property links, expand and
+  collapse, opening a `+N` group, changing options or filters, and back/forward (Back brings back
+  a pin that was dropped).
+- **What clears pins:** picking a new starting point from outside the graph, which means a seed
+  query row, selecting an element in the 3D view, or selecting a node in a visibility tree.
+  Restoring a session, switching traversal strategy and opening another iModel also clear them.
+- Pins and their positions are saved in sessions. On restore, pins whose instances no longer exist
+  are skipped.
 
 ## How it works
 

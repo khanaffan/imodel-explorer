@@ -2,6 +2,7 @@ import type { TraversalOptions } from "../engine/GraphEngine";
 import { type GraphData, type NodeKey, parseNodeKey } from "../engine/GraphModel";
 import { EMPTY_FILTERS, type FilterSpec } from "../engine/filters";
 import type { LayoutMode } from "../graph/layout";
+import type { PinOffset, Pins } from "../engine/pins";
 
 export interface SavedSession {
   readonly format: "instance-graph-session";
@@ -20,11 +21,13 @@ export interface SavedSession {
   /** Nodes the user expanded by hand, in hop order, so they can be replayed. */
   readonly expandedNodes: string[];
   readonly layoutMode: LayoutMode;
+  /** Pinned instances (`classId:id`) and their offsets from the centre. Optional: older files have none. */
+  readonly pinned?: ReadonlyArray<{ readonly key: string; readonly offset?: PinOffset }>;
 }
 
 const STORAGE_KEY = "instanceGraph.sessions";
 
-export function captureSession(name: string, fileName: string, graph: GraphData, options: TraversalOptions, layoutMode: LayoutMode): SavedSession | undefined {
+export function captureSession(name: string, fileName: string, graph: GraphData, options: TraversalOptions, layoutMode: LayoutMode, pins: Pins = new Map()): SavedSession | undefined {
   if (!graph.centreKey) return undefined;
   const expandedNodes = [...graph.nodes.values()]
     .filter((n) => n.expanded && !n.aggregate && n.key !== graph.centreKey && n.depth >= options.depth)
@@ -34,6 +37,7 @@ export function captureSession(name: string, fileName: string, graph: GraphData,
     format: "instance-graph-session", version: 1, name, savedAt: new Date().toISOString(), fileName,
     centre: parseNodeKey(graph.centreKey), depth: options.depth, direction: options.direction, filters: options.filters,
     nodeBudget: options.nodeBudget, groupCap: options.groupCap, expandedGroups: [...options.expandedGroups], expandedNodes, layoutMode,
+    ...(pins.size > 0 ? { pinned: [...pins].map(([key, p]) => (p.offset ? { key, offset: { x: p.offset.x, y: p.offset.y } } : { key })) } : {}),
   };
 }
 
@@ -60,7 +64,22 @@ export function parseSession(value: unknown): SavedSession {
     expandedGroups: Array.isArray(v.expandedGroups) ? v.expandedGroups.filter((s) => typeof s === "string") : [],
     expandedNodes: Array.isArray(v.expandedNodes) ? v.expandedNodes.filter((s) => typeof s === "string") : [],
     layoutMode: v.layoutMode === "layered" ? "layered" : "radial",
+    ...(Array.isArray(v.pinned) ? { pinned: parsePinned(v.pinned) } : {}),
   };
+}
+
+const NODE_KEY = /^0x[0-9a-f]+:0x[0-9a-f]+$/i;
+
+function parsePinned(raw: readonly unknown[]): Array<{ key: string; offset?: PinOffset }> {
+  const out: Array<{ key: string; offset?: PinOffset }> = [];
+  for (const r of raw) {
+    const p = r as { key?: unknown; offset?: { x?: unknown; y?: unknown } } | null;
+    if (!p || typeof p.key !== "string" || !NODE_KEY.test(p.key)) continue;
+    const { x, y } = p.offset ?? {};
+    const finite = typeof x === "number" && typeof y === "number" && Number.isFinite(x) && Number.isFinite(y);
+    out.push(finite ? { key: p.key, offset: { x, y } } : { key: p.key });
+  }
+  return out;
 }
 
 export function listSessions(storage: Pick<Storage, "getItem"> = localStorage): SavedSession[] {

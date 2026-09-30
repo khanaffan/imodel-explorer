@@ -51,7 +51,8 @@ export async function createFixture(opts: { file?: string; keep?: boolean } = {}
   const file = opts.file ?? join(dir, `ig-fixture-${process.pid}-${Date.now()}.bim`);
   rmSync(file, { force: true });
   if (!IModelHost.isValid)
-    await IModelHost.startup({ cacheDir: join(dir, "cache") });
+    // One cache (profile) per worker process: vitest runs test files in parallel forks.
+    await IModelHost.startup({ cacheDir: join(dir, `cache-${process.pid}`) });
 
   const db = SnapshotDb.createEmpty(file, { rootSubject: { name: "InstanceGraph test" } });
   await db.importSchemaStrings([SCHEMA]);
@@ -94,6 +95,10 @@ export async function createFixture(opts: { file?: string; keep?: boolean } = {}
       db.close();
       if (!opts.keep)
         rmSync(file, { force: true });
+      if (IModelHost.isValid) {
+        await IModelHost.shutdown();
+        rmSync(join(dir, `cache-${process.pid}`), { recursive: true, force: true });
+      }
     },
   };
 }

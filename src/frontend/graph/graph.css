@@ -332,3 +332,30 @@
   .ig-node, .ig-node__preview, .ig-edge-label { animation: none; }
   .ig-node--leaving { opacity: 0; }
 }
+
+/* Pinned nodes */
+.ig-node--pinned {
+  box-shadow: 0 0 0 2px var(--iui-color-border-accent, #2f80ed), 0 4px 14px rgb(0 0 0 / 25%);
+}
+
+.ig-node__pin-badge {
+  flex: none;
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.ig-node__pin-badge + .ig-node__class {
+  margin-right: auto;
+}
+
+.ig-node__btn--pin {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.ig-node__btn--pin.ig-node__btn--on {
+  filter: none;
+  opacity: 1;
+  background: var(--iui-color-background-accent-muted, #dbe9fb);
+}

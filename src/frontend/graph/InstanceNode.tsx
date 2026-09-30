@@ -11,6 +11,7 @@ export interface InstanceNodeData extends Record<string, unknown> {
   readonly color: string;
   readonly isCentre: boolean;
   readonly isSelected: boolean;
+  readonly isPinned: boolean;
   readonly leaving: boolean;
   /** Stagger for the entrance animation, by ring. */
   readonly enterDelayMs: number;
@@ -29,7 +30,7 @@ function shortClass(fullName: string) {
 const hiddenHandle = { opacity: 0, width: 1, height: 1, minWidth: 0, minHeight: 0, border: 0, left: "50%", top: "50%", pointerEvents: "none" } as const;
 
 function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
-  const { node, color, isCentre, isSelected, leaving, enterDelayMs } = data;
+  const { node, color, isCentre, isSelected, isPinned, leaving, enterDelayMs } = data;
   const compact = useStore(zoomIsCompact);
   const [preview, setPreview] = useState<PropertyRecord[] | "loading" | undefined>();
 
@@ -53,7 +54,12 @@ function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
     else void graphActions.expand(node.key);
   }, [node.expanded, node.key]);
 
-  const classes = ["ig-node", isCentre && "ig-node--centre", isSelected && "ig-node--selected", leaving && "ig-node--leaving",
+  const onPin = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    graphActions.togglePin(node.key);
+  }, [node.key]);
+
+  const classes = ["ig-node", isCentre && "ig-node--centre", isSelected && "ig-node--selected", isPinned && "ig-node--pinned", leaving && "ig-node--leaving",
     node.aggregate && "ig-node--aggregate", compact && "ig-node--compact", preview && "ig-node--open"].filter(Boolean).join(" ");
 
   const handles = (
@@ -79,6 +85,7 @@ function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
       title={`${node.className}\n${node.id}${node.modelName ? `\nModel: ${node.modelName}` : ""}`}>
       {handles}
       <div className="ig-node__header" style={{ background: color, color: contrastText(color) }}>
+        {isPinned && <span className="ig-node__pin-badge" title="Pinned: stays in view while related to the centre or another pin">📌</span>}
         <span className="ig-node__class">{shortClass(node.className)}</span>
         {!compact && <span className="ig-node__schema">{node.schemaName}</span>}
       </div>
@@ -102,6 +109,8 @@ function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
       )}
       {!compact && !leaving && (
         <div className="ig-node__actions">
+          <button className={`ig-node__btn ig-node__btn--pin${isPinned ? " ig-node__btn--on" : ""}`} onClick={onPin} aria-pressed={isPinned}
+            title={isPinned ? "Unpin" : "Pin: keep in view while you click through the graph (P)"}>📌</button>
           <button className="ig-node__btn" onClick={togglePreview} title={preview ? "Hide properties" : "Show properties"}>{preview ? "▴" : "▾"}</button>
           {!isCentre && (
             <button className="ig-node__btn" onClick={onExpand} title={node.expanded ? "Collapse" : "Expand one hop here"}>{node.expanded ? "−" : "+"}</button>

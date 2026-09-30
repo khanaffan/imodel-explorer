@@ -27,7 +27,7 @@ async function goToNavTarget(p: PropertyRecord) {
   const engine = useGraphStore.getState().engine;
   if (!engine || !p.navTarget) return;
   const classId = await resolveNavTargetClassId(engine.port, p.navTarget);
-  if (classId) await graphActions.showInstance({ id: p.navTarget.id, classId });
+  if (classId) await graphActions.centreOn({ id: p.navTarget.id, classId });
 }
 
 function PropertyRow({ p, depth = 0 }: { p: PropertyRecord; depth?: number }) {
@@ -73,6 +73,7 @@ function PropertyTable({ className, id, emptyText }: { className: string; id: st
 function NodeDetails({ node }: { node: GraphNode }) {
   const theme = useGraphStore((s) => s.theme);
   const isCentre = useGraphStore((s) => s.graph.centreKey === node.key);
+  const isPinned = useGraphStore((s) => s.pins.has(node.key));
   const edges = useGraphStore((s) => [...s.graph.edges.values()].filter((e) => e.source === node.key || e.target === node.key).length);
 
   if (node.aggregate) {
@@ -95,7 +96,9 @@ function NodeDetails({ node }: { node: GraphNode }) {
         <div className="ig-card__sub">{node.depth} hop{node.depth === 1 ? "" : "s"} from centre · {edges} relationship{edges === 1 ? "" : "s"} shown</div>
       </div>
       <div className="ig-row ig-row--wrap">
-        {!isCentre && <Button size="small" onClick={() => void graphActions.showInstance({ id: node.id, classId: node.classId })}>Centre here</Button>}
+        <Button size="small" styleType={isPinned ? "high-visibility" : "default"} onClick={() => graphActions.togglePin(node.key)}
+          title="Pinned nodes stay in view while you click through the graph, as long as they stay related to the centre or another pin">{isPinned ? "Unpin" : "Pin"}</Button>
+        {!isCentre && <Button size="small" onClick={() => void graphActions.centreOn({ id: node.id, classId: node.classId })}>Centre here</Button>}
         {!isCentre && <Button size="small" onClick={() => node.expanded ? graphActions.collapse(node.key) : void graphActions.expand(node.key)}>{node.expanded ? "Collapse" : "Expand"}</Button>}
         {node.category.startsWith("geometric") && <Button size="small" onClick={() => viewportSync.zoomTo(node.id)}>Show in 3D</Button>}
         {!isCentre && <Button size="small" styleType="borderless" onClick={() => filterEdits.excludeClass(node.className)}>Hide class</Button>}

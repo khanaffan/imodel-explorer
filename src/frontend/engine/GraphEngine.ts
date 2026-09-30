@@ -1,4 +1,7 @@
+import { QueryBinder } from "@itwin/core-common";
 import { ClassRegistry } from "./ClassRegistry";
+import { quoteClassName } from "./ecsql";
+import type { Pins } from "./pins";
 import { passesClassFilters, passesModelFilters, passesRelationshipFilters, type FilterSpec, EMPTY_FILTERS } from "./filters";
 import {
   aggregateKey, type DirectionFilter, parseAggregateKey, edgeKeyFor, type GraphData, type GraphEdge, type GraphNode, type NodeKey, nodeKeyString, parseNodeKey, type RawRelation,
@@ -118,6 +121,42 @@ export class GraphEngine {
       if (e.source === aggKey || e.target === aggKey) g.edges.delete(k);
     await this._expandFrontier(g, [agg.ownerKey], { ...opts, expandedGroups }, cancel);
     return { graph: freeze(g), expandedGroups };
+  }
+
+  /** Edges between pinned nodes and everything displayed (the traversal result and other pins),
+   * not already in `base`. Never adds nodes. Both directions are searched: a pin is explicit, so
+   * its links are shown whatever the traversal direction. */
+  public async connectPinned(base: GraphData, pins: Pins, opts: TraversalOptions, cancel?: CancelToken): Promise<Map<string, GraphEdge>> {
+    const out = new Map<string, GraphEdge>();
+    const seeds = [...pins.values()].filter((p) => !p.node.aggregate).map((p) => parseNodeKey(p.node.key));
+    if (seeds.length === 0) return out;
+    const targets = new Map<string, NodeKey>();
+    for (const n of base.nodes.values()) if (!n.aggregate) targets.set(n.key, { id: n.id, classId: n.classId });
+    for (const s of seeds) targets.set(nodeKeyString(s), s);
+    const rels = await this.strategy.linksBetween(seeds, [...targets.values()], "both");
+    this._checkCancelled(cancel);
+    for (const r of rels) {
+      const { key, source, target } = edgeKeyFor(r);
+      if (base.edges.has(key) || out.has(key) || !targets.has(source) || !targets.has(target)) continue;
+      if (!passesRelationshipFilters(opts.filters, this.registry.hierarchyOf(r.relClassId))) continue;
+      out.set(key, this._edgeFor(r, key, source, target));
+    }
+    return out;
+  }
+
+  /** Keys of instances that still exist, e.g. before restoring pins from a saved session. */
+  public async existingKeys(keys: readonly NodeKey[]): Promise<Set<string>> {
+    const out = new Set<string>();
+    await Promise.all(keys.map(async (k) => {
+      const name = this.registry.nameOf(k.classId);
+      if (!name || !name.includes(":")) return;
+      try {
+        const rows = await this.port.query(`SELECT ECInstanceId FROM ${quoteClassName(name)} WHERE ECInstanceId = ? AND ECClassId = ?`,
+          new QueryBinder().bindId(1, k.id).bindId(2, k.classId));
+        if (rows.length > 0) out.add(nodeKeyString(k));
+      } catch { /* unknown or unqueryable class: treat as gone */ }
+    }));
+    return out;
   }
 
   /** Removes nodes that are only reachable from the centre through `nodeKey`. */

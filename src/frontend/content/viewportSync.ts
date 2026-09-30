@@ -1,6 +1,7 @@
 import { QueryBinder } from "@itwin/core-common";
 import type { ScreenViewport } from "@itwin/core-frontend";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { isGraphSelection } from "../state/selectionStorage";
 
 let viewport: ScreenViewport | undefined;
 /** Set while the graph writes the selection set, so the resulting event is not echoed back. */
@@ -39,15 +40,17 @@ export const viewportSync = {
       if (applyingFromGraph) return;
       const ids = [...ev.set.elements];
       if (ids.length !== 1) return;
+      if (isGraphSelection(ids[0])) return;
+      // A pick in the 3D view starts a new exploration, even when the element is already on the graph.
       const { graph } = useGraphStore.getState();
       const existing = [...graph.nodes.values()].find((n) => n.id === ids[0] && isGeometric(n.category));
       if (existing) {
-        await graphActions.activate(existing.key);
+        await graphActions.seedExternal({ id: existing.id, classId: existing.classId });
         return;
       }
       const reader = imodel.createQueryReader("SELECT ECClassId FROM bis.Element WHERE ECInstanceId = ?", QueryBinder.from([ids[0]]));
       for await (const row of reader) {
-        await graphActions.showInstance({ id: ids[0], classId: row[0] as string });
+        await graphActions.seedExternal({ id: ids[0], classId: row[0] as string });
         break;
       }
     }));

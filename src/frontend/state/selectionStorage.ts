@@ -1,7 +1,13 @@
 import { QueryBinder } from "@itwin/core-common";
 import { IModelConnection } from "@itwin/core-frontend";
 import { createStorage, Selectable, Selectables, type SelectionStorage } from "@itwin/unified-selection";
-import { graphActions } from "./graphStore";
+import { graphActions, useGraphStore } from "./graphStore";
+
+/** True when `id` is the instance already selected in the graph, i.e. the selection round-tripped. */
+export function isGraphSelection(id: string): boolean {
+  const { selection, graph } = useGraphStore.getState();
+  return selection?.kind === "node" && graph.nodes.get(selection.key)?.id === id;
+}
 
 let storage: SelectionStorage | undefined;
 
@@ -25,9 +31,10 @@ export function syncTreeSelectionToGraph(imodel: IModelConnection): () => void {
     Selectables.forEach(args.selectables, (s) => { if (Selectable.isInstanceKey(s)) keys.push(s); });
     if (keys.length !== 1 || !CLASS_NAME.test(keys[0].className)) return;
     const { id, className } = keys[0];
+    if (isGraphSelection(id)) return; // echo of the graph's own selection
     const reader = imodel.createQueryReader(`SELECT ECClassId FROM ${className.replace(":", ".")} WHERE ECInstanceId = ?`, QueryBinder.from([id]));
     for await (const row of reader) {
-      await graphActions.showInstance({ id, classId: row[0] as string });
+      await graphActions.seedExternal({ id, classId: row[0] as string });
       break;
     }
   });

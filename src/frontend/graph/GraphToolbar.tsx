@@ -1,7 +1,7 @@
 import { SvgChevronLeft, SvgChevronRight, SvgExport, SvgFitToView, SvgHierarchyTree, SvgNetwork } from "@itwin/itwinui-icons-react";
-import { ButtonGroup, DropdownMenu, IconButton, MenuItem, ProgressRadial, Select, Text } from "@itwin/itwinui-react";
+import { Button, ButtonGroup, DropdownMenu, IconButton, MenuDivider, MenuItem, ProgressRadial, Select, Text } from "@itwin/itwinui-react";
 import { Panel, useReactFlow } from "@xyflow/react";
-import type { DirectionFilter } from "../engine/GraphModel";
+import { type DirectionFilter, parseNodeKey } from "../engine/GraphModel";
 import { downloadText, exportPng, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../services/exporters";
 import { graphActions, useGraphStore } from "../state/graphStore";
 
@@ -20,6 +20,7 @@ export function GraphToolbar() {
   const direction = useGraphStore((s) => s.options.direction);
   const status = useGraphStore((s) => s.status);
   const hasGraph = useGraphStore((s) => s.graph.nodes.size > 0);
+  const pins = useGraphStore((s) => s.pins);
   const rf = useReactFlow();
 
   const stem = () => safeFileStem(useGraphStore.getState().fileName);
@@ -37,6 +38,17 @@ export function GraphToolbar() {
       const sql = traversalRecipe(graph, options.depth, options.direction);
       if (sql) void navigator.clipboard.writeText(sql);
     }}>Copy traversal as ECSQL</MenuItem>,
+  ];
+
+  const pinItems = (close: () => void) => [
+    ...[...pins.values()].map((p) => (
+      <MenuItem key={p.node.key} sublabel={p.node.className} subMenuItems={[
+        <MenuItem key="centre" onClick={() => { close(); void graphActions.centreOn(parseNodeKey(p.node.key)); }}>Centre here</MenuItem>,
+        <MenuItem key="unpin" onClick={() => { close(); graphActions.togglePin(p.node.key); }}>Unpin</MenuItem>,
+      ]}>{p.node.label}</MenuItem>
+    )),
+    <MenuDivider key="div" />,
+    <MenuItem key="all" onClick={() => { close(); graphActions.unpinAll(); }}>Unpin all</MenuItem>,
   ];
 
   return (
@@ -57,6 +69,11 @@ export function GraphToolbar() {
         <div className="ig-toolbar__select">
           <Select<DirectionFilter> size="small" options={DIRECTIONS} value={direction} onChange={(d) => graphActions.setOptions({ direction: d })} />
         </div>
+        {pins.size > 0 && (
+          <DropdownMenu menuItems={pinItems}>
+            <Button size="small" styleType="borderless" title="Pinned nodes" className="ig-toolbar__pins">📌 {pins.size}</Button>
+          </DropdownMenu>
+        )}
         <DropdownMenu menuItems={exportItems}>
           <IconButton size="small" styleType="borderless" label="Export" disabled={!hasGraph}><SvgExport /></IconButton>
         </DropdownMenu>

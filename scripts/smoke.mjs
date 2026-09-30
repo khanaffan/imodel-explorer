@@ -100,6 +100,44 @@ try {
     globalThis.imodelExplorer.graphActions.setOptions({ depth: 1, filters: { models: {}, schemas: {}, classes: {}, relationships: {} } }, false);
   });
 
+  // Pin the centre, then click a neighbour in the canvas: the pin stays (it relates directly to the
+  // new centre) even though the click echoes back through the viewport selection.
+  await page.evaluate(async (k) => {
+    const [classId, id] = k.split(":");
+    await globalThis.imodelExplorer.graphActions.seedExternal({ classId, id });
+  }, summary.centre);
+  await idle();
+  await page.waitForTimeout(1200);
+  await page.evaluate((k) => globalThis.imodelExplorer.graphActions.togglePin(k), summary.centre);
+  await page.waitForTimeout(600);
+  await page.locator(".react-flow__node:not(:has(.ig-node--centre)):not(:has(.ig-node--aggregate))").first().click();
+  await page.waitForFunction((k) => globalThis.imodelExplorer.getState().graph.centreKey !== k, summary.centre, { timeout: 30_000 });
+  await idle();
+  await page.waitForTimeout(1500);
+  const pinned = await page.evaluate((k) => {
+    const s = globalThis.imodelExplorer.getState();
+    return { kept: s.pins.has(k), shown: s.graph.nodes.has(k), edges: [...s.graph.edges.values()].filter((e) => e.source === k || e.target === k).length, painted: document.querySelectorAll(".ig-node--pinned").length };
+  }, summary.centre);
+  console.log(`pin after recentre: ${JSON.stringify(pinned)}`);
+  if (!pinned.kept || !pinned.shown || pinned.edges === 0 || pinned.painted === 0)
+    throw new Error("pinned node did not survive a recentre to its neighbour");
+  await page.screenshot({ path: `${outDir}/07-pinned.png` });
+  await page.locator(".ig-toolbar__pins").click();
+  await page.getByRole("menuitem", { name: "Unpin all" }).waitFor({ timeout: 5_000 });
+  await page.locator('[role="menuitem"]').first().hover();
+  await page.getByRole("menuitem", { name: "Centre here" }).waitFor({ timeout: 5_000 });
+  await page.screenshot({ path: `${outDir}/08-pin-menu.png` });
+  await page.keyboard.press("Escape");
+
+  await page.evaluate(async (k) => {
+    const [classId, id] = k.split(":");
+    await globalThis.imodelExplorer.graphActions.seedExternal({ classId, id });
+  }, summary.centre);
+  await idle();
+  const pinsAfterSeed = await page.evaluate(() => globalThis.imodelExplorer.getState().pins.size);
+  console.log(`pins after external seed: ${pinsAfterSeed}`);
+  if (pinsAfterSeed !== 0) throw new Error("external seed did not clear pins");
+
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");
 } finally {

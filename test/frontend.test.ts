@@ -155,7 +155,7 @@ describe("motion", () => {
 });
 
 describe("navigation history", () => {
-  const entry = (k: string) => ({ centreKey: k, label: k, graph: { centreKey: k, nodes: new Map(), edges: new Map(), truncated: false }, expandedGroups: new Set<string>() });
+  const entry = (k: string) => ({ centreKey: k, label: k, graph: { centreKey: k, nodes: new Map(), edges: new Map(), truncated: false }, expandedGroups: new Set<string>(), pins: new Map(), pinEdges: new Map() });
 
   it("behaves like a browser", () => {
     const h = new NavigationHistory();

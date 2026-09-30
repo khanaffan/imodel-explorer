@@ -1,4 +1,5 @@
-import type { GraphData } from "../engine/GraphModel";
+import type { GraphData, GraphEdge } from "../engine/GraphModel";
+import type { Pins } from "../engine/pins";
 
 export interface HistoryEntry {
   readonly centreKey: string;
@@ -6,6 +7,8 @@ export interface HistoryEntry {
   /** Full snapshot so Back restores instantly without re-querying. */
   readonly graph: GraphData;
   readonly expandedGroups: ReadonlySet<string>;
+  readonly pins: Pins;
+  readonly pinEdges: ReadonlyMap<string, GraphEdge>;
 }
 
 /** Browser-style back/forward over visited centres. Pushing after going back drops the forward

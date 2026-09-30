@@ -252,3 +252,46 @@ export async function computeLayout(graph: GraphData, mode: LayoutMode, previous
     return layeredLayout(graph);
   return radialLayout(graph, stableRotation(graph, previous, previousCentre));
 }
+
+const PIN_PADDING = 16;
+const PUSH_STEP = 24;
+const MAX_PUSH_STEPS = 400;
+
+/** Moves nodes off pinned nodes: pins keep their place (except off the centre, which never moves),
+ * and any other node overlapping a pin, or a node already pushed, slides outward along its ray
+ * from the centre until it is clear. Unpinned layouts are returned unchanged. */
+export function avoidPinned(positions: Positions, pinned: ReadonlySet<string>, centreKey: string): Positions {
+  const c = positions.get(centreKey);
+  const pins = [...pinned].filter((k) => k !== centreKey && positions.has(k));
+  if (!c || pins.length === 0) return positions;
+  const out: Positions = new Map(positions);
+  const hits = (p: Point, o: Point, pad: number) => Math.abs(p.x - o.x) < NODE_WIDTH + pad && Math.abs(p.y - o.y) < NODE_HEIGHT + pad;
+  const clearOf = (k: string, obstacles: ReadonlyArray<{ p: Point; pad: number }>) => {
+    let p = out.get(k)!;
+    let dx = p.x - c.x, dy = p.y - c.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 1) { dx = 1; dy = 0; } else { dx /= len; dy /= len; }
+    let moved = false;
+    for (let i = 0; i < MAX_PUSH_STEPS && obstacles.some((o) => hits(p, o.p, o.pad)); i++) {
+      p = { x: p.x + dx * PUSH_STEP, y: p.y + dy * PUSH_STEP };
+      moved = true;
+    }
+    out.set(k, p);
+    return moved;
+  };
+
+  const placed: Array<{ p: Point; pad: number }> = [{ p: c, pad: PIN_PADDING }];
+  for (const k of pins) {
+    clearOf(k, placed);
+    placed.push({ p: out.get(k)!, pad: PIN_PADDING });
+  }
+  const pinSet = new Set(pins);
+  const dist = (k: string) => Math.hypot(out.get(k)!.x - c.x, out.get(k)!.y - c.y);
+  const rest = [...out.keys()].filter((k) => k !== centreKey && !pinSet.has(k)).sort((a, b) => dist(a) - dist(b));
+  for (const k of rest) {
+    clearOf(k, placed);
+    // Other nodes only need to avoid exact overlap; the layout already spaced them.
+    placed.push({ p: out.get(k)!, pad: 0 });
+  }
+  return out;
+}

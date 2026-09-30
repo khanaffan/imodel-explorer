@@ -8,7 +8,7 @@ import { colorFor } from "../state/colorTheme";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { GraphToolbar } from "./GraphToolbar";
 import { InstanceNode, type InstanceFlowNode } from "./InstanceNode";
-import { computeLayout, NODE_HEIGHT, NODE_WIDTH, type Point, type Positions } from "./layout";
+import { avoidPinned, computeLayout, NODE_HEIGHT, NODE_WIDTH, type Point, type Positions } from "./layout";
 import { DEFAULT_DURATION_MS, LayoutAnimator, LEAVE_DURATION_MS, prefersReducedMotion } from "./motion";
 import { RelationshipEdge, type RelationshipFlowEdge } from "./RelationshipEdge";
 import "./graph.css";
@@ -31,12 +31,23 @@ function boundsOf(positions: Positions) {
   return Number.isFinite(x0) ? { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } : undefined;
 }
 
+/** The graph to lay out: pins outside the traversal result that already have a place are left out,
+ * so they don't distort the rings; they are positioned by their offset instead. */
+function withoutPlacedPins(graph: GraphData, base: GraphData, placed: ReadonlyMap<string, Point>): GraphData {
+  const skip = (k: string) => placed.has(k) && !base.nodes.has(k) && k !== graph.centreKey;
+  if (![...placed.keys()].some(skip)) return graph;
+  const nodes = new Map([...graph.nodes].filter(([k]) => !skip(k)));
+  const edges = new Map([...graph.edges].filter(([, e]) => nodes.has(e.source) && nodes.has(e.target)));
+  return { ...graph, nodes, edges };
+}
+
 function GraphCanvasInner() {
   const graph = useGraphStore((s) => s.graph);
   const layoutMode = useGraphStore((s) => s.layoutMode);
   const theme = useGraphStore((s) => s.theme);
   const selection = useGraphStore((s) => s.selection);
   const fitRequest = useGraphStore((s) => s.fitRequest);
+  const pins = useGraphStore((s) => s.pins);
   const rf = useReactFlow();
 
   const [positions, setPositions] = useState<Positions>(new Map());
@@ -55,14 +66,46 @@ function GraphCanvasInner() {
     let cancelled = false;
     const before = shown.current;
     const previousPositions = animator.current;
+    const { pins: currentPins, baseGraph } = useGraphStore.getState();
+    // Offsets from the centre: stored ones, or where a newly pinned node is now relative to the
+    // node about to be centre (so it stays put on screen while the camera follows the centre).
+    const offsets = new Map<string, Point>();
+    const fresh = new Map<string, Point>();
+    const prevCentre = previousPositions.get(graph.centreKey);
+    for (const [k, pin] of currentPins) {
+      if (k === graph.centreKey || !graph.nodes.has(k)) continue;
+      if (pin.offset) offsets.set(k, pin.offset);
+      else if (prevCentre && previousPositions.has(k)) {
+        const p = previousPositions.get(k)!;
+        const o = { x: p.x - prevCentre.x, y: p.y - prevCentre.y };
+        offsets.set(k, o);
+        fresh.set(k, o);
+      }
+    }
     void (async () => {
       let target: Positions;
       try {
-        target = await computeLayout(graph, layoutMode, previousPositions, before.centreKey !== graph.centreKey ? before.centreKey : undefined);
+        target = await computeLayout(withoutPlacedPins(graph, baseGraph, offsets), layoutMode, previousPositions, before.centreKey !== graph.centreKey ? before.centreKey : undefined);
       } catch {
         return;
       }
       if (cancelled) return;
+      const centrePos = target.get(graph.centreKey);
+      const pinnedKeys = new Set<string>();
+      if (centrePos) {
+        for (const [k, pin] of currentPins) {
+          if (k === graph.centreKey || !graph.nodes.has(k)) continue;
+          pinnedKeys.add(k);
+          const o = offsets.get(k);
+          if (o) target.set(k, { x: centrePos.x + o.x, y: centrePos.y + o.y });
+          else if (target.has(k) && !pin.offset) {
+            const p = target.get(k)!;
+            fresh.set(k, { x: p.x - centrePos.x, y: p.y - centrePos.y });
+          }
+        }
+        target = avoidPinned(target, pinnedKeys, graph.centreKey);
+      }
+      for (const [k, o] of fresh) graphActions.setPinOffset(k, o);
 
       const gone: Leaving = { nodes: new Map(), edges: new Map() };
       for (const [k, n] of before.nodes)
@@ -112,13 +155,13 @@ function GraphCanvasInner() {
   const nodeData = useMemo(() => {
     const m = new Map<string, InstanceFlowNode["data"]>();
     const add = (n: GraphNode, isLeaving: boolean) => m.set(n.key, {
-      node: n, color: colorFor(n, theme), isCentre: n.key === graph.centreKey, isSelected: n.key === selectedNode,
+      node: n, color: colorFor(n, theme), isCentre: n.key === graph.centreKey, isSelected: n.key === selectedNode, isPinned: pins.has(n.key),
       leaving: isLeaving, enterDelayMs: firstEnter.current.get(n.key) ?? 0,
     });
     for (const n of graph.nodes.values()) add(n, false);
     for (const n of leaving.nodes.values()) if (!m.has(n.key)) add(n, true);
     return m;
-  }, [graph, leaving, theme, selectedNode]);
+  }, [graph, leaving, theme, selectedNode, pins]);
 
   const nodes: InstanceFlowNode[] = useMemo(() => {
     const out: InstanceFlowNode[] = [];
@@ -164,6 +207,14 @@ function GraphCanvasInner() {
         animator.setPosition(c.id, c.position);
         moved = true;
       }
+      if (c.type === "position" && c.dragging === false) {
+        // A dragged pin keeps its new place relative to the centre.
+        const { pins: current, graph: g } = useGraphStore.getState();
+        const p = animator.current.get(c.id);
+        const centre = animator.current.get(g.centreKey);
+        if (current.has(c.id) && c.id !== g.centreKey && p && centre)
+          graphActions.setPinOffset(c.id, { x: p.x - centre.x, y: p.y - centre.y });
+      }
     }
     if (moved) setPositions(animator.current);
   }, [animator]);
@@ -179,6 +230,10 @@ function GraphCanvasInner() {
       if (e.altKey && e.key === "ArrowLeft") graphActions.back();
       else if (e.altKey && e.key === "ArrowRight") graphActions.forward();
       else if (e.key === "f" && !e.metaKey && !e.ctrlKey) graphActions.requestFit();
+      else if (e.key === "p" && !e.metaKey && !e.ctrlKey) {
+        const sel = useGraphStore.getState().selection;
+        if (sel?.kind === "node") graphActions.togglePin(sel.key);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

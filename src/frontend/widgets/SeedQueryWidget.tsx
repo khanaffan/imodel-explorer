@@ -25,7 +25,7 @@ export function SeedQueryWidget() {
       const r = await runSeedQuery(engine, ecsql);
       setResult(r);
       if (r.candidates.length === 1)
-        void graphActions.showInstance(r.candidates[0].key, { fit: true });
+        void graphActions.seedExternal(r.candidates[0].key, { fit: true });
     } catch (e) {
       setResult(undefined);
       setError(e instanceof Error ? e.message : String(e));
@@ -72,7 +72,7 @@ export function SeedQueryWidget() {
               const k = nodeKeyString(c.key);
               return (
                 <button key={k} className={`ig-list__item${k === centreKey ? " ig-list__item--active" : ""}`}
-                  onClick={() => void graphActions.showInstance(c.key, { fit: true })} title={`${c.className} ${c.key.id}`}>
+                  onClick={() => void graphActions.seedExternal(c.key, { fit: true })} title={`${c.className} ${c.key.id}`}>
                   <span className="ig-list__primary">{c.label}</span>
                   <span className="ig-list__secondary">{c.className.split(":")[1]} · {c.key.id}</span>
                 </button>
