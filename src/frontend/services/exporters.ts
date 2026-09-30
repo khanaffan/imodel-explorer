@@ -1,6 +1,7 @@
 import { toPng } from "html-to-image";
 import { getNodesBounds, getViewportForBounds, type Node } from "@xyflow/react";
 import { buildTraversalRecipe } from "../engine/ecsql";
+import type { Census } from "../engine/census";
 import type { DirectionFilter, GraphData, GraphEdge, GraphNode } from "../engine/GraphModel";
 import { parseNodeKey } from "../engine/GraphModel";
 import { contrastText } from "../state/colorTheme";
@@ -181,4 +182,36 @@ export async function exportPng(fileName: string, nodes: Node[], container: HTML
 export function safeFileStem(name: string | undefined): string {
   const base = (name ?? "graph").split(/[\\/]/).pop()!.replace(/\.[^.]+$/, "");
   return base.replace(/[^\w.-]+/g, "_") || "graph";
+}
+
+function csvCell(value: string | number): string {
+  const s = String(value);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** Instance census as CSV: one row per class. */
+export function censusToCsv(census: Census): string {
+  const lines = ["Schema,Class,Kind,Category,Count"];
+  for (const e of census.entries)
+    lines.push([e.schemaName, e.className, e.kind, e.category, e.count].map(csvCell).join(","));
+  return lines.join("\n") + "\n";
+}
+
+/** Instance census as Markdown: a schema-usage table and a per-class table. */
+export function censusToMarkdown(census: Census): string {
+  const md = (value: string | number) => String(value).replace(/\|/g, "\\|");
+  const lines = [
+    "# Instance census", "",
+    `Total instances: ${census.totalInstances}`, "",
+    "## Schemas", "",
+    "| Schema | Classes used | Classes defined | Instances |",
+    "| --- | ---: | ---: | ---: |",
+    ...census.schemas.map((s) => `| ${md(s.schemaName)} | ${s.classesUsed} | ${s.classesDefined} | ${s.instances} |`),
+    "", "## Classes", "",
+    "| Class | Kind | Category | Count |",
+    "| --- | --- | --- | ---: |",
+    ...census.entries.map((e) => `| ${md(e.className)} | ${e.kind} | ${e.category} | ${e.count} |`),
+    "",
+  ];
+  return lines.join("\n");
 }

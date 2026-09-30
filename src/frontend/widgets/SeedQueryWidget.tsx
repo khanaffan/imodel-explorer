@@ -2,7 +2,7 @@ import { Button, DropdownMenu, MenuItem, Text, Textarea } from "@itwin/itwinui-r
 import { UiFramework } from "@itwin/appui-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nodeKeyString } from "../engine/GraphModel";
-import { EXAMPLE_SEED_QUERIES, runSeedQuery, SEED_LIMIT, type SeedQueryResult } from "../engine/seedQuery";
+import { EXAMPLE_SEED_QUERIES, RANK_LIMIT, rankSeedCandidates, runSeedQuery, SEED_LIMIT, type SeedQueryResult } from "../engine/seedQuery";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { useOverviewStore } from "../state/censusStore";
 import "./widgets.css";
@@ -18,6 +18,8 @@ export function SeedQueryWidget() {
   const [error, setError] = useState<string>();
   const [running, setRunning] = useState(false);
   const [filter, setFilter] = useState("");
+  const [ranks, setRanks] = useState<Map<string, number>>();
+  const [ranking, setRanking] = useState(false);
 
   const run = useCallback(async (sql?: string) => {
     const text = sql ?? ecsql;
@@ -25,6 +27,7 @@ export function SeedQueryWidget() {
     localStorage.setItem(QUERY_KEY, text);
     setRunning(true);
     setError(undefined);
+    setRanks(undefined);
     try {
       const r = await runSeedQuery(engine, text);
       setResult(r);
@@ -49,7 +52,21 @@ export function SeedQueryWidget() {
     void run(seedRequest.ecsql);
   }, [seedRequest, run]);
 
-  const visible = result?.candidates.filter((c) => !filter || `${c.label} ${c.className} ${c.key.id}`.toLowerCase().includes(filter.toLowerCase())) ?? [];
+  const rank = useCallback(async () => {
+    if (!engine || !result || result.candidates.length < 2) return;
+    setRanking(true);
+    try {
+      setRanks(await rankSeedCandidates(engine, result.candidates.map((c) => c.key)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRanking(false);
+    }
+  }, [engine, result]);
+
+  let visible = result?.candidates.filter((c) => !filter || `${c.label} ${c.className} ${c.key.id}`.toLowerCase().includes(filter.toLowerCase())) ?? [];
+  if (ranks)
+    visible = [...visible].sort((a, b) => (ranks.get(nodeKeyString(b.key)) ?? -1) - (ranks.get(nodeKeyString(a.key)) ?? -1));
 
   return (
     <div className="ig-widget">
@@ -78,6 +95,12 @@ export function SeedQueryWidget() {
               {result.candidates.length}{result.truncated ? `+ (first ${SEED_LIMIT})` : ""} instance{result.candidates.length === 1 ? "" : "s"}
               {result.skipped > 0 && ` · ${result.skipped} rows without an id`}
             </Text>
+            {result.candidates.length > 1 && !ranks && (
+              <Button size="small" styleType="borderless" disabled={ranking} onClick={() => void rank()}
+                title={`Sort by relationship fan-out (first ${RANK_LIMIT} rows) — the best-connected exemplars first`}>
+                {ranking ? "Ranking…" : "Rank by connections"}
+              </Button>
+            )}
             {result.candidates.length > 8 && (
               <input className="ig-filter-input" placeholder="Filter results" value={filter} onChange={(e) => setFilter(e.target.value)} />
             )}
@@ -85,11 +108,15 @@ export function SeedQueryWidget() {
           <div className="ig-list">
             {visible.map((c) => {
               const k = nodeKeyString(c.key);
+              const rank = ranks?.get(k);
               return (
                 <button key={k} className={`ig-list__item${k === centreKey ? " ig-list__item--active" : ""}`}
                   onClick={() => void graphActions.seedExternal(c.key, { fit: true })} title={`${c.className} ${c.key.id}`}>
                   <span className="ig-list__primary">{c.label}</span>
-                  <span className="ig-list__secondary">{c.className.split(":")[1]} · {c.key.id}</span>
+                  <span className="ig-list__secondary">
+                    {c.className.split(":")[1]} · {c.key.id}
+                    {rank !== undefined && <span className="ig-chip ig-chip--kind"> {rank} rel</span>}
+                  </span>
                 </button>
               );
             })}

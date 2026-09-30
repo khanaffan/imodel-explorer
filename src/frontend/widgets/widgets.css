@@ -357,3 +357,17 @@ span.ig-tree-row__twist { cursor: default; }
   font-size: 10px;
   opacity: 0.8;
 }
+
+.ig-treemap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ig-treemap__cell {
+  cursor: pointer;
+}
+
+.ig-treemap__cell:hover rect {
+  filter: brightness(1.15);
+}

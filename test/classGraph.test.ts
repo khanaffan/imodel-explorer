@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadCensus } from "../src/frontend/engine/census";
-import { buildClassGraph, collapseToClasses, relationshipRoots } from "../src/frontend/engine/classGraph";
+import { buildClassGraph, collapseToClasses, loadRelationshipCensus, mergeRelationshipCounts, relationshipRoots } from "../src/frontend/engine/classGraph";
 import { GraphEngine, TraversalCancelled } from "../src/frontend/engine/GraphEngine";
 import type { GraphData, GraphEdge, GraphNode } from "../src/frontend/engine/GraphModel";
 import { createQueryPort, type QuerySource } from "../src/frontend/engine/IModelQueryPort";
+import { rankSeedCandidates } from "../src/frontend/engine/seedQuery";
 import { createFixture, type Fixture, HUB_FANOUT } from "./fixture";
 
 let fx: Fixture;
@@ -110,5 +111,52 @@ describe("buildClassGraph", () => {
     expect(roots).toContain("TestIG:PumpOwnsPipes");
     // Derives from bis:ElementRefersToElements, so its root's polymorphic query covers it.
     expect(roots).not.toContain("TestIG:PumpFeedsPipe");
+  });
+});
+
+describe("loadRelationshipCensus", () => {
+  it("counts link-table relationships and lists navigation ones without counts", async () => {
+    const entries = await loadRelationshipCensus(engine.port, engine.registry);
+
+    const feeds = entries.find((e) => e.className === "TestIG:PumpFeedsPipe")!;
+    expect(feeds).toMatchObject({ kind: "linkTable", count: 3 + HUB_FANOUT, schemaName: "TestIG" });
+
+    const owns = entries.find((e) => e.className === "TestIG:PumpOwnsPipes")!;
+    expect(owns.kind).toBe("navigation");
+    expect(owns.count).toBeUndefined();
+
+    // Counted entries sort before uncounted ones.
+    const firstUncounted = entries.findIndex((e) => e.count === undefined);
+    expect(entries.slice(firstUncounted).every((e) => e.count === undefined)).toBe(true);
+    expect(entries.some((e) => e.className.startsWith("ECDb"))).toBe(false);
+  });
+
+  it("merges navigation counts from the class graph", async () => {
+    const entries = await loadRelationshipCensus(engine.port, engine.registry);
+    const cg = await buildClassGraph(engine.port, engine.registry, {});
+    const merged = mergeRelationshipCounts(entries, cg, engine.registry);
+
+    expect(merged.find((e) => e.className === "TestIG:PumpOwnsPipes")?.count).toBe(2);
+    // Unchanged link-table count survives the merge.
+    expect(merged.find((e) => e.className === "TestIG:PumpFeedsPipe")?.count).toBe(3 + HUB_FANOUT);
+    // ModelContainsElements covers every model in the iModel.
+    expect(merged.find((e) => e.className === "BisCore:ModelContainsElements")!.count).toBeGreaterThanOrEqual(2 + HUB_FANOUT + 3);
+  });
+});
+
+describe("rankSeedCandidates", () => {
+  it("ranks the hub above less connected instances, using capped-group totals", async () => {
+    const pump = engine.registry.idOf("TestIG:Pump")!;
+    const keys = [
+      { classId: pump, id: fx.ids.pump2 },
+      { classId: pump, id: fx.ids.hub },
+      { classId: pump, id: fx.ids.pump1 },
+    ];
+    const ranks = await rankSeedCandidates(engine, keys);
+    const of = (id: string) => ranks.get(`${pump}:${id}`)!;
+    // The hub feeds HUB_FANOUT pipes; the fetch cap is far smaller, so this exercises totals.
+    expect(of(fx.ids.hub)).toBeGreaterThanOrEqual(HUB_FANOUT);
+    expect(of(fx.ids.hub)).toBeGreaterThan(of(fx.ids.pump2));
+    expect(of(fx.ids.pump1)).toBeGreaterThan(0);
   });
 });

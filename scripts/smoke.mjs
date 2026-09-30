@@ -175,6 +175,22 @@ try {
   await page.locator(".ig-list__item").first().waitFor({ timeout: 30_000 });
   const seedSql = await page.locator("textarea.ig-sql").first().inputValue();
   if (!seedSql.includes("FROM ONLY TestIG.Pump")) throw new Error(`overview did not fill the seed query: ${seedSql}`);
+
+  // Relationship census: the link-table PumpFeedsPipe is counted immediately.
+  await page.getByRole("tab", { name: "Overview" }).click();
+  await overview.getByText("Relationships", { exact: true }).click();
+  const feedsRow = overview.locator(".ig-census-row", { hasText: "PumpFeedsPipe" }).first();
+  await feedsRow.waitFor({ timeout: 30_000 });
+  const feedsCount = await feedsRow.locator(".ig-census-row__count").textContent();
+  console.log(`overview: PumpFeedsPipe count = ${feedsCount}`);
+  if (feedsCount !== "33") throw new Error(`relationship census shows ${feedsCount} PumpFeedsPipe rows, expected 33`);
+
+  // Treemap renders a rectangle per schema.
+  await overview.getByText("Treemap", { exact: true }).click();
+  const cells = await overview.locator(".ig-treemap rect").count();
+  console.log(`overview: treemap cells = ${cells}`);
+  if (cells < 2) throw new Error(`treemap rendered ${cells} cells, expected at least 2`);
+
   await page.screenshot({ path: `${outDir}/10-overview.png` });
   await page.getByRole("tab", { name: "Seed query" }).click();
 
@@ -197,6 +213,15 @@ try {
   const classSeed = await page.locator("textarea.ig-sql").first().inputValue();
   if (!classSeed.includes("FROM ONLY TestIG.Pump")) throw new Error(`class double-click did not fill the seed query: ${classSeed}`);
   await page.getByRole("tab", { name: "Seed query" }).click();
+
+  // Exemplar ranking: the hub ("Header", 30 feeds) sorts to the top.
+  await page.getByRole("button", { name: "Rank by connections" }).click();
+  await page.locator(".ig-list__secondary", { hasText: "rel" }).first().waitFor({ timeout: 30_000 });
+  const topSeed = await page.locator(".ig-list__item .ig-list__primary").first().textContent();
+  console.log(`ranking: top seed = ${topSeed}`);
+  if (topSeed !== "Header") throw new Error(`ranking put ${topSeed} first, expected Header`);
+  await page.screenshot({ path: `${outDir}/12-ranked.png` });
+
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");
 } finally {

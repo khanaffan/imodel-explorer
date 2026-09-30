@@ -1,6 +1,6 @@
 import { Id64 } from "@itwin/core-bentley";
 import type { GraphEngine } from "./GraphEngine";
-import { type NodeKey, nodeKeyString } from "./GraphModel";
+import { aggregateKey, type NodeKey, nodeKeyString, parseAggregateKey } from "./GraphModel";
 import { resolveClassIdForId } from "./instanceProperties";
 import type { Row } from "./IModelQueryPort";
 
@@ -66,6 +66,34 @@ export async function runSeedQuery(engine: GraphEngine, ecsql: string): Promise<
     return { key, className: n?.className ?? engine.registry.nameOf(key.classId), label: n?.label ?? key.id };
   });
   return { candidates, skipped, truncated };
+}
+
+/** How many candidates {@link rankSeedCandidates} will look at. */
+export const RANK_LIMIT = 200;
+
+/** Relationship fan-out (both directions, all relationship classes) per seed, keyed by
+ * `nodeKeyString`. Uses the traversal strategy with a tiny fetch cap — capped groups report their
+ * true server-side totals — so it stays cheap even on hub nodes. */
+export async function rankSeedCandidates(engine: GraphEngine, keys: readonly NodeKey[]): Promise<Map<string, number>> {
+  const seeds = keys.slice(0, RANK_LIMIT);
+  const { relations, totals } = await engine.strategy.neighbours(seeds, "both", {
+    fetchLimit: 4, maxRows: 4, unlimited: new Set(), knownIds: [],
+  });
+  const groups = new Map<string, number>();
+  for (const r of relations) {
+    const gk = aggregateKey(nodeKeyString(r.seed), r.relClassId, r.direction);
+    groups.set(gk, (groups.get(gk) ?? 0) + 1);
+  }
+  for (const [gk, total] of totals)
+    groups.set(gk, total);
+
+  const out = new Map<string, number>(seeds.map((k) => [nodeKeyString(k), 0]));
+  for (const [gk, n] of groups) {
+    const { ownerKey } = parseAggregateKey(gk);
+    if (out.has(ownerKey))
+      out.set(ownerKey, (out.get(ownerKey) ?? 0) + n);
+  }
+  return out;
 }
 
 export const EXAMPLE_SEED_QUERIES: ReadonlyArray<{ label: string; ecsql: string }> = [

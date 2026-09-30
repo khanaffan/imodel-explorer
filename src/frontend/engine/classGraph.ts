@@ -133,6 +133,63 @@ export function relationshipRoots(registry: ClassRegistry): string[] {
   return roots.sort();
 }
 
+/** One relationship class in the census. Navigation-backed relationships are enumerated without a
+ * count (counting them means scanning end tables; the class graph supplies counts when built). */
+export interface RelationshipCensusEntry {
+  readonly classId: string;
+  readonly className: string;
+  readonly schemaName: string;
+  readonly kind: "navigation" | "linkTable";
+  readonly count?: number;
+}
+
+/** Instance counts per relationship class. Link-table roots are counted with one cheap grouped
+ * query each; navigation-backed roots are listed with `count: undefined` — merge the whole-iModel
+ * class graph in with {@link mergeRelationshipCounts} to fill them. */
+export async function loadRelationshipCensus(port: IModelQueryPort, registry: ClassRegistry): Promise<RelationshipCensusEntry[]> {
+  const navNames = navBackedRelNames(registry);
+  const isEndTable = (fullName: string): boolean => {
+    if (navNames.has(fullName)) return true;
+    return registry.findClass(fullName)?.derivedClasses.some((d) => isEndTable(d.fullName)) ?? false;
+  };
+  const entry = (classId: string, kind: "navigation" | "linkTable", count?: number): RelationshipCensusEntry => {
+    const className = registry.nameOf(classId);
+    return { classId, className, schemaName: className.split(":")[0], kind, count };
+  };
+
+  const entries: RelationshipCensusEntry[] = [];
+  await Promise.all(relationshipRoots(registry).map(async (root) => {
+    const rootId = registry.idOf(root);
+    if (!rootId)
+      return;
+    if (isEndTable(root)) {
+      entries.push(entry(rootId, "navigation"));
+      return;
+    }
+    try {
+      const rows = await port.query(`SELECT ECClassId Id, COUNT(*) N FROM ${quoteClassName(root)} GROUP BY ECClassId`);
+      for (const r of rows)
+        entries.push(entry(r.Id, "linkTable", Number(r.N)));
+    } catch { /* an abstract root with no table; nothing to count */ }
+  }));
+  return sortRelationshipCensus(entries);
+}
+
+function sortRelationshipCensus(entries: RelationshipCensusEntry[]): RelationshipCensusEntry[] {
+  return entries.sort((a, b) => (b.count ?? -1) - (a.count ?? -1) || a.className.localeCompare(b.className));
+}
+
+/** Fills navigation-relationship counts from a built class graph: each entry gets the sum of the
+ * class-graph edges whose relationship class derives from it. */
+export function mergeRelationshipCounts(entries: readonly RelationshipCensusEntry[], cg: ClassGraphData, registry: ClassRegistry): RelationshipCensusEntry[] {
+  const perRoot = new Map<string, number>();
+  for (const e of cg.edges.values())
+    for (const name of registry.hierarchyOf(e.relClassId))
+      perRoot.set(name, (perRoot.get(name) ?? 0) + e.count);
+  return sortRelationshipCensus(entries.map((e) =>
+    e.count === undefined && perRoot.has(e.className) ? { ...e, count: perRoot.get(e.className) } : e));
+}
+
 export interface BuildProgress {
   readonly done: number;
   readonly total: number;
