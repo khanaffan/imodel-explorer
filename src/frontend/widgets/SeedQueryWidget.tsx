@@ -1,11 +1,14 @@
 import { Button, DropdownMenu, MenuItem, Text, Textarea } from "@itwin/itwinui-react";
-import { useCallback, useState } from "react";
+import { UiFramework } from "@itwin/appui-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { nodeKeyString } from "../engine/GraphModel";
 import { EXAMPLE_SEED_QUERIES, runSeedQuery, SEED_LIMIT, type SeedQueryResult } from "../engine/seedQuery";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { useOverviewStore } from "../state/censusStore";
 import "./widgets.css";
 
 const QUERY_KEY = "instanceGraph.seedQuery";
+export const SEED_WIDGET_ID = "ig-seed";
 
 export function SeedQueryWidget() {
   const engine = useGraphStore((s) => s.engine);
@@ -16,13 +19,14 @@ export function SeedQueryWidget() {
   const [running, setRunning] = useState(false);
   const [filter, setFilter] = useState("");
 
-  const run = useCallback(async () => {
-    if (!engine || !ecsql.trim()) return;
-    localStorage.setItem(QUERY_KEY, ecsql);
+  const run = useCallback(async (sql?: string) => {
+    const text = sql ?? ecsql;
+    if (!engine || !text.trim()) return;
+    localStorage.setItem(QUERY_KEY, text);
     setRunning(true);
     setError(undefined);
     try {
-      const r = await runSeedQuery(engine, ecsql);
+      const r = await runSeedQuery(engine, text);
       setResult(r);
       if (r.candidates.length === 1)
         void graphActions.seedExternal(r.candidates[0].key, { fit: true });
@@ -33,6 +37,17 @@ export function SeedQueryWidget() {
       setRunning(false);
     }
   }, [engine, ecsql]);
+
+  // Other widgets (Overview) can ask for a query to be loaded and run here.
+  const seedRequest = useOverviewStore((s) => s.seedRequest);
+  const served = useRef(0);
+  useEffect(() => {
+    if (!seedRequest || seedRequest.nonce === served.current) return;
+    served.current = seedRequest.nonce;
+    setEcsql(seedRequest.ecsql);
+    UiFramework.frontstages.activeFrontstageDef?.findWidgetDef(SEED_WIDGET_ID)?.show();
+    void run(seedRequest.ecsql);
+  }, [seedRequest, run]);
 
   const visible = result?.candidates.filter((c) => !filter || `${c.label} ${c.className} ${c.key.id}`.toLowerCase().includes(filter.toLowerCase())) ?? [];
 

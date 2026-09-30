@@ -162,6 +162,21 @@ try {
   await page.getByRole("tab", { name: "Properties" }).click();
   await page.evaluate(() => globalThis.imodelExplorer.graphActions.setOptions({ depth: 1 }, false));
 
+  // Overview: census loads, and a class row lists exemplars through the Seed panel.
+  await page.getByRole("tab", { name: "Overview" }).click();
+  const overview = page.locator('[id="content-container:ig-overview"]');
+  await overview.getByText("Schemas", { exact: true }).waitFor({ timeout: 30_000 });
+  await overview.locator(".ig-census-row", { hasText: "TestIG" }).first().locator(".ig-tree-row__twist").click();
+  const pumpRow = overview.locator(".ig-census-row", { hasText: "Pump" }).first();
+  const pumpCount = await pumpRow.locator(".ig-census-row__count").textContent();
+  console.log(`overview: TestIG Pump count = ${pumpCount}`);
+  if (pumpCount !== "3") throw new Error(`overview shows ${pumpCount} pumps, expected 3`);
+  await pumpRow.locator("button.ig-census-row__name").click();
+  await page.locator(".ig-list__item").first().waitFor({ timeout: 30_000 });
+  const seedSql = await page.locator("textarea.ig-sql").first().inputValue();
+  if (!seedSql.includes("FROM ONLY TestIG.Pump")) throw new Error(`overview did not fill the seed query: ${seedSql}`);
+  await page.screenshot({ path: `${outDir}/10-overview.png` });
+  await page.getByRole("tab", { name: "Seed query" }).click();
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");
 } finally {

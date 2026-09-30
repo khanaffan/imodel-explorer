@@ -1,6 +1,7 @@
 import { StagePanelLocation, StagePanelSection, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
-import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
+import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgList, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
 import { FiltersWidget } from "../widgets/FiltersWidget";
+import { OverviewWidget } from "../widgets/OverviewWidget";
 import { LegendWidget } from "../widgets/LegendWidget";
 import { PropertiesWidget } from "../widgets/PropertiesWidget";
 import { SCHEMA_WIDGET_ID, SchemaWidget } from "../widgets/SchemaWidget";
@@ -17,6 +18,7 @@ export const instanceGraphUiProvider: UiItemsProvider = {
     if (location === StagePanelLocation.Left && section === StagePanelSection.Start) {
       return [
         { id: "ig-seed", label: "Seed query", iconNode: <SvgSearch />, content: <SeedQueryWidget />, defaultState: WidgetState.Open, canPopout: false },
+        { id: "ig-overview", label: "Overview", iconNode: <SvgList />, content: <OverviewWidget />, canPopout: false },
         { id: "ig-sessions", label: "Sessions", iconNode: <SvgSave />, content: <SessionsWidget />, canPopout: false },
       ];
     }

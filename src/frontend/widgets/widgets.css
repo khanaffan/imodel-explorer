@@ -307,3 +307,53 @@ span.ig-tree-row__twist { cursor: default; }
 .ig-schema__chain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
 .ig-schema__detail { margin: 2px 0 6px 22px; padding-left: 6px; border-left: 2px solid rgba(128, 128, 128, 0.25); font-size: 11px; }
 .ig-schema__enum { margin-top: 4px; }
+
+/* Overview (census) */
+.ig-census-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+}
+.ig-census-row__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.ig-census-row__schema {
+  flex: 0 0 auto;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.ig-census-row__count {
+  flex: 0 0 auto;
+  min-width: 52px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.ig-bar {
+  flex: 0 0 64px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--iui-color-background-backdrop, #eee);
+  overflow: hidden;
+}
+.ig-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--iui-color-border-accent, #4a90d9);
+}
+.ig-census-nest {
+  margin-left: 14px;
+  border-left: 1px solid var(--iui-color-border-subtle, #ddd);
+  padding-left: 6px;
+}
+.ig-chip--kind {
+  font-size: 10px;
+  opacity: 0.8;
+}

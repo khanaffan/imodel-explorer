@@ -23,7 +23,10 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Cardinality** from the `ECRelationshipClass` constraints, shown at each end of an edge.
 - **Properties and Schema panels.** The Properties panel shows a node's readable properties. The
   Schema panel shows its class definition: hierarchy, mixins, property types and derived classes.
-- **Filters.** Include or exclude by model (as a hierarchy), schema, class or relationship.
+- **Overview.** A census of the iModel: instances per schema, class and model, with how much of
+  each schema the authoring app actually used. Click a class to list its instances, or filter the
+  traversal straight from a row.
+- **Include or exclude filters** by model (as a hierarchy), schema, class or relationship.
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.
 - **Pinned nodes** stay in view as you click through the graph.
 - **Hub safety.** Large fan-outs collapse to `+N` summary nodes that you can open on demand.
