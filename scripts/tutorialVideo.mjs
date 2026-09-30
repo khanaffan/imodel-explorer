@@ -1,14 +1,18 @@
 // Records a short narrated demo of the water-plant iModel to docs/tutorial.mp4.
-// Needs `npm run build`, samples/water-plant.bim (npm run sample:demo), macOS `say` and ffmpeg.
+// Needs `npm run build`, samples/water-plant.bim (npm run sample:demo), ffmpeg, and a narrator:
+// Kokoro neural TTS by default (one-time `npm run docs:tts-setup`), or macOS `say` with IG_TTS=say.
 // Each scene's narration is rendered first, so the scene lasts as long as its voice-over; the
 // clips are then placed at the recorded scene start times and muxed with the screen recording.
 import { _electron as electron } from "playwright-core";
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-const VOICE = process.env.IG_VOICE ?? "Samantha";
+const TTS = process.env.IG_TTS ?? "kokoro";
+if (TTS !== "kokoro" && TTS !== "say") throw new Error(`IG_TTS must be kokoro or say, got ${TTS}`);
+const VOICE = process.env.IG_VOICE ?? (TTS === "kokoro" ? "af_heart" : "Samantha");
+const KOKORO_DIR = process.env.IG_KOKORO_DIR ?? join(homedir(), ".cache/imodel-explorer/kokoro");
 const SIZE = { width: 1920, height: 1080 };
 const model = resolve("samples/water-plant.bim");
 const output = resolve("docs/tutorial.mp4");
@@ -28,11 +32,18 @@ const script = [
 
 const work = mkdtempSync(join(tmpdir(), "ig-video-"));
 const probeSeconds = (file) => Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString());
-const clips = new Map(script.map(([id, text]) => {
-  const file = join(work, `${id}.aiff`);
-  execFileSync("say", ["-v", VOICE, "-o", file, text]);
-  return [id, { file, seconds: probeSeconds(file) }];
-}));
+const clipFiles = script.map(([id, text]) => ({ id, text, out: join(work, `${id}.${TTS === "say" ? "aiff" : "wav"}`) }));
+if (TTS === "say") {
+  for (const { text, out } of clipFiles) execFileSync("say", ["-v", VOICE, "-o", out, text]);
+} else {
+  const python = join(KOKORO_DIR, ".venv/bin/python");
+  if (!existsSync(python)) throw new Error(`Kokoro not found in ${KOKORO_DIR}; run npm run docs:tts-setup (or set IG_TTS=say)`);
+  execFileSync(python, [resolve("scripts/tts_kokoro.py"), join(KOKORO_DIR, "kokoro-v1.0.onnx"), join(KOKORO_DIR, "voices-v1.0.bin"), VOICE, "1.0"], {
+    input: JSON.stringify(clipFiles.map(({ text, out }) => ({ text, out }))),
+    stdio: ["pipe", "inherit", "inherit"],
+  });
+}
+const clips = new Map(clipFiles.map(({ id, out }) => [id, { file: out, seconds: probeSeconds(out) }]));
 console.log(`narration: ${[...clips.values()].reduce((s, c) => s + c.seconds, 0).toFixed(1)}s`);
 
 const profile = join(work, "profile");

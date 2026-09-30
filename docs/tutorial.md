@@ -235,14 +235,17 @@ in the view.
 
 ```bash
 npm run build
-npm run docs:shots   # writes docs/tutorial/*.png
-npm run docs:video   # writes docs/tutorial.mp4
+npm run docs:shots       # writes docs/tutorial/*.png
+npm run docs:tts-setup   # once: installs Kokoro TTS into ~/.cache/imodel-explorer/kokoro
+npm run docs:video       # writes docs/tutorial.mp4
 ```
 
 `scripts/tutorialShots.mjs` drives the built app with Playwright, using a temporary profile, a
 1600×1000 window and the dark theme. It needs `samples/water-plant.bim` (`npm run sample:demo`)
 and takes a few minutes.
 
-`scripts/tutorialVideo.mjs` records the narrated video the same way. Narration comes from the
-macOS `say` command (voice `Samantha`; override it with `IG_VOICE`), and `ffmpeg` combines it
-with the recording, so it needs macOS and `ffmpeg` on the `PATH`.
+`scripts/tutorialVideo.mjs` records the narrated video the same way. The narration is generated
+offline by the [Kokoro](https://github.com/thewh1teagle/kokoro-onnx) neural voice `af_heart`.
+`npm run docs:tts-setup` needs [uv](https://docs.astral.sh/uv/) and downloads about 350 MB. You
+can choose another voice with `IG_VOICE`, or set `IG_TTS=say` to use the macOS `say` command instead.
+`ffmpeg` must be on the `PATH` to combine the audio with the recording.

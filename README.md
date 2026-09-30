@@ -93,7 +93,7 @@ navigation and link-table relationships. The model also contains process areas, 
 | `npm run smoke [file.bim]` | End-to-end run of the built app |
 | `npm run bench -- file.bim "<ecsql>"` | Time queries and traversals |
 | `npm run docs:shots` | Regenerate the tutorial screenshots (needs a build and the demo model) |
-| `npm run docs:video` | Record the narrated demo video (macOS `say` and `ffmpeg` too) |
+| `npm run docs:video` | Record the narrated demo video (needs `ffmpeg` and `npm run docs:tts-setup` once) |
 
 ## Project layout
 

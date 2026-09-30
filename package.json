@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs:shots": "node scripts/tutorialShots.mjs",
+    "docs:tts-setup": "bash scripts/setupKokoro.sh",
     "docs:video": "node scripts/tutorialVideo.mjs"
   },
   "dependencies": {
