@@ -1,9 +1,11 @@
 import { ButtonGroup, Button } from "@itwin/itwinui-react";
 import { classGraphActions, useClassGraphStore } from "../state/classGraphStore";
+import { useFeature } from "../state/featureStore";
 
 /** Switches the graph pane between instance-level and class-level ("observed schema") views. */
 export function ModeToggle() {
   const mode = useClassGraphStore((s) => s.mode);
+  if (!useFeature("classGraph")) return null;
   return (
     <ButtonGroup>
       <Button size="small" styleType={mode === "instances" ? "high-visibility" : "default"} title="Instance graph" onClick={() => classGraphActions.setMode("instances")}>Instances</Button>

@@ -2,14 +2,17 @@ import { UiFramework } from "@itwin/appui-react";
 import { Button, Input, Text } from "@itwin/itwinui-react";
 import { useEffect, useMemo, useState } from "react";
 import { type ClassRef, describeClass, formatArrayBounds, type PropertyGroup, type PropertyInfo, type SchemaClassInfo, searchClassNames } from "../engine/schemaInfo";
+import { isFeatureEnabled } from "../state/featureStore";
 import { graphActions, type GraphState, sameSelection, useGraphStore } from "../state/graphStore";
 import { Constraint } from "./Constraint";
 import "./widgets.css";
 
 export const SCHEMA_WIDGET_ID = "ig-schema";
 
-/** Point the Schema widget at a class and bring its tab to the front. */
+/** Point the Schema widget at a class and bring its tab to the front. No-op when the Schema
+ * feature is switched off (the widget does not exist then). */
 export function showSchemaFor(className: string): void {
+  if (!isFeatureEnabled("schema")) return;
   graphActions.exploreSchema(className);
   UiFramework.frontstages.activeFrontstageDef?.findWidgetDef(SCHEMA_WIDGET_ID)?.show();
 }

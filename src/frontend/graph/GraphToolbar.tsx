@@ -1,9 +1,10 @@
-import { SvgChevronLeft, SvgChevronRight, SvgExport, SvgFitToView, SvgHierarchyTree, SvgNetwork } from "@itwin/itwinui-icons-react";
+import { SvgChevronLeft, SvgChevronRight, SvgExport, SvgFitToView, SvgHierarchyTree, SvgNetwork, SvgSettings } from "@itwin/itwinui-icons-react";
 import { Button, ButtonGroup, DropdownMenu, IconButton, MenuDivider, MenuItem, ProgressRadial, Select, Text } from "@itwin/itwinui-react";
 import { Panel, useReactFlow } from "@xyflow/react";
 import { type DirectionFilter, parseNodeKey } from "../engine/GraphModel";
 import { downloadText, exportPng, graphToCxl, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../services/exporters";
 import { colorFor } from "../state/colorTheme";
+import { featureActions } from "../state/featureStore";
 import { NODE_HEIGHT, NODE_WIDTH } from "./layout";
 import { ModeToggle } from "./ModeToggle";
 import { graphActions, useGraphStore } from "../state/graphStore";
@@ -88,6 +89,7 @@ export function GraphToolbar() {
         <DropdownMenu menuItems={exportItems}>
           <IconButton size="small" styleType="borderless" label="Export" disabled={!hasGraph}><SvgExport /></IconButton>
         </DropdownMenu>
+        <IconButton size="small" styleType="borderless" label="Feature settings" onClick={featureActions.openSettings}><SvgSettings /></IconButton>
       </Panel>
       <Panel position="bottom-left" className="ig-status">
         {status.kind === "loading" && <ProgressRadial size="x-small" indeterminate />}

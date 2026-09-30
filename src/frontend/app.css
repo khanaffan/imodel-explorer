@@ -37,7 +37,11 @@ html, body, #root {
   font-weight: 600;
 }
 
-.ig-welcome__title svg {
+.ig-welcome__title span {
+  flex: 1;
+}
+
+.ig-welcome__title > svg {
   width: 28px;
   height: 28px;
   fill: currentColor;

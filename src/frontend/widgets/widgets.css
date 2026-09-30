@@ -424,3 +424,10 @@ span.ig-tree-row__twist { cursor: default; }
   border-left: 2px solid var(--iui-color-border, #555);
 }
 .ig-stream-stack { user-select: none; }
+
+/* Feature settings dialog */
+.ig-settings { display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; }
+.ig-settings__section { display: flex; flex-direction: column; gap: 6px; }
+.ig-settings__row { display: grid; grid-template-columns: minmax(220px, auto) 1fr; gap: 8px; align-items: center; }
+.ig-settings__row--child { margin-left: 24px; grid-template-columns: minmax(196px, auto) 1fr; }
+.ig-settings__desc { overflow: hidden; text-overflow: ellipsis; }

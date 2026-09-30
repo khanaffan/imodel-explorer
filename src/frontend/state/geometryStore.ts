@@ -7,6 +7,7 @@ import {
 } from "@itwin/core-common";
 import { parseGeometryStream, type ParsedStream } from "../engine/geometryStream";
 import { parseNodeKey } from "../engine/GraphModel";
+import { featureActions, featureEnabled, isFeatureEnabled, useFeatureStore } from "./featureStore";
 import { useGraphStore } from "./graphStore";
 
 export interface GeometryTarget {
@@ -47,9 +48,9 @@ interface GeometryState {
 export const useGeometryStore = create<GeometryState>(() => ({
   loading: false,
   expandedParts: new Map(),
-  wantBRep: false,
+  wantBRep: isFeatureEnabled("geometry.brep"),
   follow: true,
-  showDecoration: false,
+  showDecoration: isFeatureEnabled("geometry.overlay"),
 }));
 
 const set = useGeometryStore.setState;
@@ -159,16 +160,19 @@ export const geometryActions = {
     if (follow) syncToSelection();
   },
 
-  /** Re-fetches the current element with or without BRep data included. */
+  /** Re-fetches the current element with or without BRep data included. Persisted as the
+   * `geometry.brep` feature setting. */
   setWantBRep(wantBRep: boolean): void {
     if (wantBRep === get().wantBRep) return;
     set({ wantBRep });
+    featureActions.setEnabled("geometry.brep", wantBRep);
     const target = get().target;
     if (target) void geometryActions.inspect(target);
   },
 
   setShowDecoration(showDecoration: boolean): void {
     set({ showDecoration });
+    featureActions.setEnabled("geometry.overlay", showDecoration);
   },
 
   reset(): void {
@@ -178,6 +182,7 @@ export const geometryActions = {
 };
 
 function syncToSelection(): void {
+  if (!isFeatureEnabled("geometry")) return;
   const s = useGraphStore.getState();
   if (s.selection?.kind !== "node") return;
   const node = s.graph.nodes.get(s.selection.key);
@@ -189,4 +194,18 @@ function syncToSelection(): void {
 useGraphStore.subscribe((s, prev) => {
   if (s.engine !== prev.engine) geometryActions.reset();
   else if (s.selection !== prev.selection && get().follow) syncToSelection();
+});
+
+// Turning the feature off invalidates loaded state and stops selection-driven loads; turning it
+// back on picks up the current selection without another click. The BRep/overlay children are
+// mirrored from the settings so the dialog and the widget toggles stay in step.
+useFeatureStore.subscribe((s, prev) => {
+  if (s.features === prev.features) return;
+  const on = featureEnabled("geometry", s.features);
+  if (on !== featureEnabled("geometry", prev.features)) {
+    if (!on) geometryActions.reset();
+    else if (get().follow) syncToSelection();
+  }
+  if (s.features["geometry.brep"] !== get().wantBRep) geometryActions.setWantBRep(s.features["geometry.brep"]);
+  if (s.features["geometry.overlay"] !== get().showDecoration) geometryActions.setShowDecoration(s.features["geometry.overlay"]);
 });

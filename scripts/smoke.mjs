@@ -19,6 +19,8 @@ try {
   page.on("requestfailed", (r) => errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`));
 
   await page.waitForFunction(() => globalThis.imodelExplorer !== undefined, null, { timeout: 60_000 });
+  // A crashed earlier run may have left features off in localStorage; start from defaults.
+  await page.evaluate(() => globalThis.imodelExplorer.featureActions.resetDefaults());
   await page.screenshot({ path: `${outDir}/01-welcome.png` });
 
   await page.evaluate((f) => globalThis.imodelExplorer.openAndShow(f), file);
@@ -172,9 +174,8 @@ try {
   console.log(`overview: TestIG Pump count = ${pumpCount}`);
   if (pumpCount !== "3") throw new Error(`overview shows ${pumpCount} pumps, expected 3`);
   await pumpRow.locator("button.ig-census-row__name").click();
+  await page.waitForFunction(() => document.querySelector("textarea.ig-sql")?.value.includes("FROM ONLY TestIG.Pump"), null, { timeout: 30_000 });
   await page.locator(".ig-list__item").first().waitFor({ timeout: 30_000 });
-  const seedSql = await page.locator("textarea.ig-sql").first().inputValue();
-  if (!seedSql.includes("FROM ONLY TestIG.Pump")) throw new Error(`overview did not fill the seed query: ${seedSql}`);
 
   // Relationship census: the link-table PumpFeedsPipe is counted immediately.
   await page.getByRole("tab", { name: "Overview" }).click();
@@ -247,6 +248,36 @@ try {
   await geom.getByText("Range & axes").click();
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${outDir}/13-geometry.png` });
+
+  // Feature settings: switching a feature off removes its widgets (even the active Geometry tab)
+  // and stops its queries; switching back on restores them without reopening the iModel.
+  await page.evaluate(() => globalThis.imodelExplorer.featureActions.setEnabled("overview", false));
+  await page.evaluate(() => globalThis.imodelExplorer.featureActions.setEnabled("geometry", false));
+  await page.waitForTimeout(1000);
+  const overviewTabs = await page.getByRole("tab", { name: "Overview" }).count();
+  const geometryTabs = await page.getByRole("tab", { name: "Geometry" }).count();
+  if (overviewTabs || geometryTabs) throw new Error(`disabled widgets still present: overview=${overviewTabs} geometry=${geometryTabs}`);
+  await page.evaluate(() => globalThis.imodelExplorer.classGraphActions.setMode("classes"));
+  await page.evaluate(() => globalThis.imodelExplorer.featureActions.setEnabled("classGraph", false));
+  await page.waitForTimeout(600);
+  const classesButtons = await page.locator(".ig-toolbar").getByRole("button", { name: "Classes", exact: true }).count();
+  const modeAfter = await page.evaluate(() => globalThis.imodelExplorer.getClassState().mode);
+  if (classesButtons || modeAfter !== "instances") throw new Error(`class graph still active when disabled: buttons=${classesButtons} mode=${modeAfter}`);
+  console.log("features: overview/geometry tabs removed, class graph fell back to instances");
+  await page.evaluate(() => globalThis.imodelExplorer.featureActions.setEnabled("overview", true));
+  await page.getByRole("tab", { name: "Overview" }).waitFor({ timeout: 10_000 });
+  console.log("features: re-enabling restored the Overview tab live");
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem("instanceGraph.features.v1")));
+  if (persisted.geometry !== false || persisted["geometry.overlay"] !== true)
+    throw new Error(`feature settings not persisted as expected: ${JSON.stringify(persisted)}`);
+  await page.getByRole("button", { name: "Feature settings" }).click();
+  await page.getByText("Optional features", { exact: true }).waitFor({ timeout: 10_000 });
+  await page.screenshot({ path: `${outDir}/14-settings.png` });
+  // Reset also undoes the overlay toggle persisted by the geometry step: clean slate for next run.
+  await page.getByRole("button", { name: "Reset to defaults" }).click();
+  await page.getByRole("tab", { name: "Geometry" }).waitFor({ timeout: 10_000 });
+  await page.locator("button", { hasText: /^Close$/ }).click();
+  console.log("features: settings dialog, persistence and reset OK");
 
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");

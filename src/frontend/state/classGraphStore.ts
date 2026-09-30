@@ -3,6 +3,7 @@ import { buildClassGraph, type BuildProgress, type ClassGraphData } from "../eng
 import type { GraphEngine } from "../engine/GraphEngine";
 import { TraversalCancelled } from "../engine/GraphEngine";
 import { censusFor } from "./censusStore";
+import { featureEnabled, isFeatureEnabled, useFeatureStore } from "./featureStore";
 import { useGraphStore } from "./graphStore";
 
 export type GraphMode = "instances" | "classes";
@@ -53,7 +54,8 @@ async function buildIModelGraph(engine: GraphEngine): Promise<void> {
   const myGeneration = ++generation;
   set({ building: true, progress: undefined, error: undefined, imodelGraph: undefined });
   try {
-    const census = await censusFor(engine).catch(() => undefined);
+    // The census belongs to the Overview feature; without it counts show as unknown.
+    const census = isFeatureEnabled("overview") ? await censusFor(engine).catch(() => undefined) : undefined;
     const result = await buildClassGraph(engine.port, engine.registry, {
       census,
       cancel: token,
@@ -73,18 +75,21 @@ async function buildIModelGraph(engine: GraphEngine): Promise<void> {
 
 export const classGraphActions = {
   setMode(mode: GraphMode): void {
+    if (mode === "classes" && !isFeatureEnabled("classGraph")) return;
     if (mode === get().mode) return;
     set({ mode, selection: undefined });
     if (mode === "classes" && get().scope === "imodel") void classGraphActions.ensureIModelGraph();
   },
 
   setScope(scope: ClassGraphScope): void {
+    if (scope === "imodel" && !isFeatureEnabled("classGraph.imodel")) return;
     if (scope === get().scope) return;
     set({ scope, selection: undefined });
     if (scope === "imodel") void classGraphActions.ensureIModelGraph();
   },
 
   async ensureIModelGraph(): Promise<void> {
+    if (!isFeatureEnabled("classGraph.imodel")) return;
     const engine = useGraphStore.getState().engine;
     if (!engine || get().building) return;
     await buildIModelGraph(engine);
@@ -111,4 +116,16 @@ export const classGraphActions = {
 // A new engine (or detach) invalidates the whole-iModel graph on display.
 useGraphStore.subscribe((s, prev) => {
   if (s.engine !== prev.engine) classGraphActions.reset();
+});
+
+// Disabling the feature while active falls back to the instance graph and stops any build.
+useFeatureStore.subscribe((s, prev) => {
+  if (s.features === prev.features) return;
+  if (!featureEnabled("classGraph", s.features)) {
+    if (get().mode === "classes") set({ mode: "instances", selection: undefined });
+    classGraphActions.cancelBuild();
+  } else if (!featureEnabled("classGraph.imodel", s.features) && get().scope === "imodel") {
+    classGraphActions.cancelBuild();
+    set({ scope: "neighbourhood", imodelGraph: undefined, selection: undefined });
+  }
 });

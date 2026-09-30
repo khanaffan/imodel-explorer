@@ -2,6 +2,7 @@ import { ConfigurableUiContent, ThemeManager } from "@itwin/appui-react";
 import { Root as StrataKitRoot } from "@stratakit/mui";
 import { useGraphStore } from "./state/graphStore";
 import { useColorScheme } from "./useColorScheme";
+import { FeatureSettingsDialog } from "./widgets/FeatureSettingsDialog";
 import { WelcomePage } from "./WelcomePage";
 import "./app.css";
 
@@ -13,6 +14,7 @@ export function App() {
       {/* The tree widget components are built on StrataKit. */}
       <StrataKitRoot colorScheme={colorScheme} className="ig-app">
         {connection ? <ConfigurableUiContent appBackstage={undefined} /> : <WelcomePage />}
+        <FeatureSettingsDialog />
       </StrataKitRoot>
     </ThemeManager>
   );

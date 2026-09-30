@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { nodeKeyString } from "../engine/GraphModel";
 import { EXAMPLE_SEED_QUERIES, RANK_LIMIT, rankSeedCandidates, runSeedQuery, SEED_LIMIT, type SeedQueryResult } from "../engine/seedQuery";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { useFeature } from "../state/featureStore";
 import { useOverviewStore } from "../state/censusStore";
 import "./widgets.css";
 
@@ -20,6 +21,7 @@ export function SeedQueryWidget() {
   const [filter, setFilter] = useState("");
   const [ranks, setRanks] = useState<Map<string, number>>();
   const [ranking, setRanking] = useState(false);
+  const rankingOn = useFeature("ranking");
 
   const run = useCallback(async (sql?: string) => {
     const text = sql ?? ecsql;
@@ -95,7 +97,7 @@ export function SeedQueryWidget() {
               {result.candidates.length}{result.truncated ? `+ (first ${SEED_LIMIT})` : ""} instance{result.candidates.length === 1 ? "" : "s"}
               {result.skipped > 0 && ` · ${result.skipped} rows without an id`}
             </Text>
-            {result.candidates.length > 1 && !ranks && (
+            {rankingOn && result.candidates.length > 1 && !ranks && (
               <Button size="small" styleType="borderless" disabled={ranking} onClick={() => void rank()}
                 title={`Sort by relationship fan-out (first ${RANK_LIMIT} rows) — the best-connected exemplars first`}>
                 {ranking ? "Ranking…" : "Rank by connections"}

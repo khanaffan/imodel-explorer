@@ -1,9 +1,10 @@
 import { APP_TITLE } from "../common/appInfo";
-import { SvgFolderOpened, SvgNetwork } from "@itwin/itwinui-icons-react";
-import { Button, Text } from "@itwin/itwinui-react";
+import { SvgFolderOpened, SvgNetwork, SvgSettings } from "@itwin/itwinui-icons-react";
+import { Button, IconButton, Text } from "@itwin/itwinui-react";
 import { useState } from "react";
 import { appHost } from "./host/AppHost";
 import { openAndShow } from "./imodel/session";
+import { featureActions } from "./state/featureStore";
 
 export function WelcomePage() {
   const [recent, setRecent] = useState(() => appHost.getRecentFiles());
@@ -27,7 +28,10 @@ export function WelcomePage() {
   return (
     <div className="ig-welcome">
       <div className="ig-welcome__panel">
-        <div className="ig-welcome__title"><SvgNetwork /> <span>{APP_TITLE}</span></div>
+        <div className="ig-welcome__title">
+          <SvgNetwork /> <span>{APP_TITLE}</span>
+          <IconButton styleType="borderless" label="Feature settings" onClick={featureActions.openSettings}><SvgSettings /></IconButton>
+        </div>
         <Text isMuted>Explore how EC instances in an iModel relate to each other — navigation properties, link-table relationships, models and aspects — starting from any instance you pick with ECSQL.</Text>
         <Button styleType="high-visibility" startIcon={<SvgFolderOpened />} disabled={!!busy}
           onClick={async () => open(await appHost.pickIModelFile())}>Open iModel…</Button>

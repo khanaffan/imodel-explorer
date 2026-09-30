@@ -9,6 +9,7 @@ import { censusToCsv, censusToMarkdown, downloadText, safeFileStem } from "../se
 import { censusFor, modelCensusFor, modelTotalsFor, relCensusFor, requestSeedQuery } from "../state/censusStore";
 import { useClassGraphStore } from "../state/classGraphStore";
 import { colorFor, contrastText } from "../state/colorTheme";
+import { useFeature } from "../state/featureStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { showSchemaFor } from "./SchemaWidget";
 import { TriState } from "./FiltersWidget";
@@ -38,6 +39,7 @@ function setClassFilter(className: string, state: FilterState | undefined) {
 function ClassRow({ e, max }: { e: ClassCensusEntry; max: number }) {
   // Subscribe so the tri-state repaints when filters change elsewhere.
   const state = useGraphStore((s) => s.options.filters.classes[e.className]?.state);
+  const schemaOn = useFeature("schema");
   const [schema, name] = e.className.split(":");
   return (
     <div className="ig-filter-row ig-census-row">
@@ -46,7 +48,9 @@ function ClassRow({ e, max }: { e: ClassCensusEntry; max: number }) {
         onClick={() => requestSeedQuery(seedEcsql(e.className))}>
         {name}
       </button>
-      <button className="ig-link ig-census-row__schema" title={`Open ${e.className} in the Schema panel`} onClick={() => showSchemaFor(e.className)}>{schema}</button>
+      {schemaOn
+        ? <button className="ig-link ig-census-row__schema" title={`Open ${e.className} in the Schema panel`} onClick={() => showSchemaFor(e.className)}>{schema}</button>
+        : <span className="ig-census-row__schema">{schema}</span>}
       {e.kind !== "element" && <span className="ig-chip ig-chip--kind">{e.kind}</span>}
       <Bar value={e.count} max={max} />
       <span className="ig-census-row__count">{fmt(e.count)}</span>
@@ -150,6 +154,8 @@ function ModelRows({ engine, node, totals, depth }: { engine: GraphEngine; node:
 function RelationshipsSection({ engine }: { engine: GraphEngine }) {
   const [entries, setEntries] = useState<RelationshipCensusEntry[]>();
   const [error, setError] = useState<string>();
+  const schemaOn = useFeature("schema");
+  const imodelGraphOn = useFeature("classGraph.imodel");
   const imodelGraph = useClassGraphStore((s) => s.imodelGraph);
   useEffect(() => {
     let live = true;
@@ -165,13 +171,15 @@ function RelationshipsSection({ engine }: { engine: GraphEngine }) {
   const pending = shown.some((e) => e.count === undefined);
   return (
     <>
-      {pending && <Text variant="small" isMuted>Navigation counts appear after the whole-iModel class graph is built (toolbar → Classes → Whole iModel).</Text>}
+      {pending && imodelGraphOn && <Text variant="small" isMuted>Navigation counts appear after the whole-iModel class graph is built (toolbar → Classes → Whole iModel).</Text>}
       {shown.map((e) => {
         const [schema, name] = e.className.split(":");
         return (
           <div key={e.classId} className="ig-filter-row ig-census-row">
-            <button className="ig-census-row__name ig-link" title={`Open ${e.className} in the Schema panel`}
-              onClick={() => showSchemaFor(e.className)}>{name}</button>
+            {schemaOn
+              ? <button className="ig-census-row__name ig-link" title={`Open ${e.className} in the Schema panel`}
+                onClick={() => showSchemaFor(e.className)}>{name}</button>
+              : <span className="ig-census-row__name">{name}</span>}
             <span className="ig-census-row__schema">{schema}</span>
             <span className="ig-chip ig-chip--kind">{e.kind === "navigation" ? "nav" : "link"}</span>
             <Bar value={e.count ?? 0} max={max} />
@@ -253,6 +261,9 @@ function Section({ title, children, defaultOpen = false }: { title: string; chil
 /** What the authoring app actually put in the iModel: instances per schema, class and model. */
 export function OverviewWidget() {
   const engine = useGraphStore((s) => s.engine);
+  const relationshipsOn = useFeature("overview.relationships");
+  const modelsOn = useFeature("overview.models");
+  const treemapOn = useFeature("overview.treemap");
   const [census, setCensus] = useState<Census>();
   const [totals, setTotals] = useState<Map<string, number>>();
   const [error, setError] = useState<string>();
@@ -264,9 +275,9 @@ export function OverviewWidget() {
     if (!engine) return;
     let live = true;
     censusFor(engine).then((c) => { if (live) setCensus(c); }, (e) => { if (live) setError(String(e?.message ?? e)); });
-    modelTotalsFor(engine).then((t) => { if (live) setTotals(t); }, () => { });
+    if (modelsOn) modelTotalsFor(engine).then((t) => { if (live) setTotals(t); }, () => { });
     return () => { live = false; };
-  }, [engine]);
+  }, [engine, modelsOn]);
 
   if (!engine) return <div className="ig-widget"><Text isMuted>Open an iModel first.</Text></div>;
   if (error) return <div className="ig-widget"><div className="ig-error">{error}</div></div>;
@@ -288,17 +299,23 @@ export function OverviewWidget() {
       <Section title="Classes">
         <ClassesSection census={census} />
       </Section>
-      <Section title="Relationships">
-        <RelationshipsSection engine={engine} />
-      </Section>
-      <Section title="Treemap">
-        <TreemapSection census={census} />
-      </Section>
-      <Section title="Models">
-        {totals
-          ? tree.map((n) => <ModelRows key={n.model.id} engine={engine} node={n} totals={totals} depth={0} />)
-          : <Text variant="small" isMuted>Counting…</Text>}
-      </Section>
+      {relationshipsOn && (
+        <Section title="Relationships">
+          <RelationshipsSection engine={engine} />
+        </Section>
+      )}
+      {treemapOn && (
+        <Section title="Treemap">
+          <TreemapSection census={census} />
+        </Section>
+      )}
+      {modelsOn && (
+        <Section title="Models">
+          {totals
+            ? tree.map((n) => <ModelRows key={n.model.id} engine={engine} node={n} totals={totals} depth={0} />)
+            : <Text variant="small" isMuted>Counting…</Text>}
+        </Section>
+      )}
     </div>
   );
 }

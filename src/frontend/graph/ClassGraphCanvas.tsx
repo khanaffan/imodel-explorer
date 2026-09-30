@@ -11,6 +11,7 @@ import { classGraphActions, type ClassGraphScope, useClassGraphStore } from "../
 import { colorFor, contrastText } from "../state/colorTheme";
 import { useGraphStore } from "../state/graphStore";
 import { showSchemaFor } from "../widgets/SchemaWidget";
+import { useFeature } from "../state/featureStore";
 import { layeredLayout, NODE_HEIGHT, NODE_WIDTH, type Positions } from "./layout";
 import { ModeToggle } from "./ModeToggle";
 import { RelationshipEdge, type RelationshipFlowEdge } from "./RelationshipEdge";
@@ -89,6 +90,8 @@ function ClassGraphCanvasInner() {
   const engine = useGraphStore((s) => s.engine);
   const theme = useGraphStore((s) => s.theme);
   const rf = useReactFlow();
+  const imodelScopeOn = useFeature("classGraph.imodel");
+  const scopes = imodelScopeOn ? SCOPES : SCOPES.filter((s) => s.value !== "imodel");
 
   const [search, setSearch] = useState("");
   const [positions, setPositions] = useState<Positions>(new Map());
@@ -180,7 +183,7 @@ function ClassGraphCanvasInner() {
         <Panel position="top-left" className="ig-toolbar">
           <ModeToggle />
           <div className="ig-toolbar__select">
-            <Select<ClassGraphScope> size="small" options={SCOPES} value={scope} onChange={(s) => classGraphActions.setScope(s)} />
+            <Select<ClassGraphScope> size="small" options={scopes} value={scope} onChange={(s) => classGraphActions.setScope(s)} />
           </div>
           <input className="ig-filter-input ig-toolbar__search" placeholder="Filter classes…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <IconButton size="small" styleType="borderless" label="Fit to view" onClick={() => void rf.fitView({ padding: 0.15, duration: 300 })}><SvgFitToView /></IconButton>
@@ -196,7 +199,7 @@ function ClassGraphCanvasInner() {
           <div className="ig-empty__title">No classes to show</div>
           <div>
             {scope === "neighbourhood"
-              ? "Load an instance graph first (Seed query or the 3D view), or switch the scope to Whole iModel."
+              ? `Load an instance graph first (Seed query or the 3D view)${imodelScopeOn ? ", or switch the scope to Whole iModel" : ""}.`
               : search ? "No class matches the filter." : "The whole-iModel class graph is empty."}
           </div>
         </div>
