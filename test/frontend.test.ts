@@ -5,6 +5,7 @@ import { NODE_HEIGHT, NODE_WIDTH, type Positions, radialLayout, reroot, spreadRi
 import { easeInOutCubic, LayoutAnimator, type Scheduler } from "../src/frontend/graph/motion";
 import { graphToCxl, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../src/frontend/services/exporters";
 import { captureSession, deleteSession, listSessions, parseSession, storeSession } from "../src/frontend/services/sessionStore";
+import { DEFAULT_APP_THEME, loadAppTheme, saveAppTheme } from "../src/frontend/state/appTheme";
 import { colorFor, contrastText, DEFAULT_THEME, loadTheme, saveTheme } from "../src/frontend/state/colorTheme";
 import { NavigationHistory } from "../src/frontend/state/navigationHistory";
 
@@ -207,6 +208,18 @@ describe("colour theme", () => {
 
   it("picks readable text", () => {
     expect(contrastText("#ffffff")).not.toBe(contrastText("#000000"));
+  });
+});
+
+describe("app theme", () => {
+  it("persists supported themes and rejects unknown values", () => {
+    const store = new Map<string, string>();
+    const storage = { getItem: (key: string) => store.get(key) ?? null, setItem: (key: string, value: string) => void store.set(key, value) };
+    expect(loadAppTheme(storage)).toBe(DEFAULT_APP_THEME);
+    expect(saveAppTheme("dark", storage)).toBeUndefined();
+    expect(loadAppTheme(storage)).toBe("dark");
+    store.set("instanceGraph.appTheme", "unknown");
+    expect(loadAppTheme(storage)).toBe(DEFAULT_APP_THEME);
   });
 });
 

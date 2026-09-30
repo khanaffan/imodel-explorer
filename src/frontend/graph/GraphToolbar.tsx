@@ -89,7 +89,7 @@ export function GraphToolbar() {
         <DropdownMenu menuItems={exportItems}>
           <IconButton size="small" styleType="borderless" label="Export" disabled={!hasGraph}><SvgExport /></IconButton>
         </DropdownMenu>
-        <IconButton size="small" styleType="borderless" label="Feature settings" onClick={featureActions.openSettings}><SvgSettings /></IconButton>
+        <IconButton size="small" styleType="borderless" label="App settings" onClick={featureActions.openSettings}><SvgSettings /></IconButton>
       </Panel>
       <Panel position="bottom-left" className="ig-status">
         {status.kind === "loading" && <ProgressRadial size="x-small" indeterminate />}

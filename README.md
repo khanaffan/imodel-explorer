@@ -45,10 +45,11 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   trees.
 - **Sessions and export.** Save and restore sessions. Export JSON, GraphML, a CmapTools concept
   map (CXL) or PNG, or copy an ECSQL recipe that reproduces the traversal.
-- **Feature settings** (gear icon). Switch off optional features — Overview census, class graph,
-  Schema or Geometry panels, visibility trees and more — to skip their queries and keep the app
-  fast when you only need the core data-model view. Choices persist across iModels; children of a
-  disabled feature keep their saved state.
+- **App settings** (gear icon). Pick a colour theme (system, light, dark or high contrast) and
+  switch off optional features — Overview census, class graph, Schema or Geometry panels,
+  visibility trees and more — to skip their queries and keep the app fast when you only need the
+  core data-model view. Choices persist across iModels; children of a disabled feature keep their
+  saved state.
 
 ## Quick start
 

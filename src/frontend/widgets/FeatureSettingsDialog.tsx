@@ -1,4 +1,5 @@
-import { Button, Modal, ModalButtonBar, ModalContent, Text, ToggleSwitch } from "@itwin/itwinui-react";
+import { Button, Modal, ModalButtonBar, ModalContent, Select, Text, ToggleSwitch } from "@itwin/itwinui-react";
+import { APP_THEMES, appThemeActions, DEFAULT_APP_THEME, useAppThemeStore } from "../state/appTheme";
 import { DEFAULT_FEATURES, featureActions, featureEnabled, FEATURES, useFeatureStore } from "../state/featureStore";
 import "./widgets.css";
 
@@ -15,15 +16,32 @@ const CORE = [
 export function FeatureSettingsDialog() {
   const open = useFeatureStore((s) => s.settingsOpen);
   const features = useFeatureStore((s) => s.features);
-  const storageError = useFeatureStore((s) => s.storageError);
-  const isDefault = FEATURES.every((f) => features[f.id] === DEFAULT_FEATURES[f.id]);
+  const featureStorageError = useFeatureStore((s) => s.storageError);
+  const theme = useAppThemeStore((s) => s.theme);
+  const themeStorageError = useAppThemeStore((s) => s.storageError);
+  const isDefault = theme === DEFAULT_APP_THEME && FEATURES.every((f) => features[f.id] === DEFAULT_FEATURES[f.id]);
+  const resetDefaults = () => {
+    featureActions.resetDefaults();
+    appThemeActions.resetDefault();
+  };
   return (
-    <Modal isOpen={open} title="Feature settings" onClose={featureActions.closeSettings}>
+    <Modal isOpen={open} title="App settings" onClose={featureActions.closeSettings}>
       <ModalContent>
         <div className="ig-settings">
           <Text isMuted variant="small">
-            Switch off optional features to skip their queries and keep the app focused on the data-model view. Choices apply to every iModel you open.
+            Theme and feature choices apply to every iModel you open.
           </Text>
+          <div className="ig-settings__section">
+            <Text variant="leading">Appearance</Text>
+            <div className="ig-settings__row">
+              <Text>Theme</Text>
+              <Select
+                options={[...APP_THEMES]}
+                value={theme}
+                onChange={appThemeActions.setTheme}
+              />
+            </div>
+          </div>
           <div className="ig-settings__section">
             <Text variant="leading">Core (always on)</Text>
             {CORE.map((label) => (
@@ -32,6 +50,9 @@ export function FeatureSettingsDialog() {
           </div>
           <div className="ig-settings__section">
             <Text variant="leading">Optional features</Text>
+            <Text isMuted variant="small">
+              Switch off optional features to skip their queries and keep the app focused on the data-model view.
+            </Text>
             {FEATURES.map((f) => {
               const parentOn = f.parent === undefined || featureEnabled(f.parent, features);
               return (
@@ -47,11 +68,13 @@ export function FeatureSettingsDialog() {
               );
             })}
           </div>
-          {storageError && <div className="ig-error">Could not save settings: {storageError}</div>}
+          {(featureStorageError || themeStorageError) && (
+            <div className="ig-error">Could not save settings: {featureStorageError ?? themeStorageError}</div>
+          )}
         </div>
       </ModalContent>
       <ModalButtonBar>
-        <Button disabled={isDefault} onClick={featureActions.resetDefaults}>Reset to defaults</Button>
+        <Button disabled={isDefault} onClick={resetDefaults}>Reset to defaults</Button>
         <Button styleType="high-visibility" onClick={featureActions.closeSettings}>Close</Button>
       </ModalButtonBar>
     </Modal>
