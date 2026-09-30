@@ -57,12 +57,28 @@ Requires Node.js 22.
 
 ```bash
 npm install
-npm run sample     # writes samples/pump-network.bim
-npm start          # build and launch
+npm run sample       # writes samples/pump-network.bim (small test fixture)
+npm run sample:demo  # writes samples/water-plant.bim (demo plant)
+npm start            # build and launch
 ```
 
 Open a `.bim` from the welcome page, run a seed query such as
 `SELECT ECInstanceId, ECClassId FROM TestIG.Pump`, and click a result.
+
+### Demo model
+
+`samples/water-plant.bim` is a small water-treatment works built from scratch by
+`test/demoModel.ts`: fenced site with road, trees and a control building, raw-water tank,
+clarifiers, filters, clearwell, pumps with motors, valves, instruments and colour-coded piping. Its
+`WaterPlant` schema uses mixins, enums, structs, type definitions, unique and multi aspects,
+navigation and link-table relationships. The model also contains process areas, trains
+(groups), work orders and a P&ID drawing linked to the 3D elements. Good seeds:
+
+- `SELECT ECInstanceId, ECClassId FROM WaterPlant.Pump WHERE UserLabel = 'P-101A'`: motor,
+  valves, pipes, work orders, train and P&ID symbol.
+- `SELECT ECInstanceId, ECClassId FROM WaterPlant.Header WHERE UserLabel = 'H-601'`: a hub with
+  30 laterals, which collapse into a group node.
+- `SELECT ECInstanceId, ECClassId FROM WaterPlant.WorkOrder`: maintenance backlog and its assets.
 
 ## Scripts
 
