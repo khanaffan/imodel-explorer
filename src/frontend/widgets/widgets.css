@@ -130,7 +130,12 @@
   color: inherit;
   cursor: pointer;
   font-weight: 700;
-  line-height: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
   padding: 0;
 }
 
@@ -275,6 +280,7 @@
 /* Model hierarchy in the Filters widget. */
 .ig-list--tall { max-height: 320px; }
 .ig-tree-row__twist {
+  display: inline-flex; align-items: center; justify-content: center;
   width: 14px; flex: none; padding: 0; border: 0; background: none;
   color: var(--iui-color-text-muted, #777); cursor: pointer; font-size: 11px; line-height: 1;
 }
