@@ -1,8 +1,9 @@
 import { toPng } from "html-to-image";
 import { getNodesBounds, getViewportForBounds, type Node } from "@xyflow/react";
 import { buildTraversalRecipe } from "../engine/ecsql";
-import type { DirectionFilter, GraphData } from "../engine/GraphModel";
+import type { DirectionFilter, GraphData, GraphEdge, GraphNode } from "../engine/GraphModel";
 import { parseNodeKey } from "../engine/GraphModel";
+import { contrastText } from "../state/colorTheme";
 
 export interface GraphJson {
   readonly format: "instance-graph";
@@ -51,6 +52,92 @@ export function graphToGraphML(graph: GraphData): string {
     `</graphml>`,
   ];
   return lines.join("\n");
+}
+
+export interface CxlOptions {
+  readonly title?: string;
+  /** Top-left position of each node, keyed by node key; missing nodes are laid out on a grid. */
+  readonly positions?: ReadonlyMap<string, { x: number; y: number }>;
+  readonly nodeSize?: { width: number; height: number };
+  /** Background colour (#rrggbb) of a node. */
+  readonly colorOf?: (node: GraphNode) => string | undefined;
+}
+
+const cxlText = (s: string) => xmlEscape(s).replace(/\n/g, "&#xa;");
+
+function cxlColor(hex: string | undefined): string | undefined {
+  const m = hex && /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return undefined;
+  const n = parseInt(m[1], 16);
+  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},255`;
+}
+
+/**
+ * CXL (Concept Map XML) for IHMC CmapTools: instances become concepts, and each relationship becomes
+ * a linking phrase joined to its source and target.
+ */
+export function graphToCxl(graph: GraphData, opts: CxlOptions = {}): string {
+  const { width, height } = opts.nodeSize ?? { width: 180, height: 48 };
+  const nodes = [...graph.nodes.values()];
+  const conceptId = new Map(nodes.map((n, i) => [n.key, `c${i + 1}`]));
+  const centreOf = (key: string, i: number) => {
+    const p = opts.positions?.get(key);
+    return p ? { x: p.x + width / 2, y: p.y + height / 2 } : { x: (i % 8) * (width + 60) + width / 2, y: Math.floor(i / 8) * (height + 80) + height / 2 };
+  };
+  const centres = new Map(nodes.map((n, i) => [n.key, centreOf(n.key, i)]));
+  const edges = [...graph.edges.values()].filter((e) => conceptId.has(e.source) && conceptId.has(e.target));
+
+  const minX = Math.min(0, ...[...centres.values()].map((p) => p.x - width / 2));
+  const minY = Math.min(0, ...[...centres.values()].map((p) => p.y - height / 2));
+  const at = (p: { x: number; y: number }) => ({ x: Math.round(p.x - minX + 20), y: Math.round(p.y - minY + 20) });
+
+  const conceptLabel = (n: GraphNode) => n.aggregate ? n.label : `${n.label}\n${n.className} · ${n.id}`;
+  const phraseLabel = (e: GraphEdge) => {
+    const name = e.relClassName.split(/[.:]/).pop()!;
+    const head = e.kind === "navigation" && e.navPropertyName ? `${name}.${e.navPropertyName}` : name;
+    return e.cardinality ? `${head}\n${e.cardinality.source} → ${e.cardinality.target}` : head;
+  };
+
+  const concepts = nodes.map((n) => `      <concept id="${conceptId.get(n.key)}" label="${cxlText(conceptLabel(n))}"/>`);
+  const phrases = edges.map((e, i) => `      <linking-phrase id="l${i + 1}" label="${cxlText(phraseLabel(e))}"/>`);
+  const connections = edges.flatMap((e, i) => [
+    `      <connection id="k${2 * i + 1}" from-id="${conceptId.get(e.source)}" to-id="l${i + 1}"/>`,
+    `      <connection id="k${2 * i + 2}" from-id="l${i + 1}" to-id="${conceptId.get(e.target)}"/>`,
+  ]);
+  const conceptLooks = nodes.map((n) => {
+    const p = at(centres.get(n.key)!);
+    const bg = opts.colorOf?.(n);
+    const fill = cxlColor(bg);
+    const font = bg ? cxlColor(contrastText(bg).replace(/^#(.)(.)(.)$/, "#$1$1$2$2$3$3")) : undefined;
+    const border = graph.centreKey === n.key ? ` border-thickness="3"` : "";
+    return `      <concept-appearance id="${conceptId.get(n.key)}" x="${p.x}" y="${p.y}" width="${width}" height="${height}"${fill ? ` background-color="${fill}"` : ""}${font ? ` font-color="${font}"` : ""}${border}/>`;
+  });
+  const phraseLooks = edges.map((e, i) => {
+    const a = at(centres.get(e.source)!);
+    const b = at(centres.get(e.target)!);
+    return `      <linking-phrase-appearance id="l${i + 1}" x="${Math.round((a.x + b.x) / 2)}" y="${Math.round((a.y + b.y) / 2)}"/>`;
+  });
+  const connectionLooks = edges.flatMap((e, i) => e.kind === "navigation"
+    ? [`      <connection-appearance id="k${2 * i + 1}" style="dashed"/>`, `      <connection-appearance id="k${2 * i + 2}" style="dashed" arrowhead="yes"/>`]
+    : [`      <connection-appearance id="k${2 * i + 2}" arrowhead="yes"/>`]);
+
+  return [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<cmap xmlns="http://cmap.ihmc.us/xml/cmap/" xmlns:dc="http://purl.org/dc/elements/1.1/">`,
+    `  <res-meta>`,
+    `    <dc:title>${xmlEscape(opts.title ?? "Instance graph")}</dc:title>`,
+    `    <dc:format>x-cmap/x-storable</dc:format>`,
+    `  </res-meta>`,
+    `  <map>`,
+    `    <concept-list>`, ...concepts, `    </concept-list>`,
+    `    <linking-phrase-list>`, ...phrases, `    </linking-phrase-list>`,
+    `    <connection-list>`, ...connections, `    </connection-list>`,
+    `    <concept-appearance-list>`, ...conceptLooks, `    </concept-appearance-list>`,
+    `    <linking-phrase-appearance-list>`, ...phraseLooks, `    </linking-phrase-appearance-list>`,
+    `    <connection-appearance-list>`, ...connectionLooks, `    </connection-appearance-list>`,
+    `  </map>`,
+    `</cmap>`,
+  ].join("\n");
 }
 
 /** ECSQL that reproduces the traversal from the current centre, for use outside this tool. */

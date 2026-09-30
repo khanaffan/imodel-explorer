@@ -3,7 +3,7 @@ import { DEFAULT_OPTIONS } from "../src/frontend/engine/GraphEngine";
 import type { GraphData, GraphEdge, GraphNode, NodeCategory } from "../src/frontend/engine/GraphModel";
 import { NODE_HEIGHT, NODE_WIDTH, type Positions, radialLayout, reroot, spreadRing, stableRotation } from "../src/frontend/graph/layout";
 import { easeInOutCubic, LayoutAnimator, type Scheduler } from "../src/frontend/graph/motion";
-import { graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../src/frontend/services/exporters";
+import { graphToCxl, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../src/frontend/services/exporters";
 import { captureSession, deleteSession, listSessions, parseSession, storeSession } from "../src/frontend/services/sessionStore";
 import { colorFor, contrastText, DEFAULT_THEME, loadTheme, saveTheme } from "../src/frontend/state/colorTheme";
 import { NavigationHistory } from "../src/frontend/state/navigationHistory";
@@ -255,6 +255,19 @@ describe("sessions and exporters", () => {
     expect(xml).toContain("0..1 → 0..*");
     expect((xml.match(/<node /g) ?? []).length).toBe(g.nodes.size);
     expect((xml.match(/<edge /g) ?? []).length).toBe(g.edges.size);
+  });
+
+  it("exports a CmapTools CXL concept map", () => {
+    const xml = graphToCxl(g, { positions: new Map([[g.centreKey, { x: -100, y: -50 }]]), colorOf: () => "#3b82f6" });
+    expect(xml).toContain(`<cmap xmlns="http://cmap.ihmc.us/xml/cmap/"`);
+    expect((xml.match(/<concept id=/g) ?? []).length).toBe(g.nodes.size);
+    expect((xml.match(/<linking-phrase id=/g) ?? []).length).toBe(g.edges.size);
+    expect((xml.match(/<connection id=/g) ?? []).length).toBe(2 * g.edges.size);
+    expect(xml).toContain("Pipe &lt;A&gt; &amp; &quot;B&quot;");
+    expect(xml).toContain("&#xa;0..1 → 0..*");
+    expect(xml).toContain(`background-color="59,130,246,255"`);
+    expect(xml).toContain(`font-color="255,255,255,255"`);
+    expect(xml).not.toMatch(/ x="-/);
   });
 
   it("builds a runnable recipe and safe file names", () => {

@@ -2,7 +2,9 @@ import { SvgChevronLeft, SvgChevronRight, SvgExport, SvgFitToView, SvgHierarchyT
 import { Button, ButtonGroup, DropdownMenu, IconButton, MenuDivider, MenuItem, ProgressRadial, Select, Text } from "@itwin/itwinui-react";
 import { Panel, useReactFlow } from "@xyflow/react";
 import { type DirectionFilter, parseNodeKey } from "../engine/GraphModel";
-import { downloadText, exportPng, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../services/exporters";
+import { downloadText, exportPng, graphToCxl, graphToGraphML, graphToJson, safeFileStem, traversalRecipe } from "../services/exporters";
+import { colorFor } from "../state/colorTheme";
+import { NODE_HEIGHT, NODE_WIDTH } from "./layout";
 import { graphActions, useGraphStore } from "../state/graphStore";
 
 const DEPTHS = [1, 2, 3, 4, 5, 6].map((d) => ({ value: d, label: `Depth ${d}` }));
@@ -27,6 +29,13 @@ export function GraphToolbar() {
   const exportItems = (close: () => void) => [
     <MenuItem key="json" onClick={() => { close(); downloadText(`${stem()}-graph.json`, JSON.stringify(graphToJson(useGraphStore.getState().graph), null, 2), "application/json"); }}>JSON</MenuItem>,
     <MenuItem key="graphml" onClick={() => { close(); downloadText(`${stem()}-graph.graphml`, graphToGraphML(useGraphStore.getState().graph), "application/xml"); }}>GraphML</MenuItem>,
+    <MenuItem key="cxl" onClick={() => {
+      close();
+      const { graph, theme, fileName } = useGraphStore.getState();
+      const positions = new Map(rf.getNodes().map((n) => [n.id, n.position]));
+      const cxl = graphToCxl(graph, { title: `${safeFileStem(fileName)} instance graph`, positions, nodeSize: { width: NODE_WIDTH, height: NODE_HEIGHT }, colorOf: (n) => n.aggregate ? undefined : colorFor(n, theme) });
+      downloadText(`${stem()}-graph.cxl`, cxl, "application/xml");
+    }}>CmapTools (CXL)</MenuItem>,
     <MenuItem key="png" onClick={() => {
       close();
       const el = document.querySelector<HTMLElement>(".ig-canvas");
