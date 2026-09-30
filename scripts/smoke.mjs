@@ -270,7 +270,7 @@ try {
   const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem("instanceGraph.features.v1")));
   if (persisted.geometry !== false || persisted["geometry.overlay"] !== true)
     throw new Error(`feature settings not persisted as expected: ${JSON.stringify(persisted)}`);
-  await page.getByRole("button", { name: "Feature settings" }).click();
+  await page.getByRole("button", { name: "App settings" }).click();
   await page.getByText("Optional features", { exact: true }).waitFor({ timeout: 10_000 });
   await page.screenshot({ path: `${outDir}/14-settings.png` });
   // Reset also undoes the overlay toggle persisted by the geometry step: clean slate for next run.

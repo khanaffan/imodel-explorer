@@ -19,7 +19,8 @@
     "smoke": "node scripts/smoke.mjs",
     "bench": "vite-node scripts/bench.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "docs:shots": "node scripts/tutorialShots.mjs"
   },
   "dependencies": {
     "@bentley/icons-generic-webfont": "^1.0.34",
