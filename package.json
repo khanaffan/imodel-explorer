@@ -16,7 +16,6 @@
     "dev": "npm run build:backend && concurrently -k -n vite,electron \"vite\" \"wait-on tcp:3000 && cross-env IG_DEV=1 electron .\"",
     "sample": "vite-node scripts/makeSample.ts",
     "smoke": "node scripts/smoke.mjs",
-    "screenshots": "node scripts/screenshots.mjs",
     "bench": "vite-node scripts/bench.ts",
     "test": "vitest run",
     "test:watch": "vitest"
