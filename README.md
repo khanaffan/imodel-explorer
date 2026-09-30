@@ -62,7 +62,8 @@ npm run sample:demo  # writes samples/water-plant.bim (demo plant)
 npm start            # build and launch
 ```
 
-See the [tutorial](docs/tutorial.md) for a guided tour of every feature using the demo model.
+See the [tutorial](docs/tutorial.md) for a guided tour of every feature using the demo model, or
+watch the [one-minute demo video](docs/tutorial.mp4).
 
 Open a `.bim` from the welcome page, run a seed query such as
 `SELECT ECInstanceId, ECClassId FROM TestIG.Pump`, and click a result.
@@ -92,6 +93,7 @@ navigation and link-table relationships. The model also contains process areas, 
 | `npm run smoke [file.bim]` | End-to-end run of the built app |
 | `npm run bench -- file.bim "<ecsql>"` | Time queries and traversals |
 | `npm run docs:shots` | Regenerate the tutorial screenshots (needs a build and the demo model) |
+| `npm run docs:video` | Record the narrated demo video (macOS `say` and `ffmpeg` too) |
 
 ## Project layout
 

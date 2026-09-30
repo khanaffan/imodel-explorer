@@ -4,6 +4,8 @@ This walkthrough visits every panel of iModel Data Explorer using the demo iMode
 `samples/water-plant.bim`. The screenshots are cropped to the widget being described and use the
 dark theme. To regenerate them, see [Regenerating the screenshots](#regenerating-the-screenshots).
 
+For a one-minute narrated overview, watch [tutorial.mp4](tutorial.mp4).
+
 ## 1. Get the model
 
 ```bash
@@ -234,8 +236,13 @@ in the view.
 ```bash
 npm run build
 npm run docs:shots   # writes docs/tutorial/*.png
+npm run docs:video   # writes docs/tutorial.mp4
 ```
 
 `scripts/tutorialShots.mjs` drives the built app with Playwright, using a temporary profile, a
 1600×1000 window and the dark theme. It needs `samples/water-plant.bim` (`npm run sample:demo`)
 and takes a few minutes.
+
+`scripts/tutorialVideo.mjs` records the narrated video the same way. Narration comes from the
+macOS `say` command (voice `Samantha`; override it with `IG_VOICE`), and `ffmpeg` combines it
+with the recording, so it needs macOS and `ffmpeg` on the `PATH`.

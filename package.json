@@ -20,7 +20,8 @@
     "bench": "vite-node scripts/bench.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "docs:shots": "node scripts/tutorialShots.mjs"
+    "docs:shots": "node scripts/tutorialShots.mjs",
+    "docs:video": "node scripts/tutorialVideo.mjs"
   },
   "dependencies": {
     "@bentley/icons-generic-webfont": "^1.0.34",
