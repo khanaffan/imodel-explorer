@@ -52,14 +52,14 @@ export function placementFacts(props: PlacementProps | undefined): PlacementSumm
 /** The sub-category's base appearance: what geometry inherits unless the stream overrides it. */
 export function subCategoryFacts(app: SubCategoryAppearance, subCategoryId: string): Fact[] {
   const facts: Fact[] = [
-    { name: "Sub-category", value: subCategoryId },
+    { name: "Sub-category", value: subCategoryId, reference: { id: subCategoryId, targetBaseClass: "BisCore:SubCategory" } },
     { name: "Colour", value: app.color.toHexString(), swatch: app.color.toHexString() },
     { name: "Weight", value: String(app.weight) },
   ];
-  if (app.styleId) facts.push({ name: "Line style", value: app.styleId });
+  if (app.styleId) facts.push({ name: "Line style", value: app.styleId, reference: { id: app.styleId, targetBaseClass: "BisCore:LineStyle" } });
   if (app.transparency !== 0) facts.push({ name: "Transparency", value: String(app.transparency) });
   if (app.priority !== 0) facts.push({ name: "Priority", value: String(app.priority) });
-  if (app.materialId) facts.push({ name: "Material", value: app.materialId });
+  if (app.materialId) facts.push({ name: "Material", value: app.materialId, reference: { id: app.materialId, targetBaseClass: "BisCore:RenderMaterial" } });
   if (app.invisible) facts.push({ name: "Invisible", value: "true" });
   return facts;
 }
@@ -90,7 +90,10 @@ export function viewFacts(vp: ViewFactsInput, opts: {
   if (opts.categoryId)
     facts.push({ name: "Category displayed", value: String(vp.viewsCategory(opts.categoryId)) });
   for (const sc of opts.subCategoryIds)
-    facts.push({ name: `Sub-category ${sc}`, value: vp.isSubCategoryVisible(sc) ? "visible" : "hidden" });
+    facts.push({
+      name: "Sub-category displayed", value: `${sc} (${vp.isSubCategoryVisible(sc) ? "visible" : "hidden"})`,
+      reference: { id: sc, targetBaseClass: "BisCore:SubCategory" },
+    });
   const gcOff: string[] = [];
   for (const gc of opts.geometryClasses) {
     if (gc === GeometryClass.Construction && !vp.viewFlags.constructions) gcOff.push("Construction");

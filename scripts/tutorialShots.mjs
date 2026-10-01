@@ -182,7 +182,7 @@ try {
   // 10. Geometry stream of P-101A.
   await tab("Geometry");
   const geom = widget("ig-geometry");
-  await geom.locator(".ig-stream-stack").waitFor({ timeout: 30_000 });
+  await geom.locator(".ig-geom-op__label").first().waitFor({ timeout: 30_000 });
   await page.waitForTimeout(600);
   await shot(geom, "17-geometry");
 

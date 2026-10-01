@@ -1,13 +1,18 @@
 import { QueryBinder } from "@itwin/core-common";
+import { Id64 } from "@itwin/core-bentley";
 import type { ClassRegistry } from "./ClassRegistry";
 import { buildClassIdLookupQuery, buildInstanceQuery } from "./ecsql";
 import type { IModelQueryPort } from "./IModelQueryPort";
 
-export interface NavTarget {
+export interface InstanceReference {
   readonly id: string;
-  readonly relClassName: string;
+  readonly classId?: string;
   /** The constraint class at the far end; used to look up the target's actual ECClassId. */
   readonly targetBaseClass?: string;
+}
+
+export interface NavTarget extends InstanceReference {
+  readonly relClassName: string;
 }
 
 export interface PropertyRecord {
@@ -16,6 +21,7 @@ export interface PropertyRecord {
   readonly value: string;
   readonly kind: "system" | "primitive" | "navigation" | "struct" | "array";
   readonly navTarget?: NavTarget;
+  readonly reference?: InstanceReference;
   readonly children?: readonly PropertyRecord[];
 }
 
@@ -41,7 +47,12 @@ export async function loadInstanceProperties(port: IModelQueryPort, registry: Cl
     const label = prop?.label || name;
     if (SYSTEM_PROPS.has(name)) {
       const shown = name.endsWith("ClassId") && typeof value === "string" ? `${registry.nameOf(value)} (${value})` : formatPrimitive(value);
-      return { name, label, value: shown, kind: "system" };
+      const referenceId = name === "ECInstanceId" ? instance.ECClassId
+        : name === "SourceECInstanceId" ? instance.SourceECClassId
+          : name === "TargetECInstanceId" ? instance.TargetECClassId : undefined;
+      const reference = typeof value === "string" && Id64.isValidId64(value) && typeof referenceId === "string"
+        ? { id: value, classId: referenceId } : undefined;
+      return { name, label, value: shown, kind: "system", reference };
     }
     if (prop?.isNavigation() && value && typeof value === "object" && "Id" in value) {
       const nav = value as { Id: string; RelECClassId?: string };
@@ -66,16 +77,18 @@ export async function loadInstanceProperties(port: IModelQueryPort, registry: Cl
   return records.sort((a, b) => order[a.kind] - order[b.kind]);
 }
 
-/** Resolves the concrete ECClassId of a navigation property target. */
-export async function resolveNavTargetClassId(port: IModelQueryPort, target: NavTarget): Promise<string | undefined> {
-  for (const candidate of [target.targetBaseClass, "BisCore:Element", "BisCore:Model"]) {
-    if (!candidate) continue;
-    try {
-      const rows = await port.query(buildClassIdLookupQuery(candidate), new QueryBinder().bindId(1, target.id));
-      if (rows[0]?.ECClassId) return rows[0].ECClassId;
-    } catch { /* try the next candidate */ }
+/** Typed references keep models distinct from elements that share the same instance id. */
+export async function resolveInstanceReferenceClassId(port: IModelQueryPort, target: InstanceReference): Promise<string | undefined> {
+  if (!Id64.isValidId64(target.id)) throw new Error(`Invalid instance id: ${target.id}`);
+  if (target.classId !== undefined) {
+    if (!Id64.isValidId64(target.classId)) throw new Error(`Invalid class id: ${target.classId}`);
+    return target.classId;
   }
-  return undefined;
+  if (target.targetBaseClass) {
+    const rows = await port.query(buildClassIdLookupQuery(target.targetBaseClass), new QueryBinder().bindId(1, target.id));
+    return rows[0]?.ECClassId;
+  }
+  return resolveClassIdForId(port, target.id);
 }
 
 /** Resolves an id with no class (e.g. from a user query that only selected ECInstanceId). Elements

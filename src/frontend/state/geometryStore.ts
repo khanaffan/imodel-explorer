@@ -38,7 +38,7 @@ interface GeometryState {
   readonly error?: string;
   readonly result?: LoadedGeometry;
   readonly expandedParts: ReadonlyMap<string, ExpandedPart>;
-  /** Raw index of the op selected in the stack/list. */
+  /** Raw index of the selected op in the list. */
   readonly selectedOp?: number;
   readonly wantBRep: boolean;
   readonly follow: boolean;

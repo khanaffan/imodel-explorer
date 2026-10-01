@@ -12,6 +12,7 @@ import {
   type GeometryStreamEntryProps, GeometryStreamFlags, GeometryStreamIterator, type GeometryStreamIteratorEntry,
   type GeometryStreamProps, type PlacementProps, SubCategoryAppearance, type TextStringProps,
 } from "@itwin/core-common";
+import type { InstanceReference } from "./instanceProperties";
 
 export type StreamOpKind =
   | "header" | "appearance" | "styleMod" | "fill" | "pattern" | "material" | "subRange"
@@ -21,13 +22,14 @@ export type StreamOpKind =
 export interface Fact {
   readonly name: string;
   readonly value: string;
+  readonly reference?: InstanceReference;
   /** Colour swatch to render beside the value. */
   readonly swatch?: string;
   /** Whether this appearance value overrides the sub-category or is inherited from it. */
   readonly tag?: "override" | "inherited";
 }
 
-/** Resolved symbology at a primitive, for the stack's colour rail and the op rows. */
+/** Resolved symbology at a primitive, for the op rows. */
 export interface AppearanceSnapshot {
   readonly subCategoryId: string;
   readonly color?: string;
@@ -350,8 +352,8 @@ function snapshotOf(params: GeometryParams, baseline?: SubCategoryAppearance): A
 /** Facts for the resolved GeometryParams at a primitive. Values set on the params override the
  * sub-category; values taken from `baseline` are inherited from it. */
 export function describeAppearance(params: GeometryParams, baseline?: SubCategoryAppearance): Fact[] {
-  const facts: Fact[] = [{ name: "Sub-category", value: params.subCategoryId }];
-  const pick = <T>(name: string, override: T | undefined, inherited: T | undefined, fmt: (v: T) => { value: string; swatch?: string }) => {
+  const facts: Fact[] = [{ name: "Sub-category", value: params.subCategoryId, reference: { id: params.subCategoryId, targetBaseClass: "BisCore:SubCategory" } }];
+  const pick = <T>(name: string, override: T | undefined, inherited: T | undefined, fmt: (v: T) => Pick<Fact, "value" | "swatch" | "reference">) => {
     if (override !== undefined) facts.push({ name, ...fmt(override), tag: "override" });
     else if (inherited !== undefined) facts.push({ name, ...fmt(inherited), tag: "inherited" });
   };
@@ -360,9 +362,9 @@ export function describeAppearance(params: GeometryParams, baseline?: SubCategor
 
   pick("Colour", params.lineColor, baseline?.color, asColor);
   pick("Weight", params.weight, baseline?.weight, asText);
-  pick("Style", params.styleInfo?.styleId, baseline?.styleId, asText);
+  pick("Style", params.styleInfo?.styleId, baseline?.styleId, (id) => ({ value: id, reference: { id, targetBaseClass: "BisCore:LineStyle" } }));
   pick("Transparency", params.elmTransparency, baseline?.transparency, asText);
-  pick("Material", params.materialId, baseline?.materialId, asText);
+  pick("Material", params.materialId, baseline?.materialId, (id) => ({ value: id, reference: { id, targetBaseClass: "BisCore:RenderMaterial" } }));
   if (params.geometryClass !== undefined && params.geometryClass !== GeometryClass.Primary)
     facts.push({ name: "Geometry class", value: geometryClassName(params.geometryClass), tag: "override" });
   if (params.fillDisplay !== undefined && params.fillDisplay !== FillDisplay.Never) {
@@ -388,10 +390,10 @@ function modifierFacts(key: string, entry: GeometryStreamEntryProps): { detail: 
     }
     case "appearance": {
       const facts: Fact[] = [];
-      if (raw.subCategory !== undefined) facts.push({ name: "Sub-category", value: String(raw.subCategory) });
+      if (raw.subCategory !== undefined) facts.push({ name: "Sub-category", value: String(raw.subCategory), reference: { id: String(raw.subCategory), targetBaseClass: "BisCore:SubCategory" } });
       if (raw.color !== undefined) facts.push({ name: "Colour", ...fmtColor(raw.color as number) });
       if (raw.weight !== undefined) facts.push({ name: "Weight", value: String(raw.weight) });
-      if (raw.style !== undefined) facts.push({ name: "Style", value: String(raw.style) });
+      if (raw.style !== undefined) facts.push({ name: "Style", value: String(raw.style), reference: { id: String(raw.style), targetBaseClass: "BisCore:LineStyle" } });
       if (raw.transparency !== undefined) facts.push({ name: "Transparency", value: String(raw.transparency) });
       if (raw.displayPriority !== undefined) facts.push({ name: "Display priority", value: String(raw.displayPriority) });
       if (raw.geometryClass !== undefined) facts.push({ name: "Geometry class", value: geometryClassName(raw.geometryClass as GeometryClass) });
@@ -411,12 +413,18 @@ function modifierFacts(key: string, entry: GeometryStreamEntryProps): { detail: 
       return { detail: facts.map((f) => `${f.name.toLowerCase()} ${f.value}`).join(", "), facts };
     }
     case "material":
-      return { detail: raw.materialId ? String(raw.materialId) : "no material", facts: [{ name: "Material", value: String(raw.materialId ?? "none") }] };
+      return { detail: raw.materialId ? String(raw.materialId) : "no material", facts: [{
+        name: "Material", value: String(raw.materialId ?? "none"),
+        reference: raw.materialId ? { id: String(raw.materialId), targetBaseClass: "BisCore:RenderMaterial" } : undefined,
+      }] };
     case "styleMod":
     case "pattern": {
       const facts = Object.entries(raw)
         .filter(([, v]) => v !== undefined && typeof v !== "object")
-        .map(([n, v]) => ({ name: n, value: String(v) }));
+        .map(([n, v]) => ({
+          name: n, value: String(v),
+          reference: key === "pattern" && n === "symbolId" ? { id: String(v), targetBaseClass: "BisCore:GeometryPart" } : undefined,
+        }));
       return { detail: facts.map((f) => `${f.name} ${f.value}`).join(", "), facts };
     }
     default:
@@ -467,7 +475,7 @@ function primitiveOp(index: number, kind: StreamOpKind, key: string, raw: Geomet
 
   if (kind === "partReference") {
     const gp = raw.geomPart!;
-    const facts: Fact[] = [{ name: "Part", value: gp.part }];
+    const facts: Fact[] = [{ name: "Part", value: gp.part, reference: { id: gp.part, targetBaseClass: "BisCore:GeometryPart" } }];
     if (gp.origin !== undefined) facts.push({ name: "Origin", value: fmtPoint(gp.origin) });
     if (gp.rotation !== undefined) facts.push({ name: "Rotation", value: fmtAngles(YawPitchRollAngles.fromJSON(gp.rotation)) });
     if (gp.scale !== undefined) facts.push({ name: "Scale", value: num(gp.scale) });

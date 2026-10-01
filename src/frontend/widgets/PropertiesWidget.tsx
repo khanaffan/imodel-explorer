@@ -1,7 +1,7 @@
 import { Button, Text } from "@itwin/itwinui-react";
 import { useEffect, useState } from "react";
 import type { GraphEdge, GraphNode } from "../engine/GraphModel";
-import { loadInstanceProperties, type PropertyRecord, resolveNavTargetClassId } from "../engine/instanceProperties";
+import { loadInstanceProperties, type PropertyRecord } from "../engine/instanceProperties";
 import { filterEdits, graphActions, useGraphStore } from "../state/graphStore";
 import { colorFor } from "../state/colorTheme";
 import { useFeature } from "../state/featureStore";
@@ -9,6 +9,7 @@ import { viewportSync } from "../content/viewportSync";
 import { Constraint } from "./Constraint";
 import { showSchemaFor } from "./SchemaWidget";
 import { ElementProperties } from "./ElementProperties";
+import { InstanceLink } from "./InstanceLink";
 import "./widgets.css";
 
 function usePropertyRecords(className: string | undefined, id: string | undefined) {
@@ -26,16 +27,10 @@ function usePropertyRecords(className: string | undefined, id: string | undefine
   return state;
 }
 
-async function goToNavTarget(p: PropertyRecord) {
-  const engine = useGraphStore.getState().engine;
-  if (!engine || !p.navTarget) return;
-  const classId = await resolveNavTargetClassId(engine.port, p.navTarget);
-  if (classId) await graphActions.centreOn({ id: p.navTarget.id, classId });
-}
-
 function PropertyRow({ p, depth = 0 }: { p: PropertyRecord; depth?: number }) {
   const [open, setOpen] = useState(depth === 0 && (p.children?.length ?? 0) <= 6);
   const hasChildren = (p.children?.length ?? 0) > 0;
+  const reference = p.navTarget ?? p.reference;
   return (
     <>
       <div className={`ig-prop ig-prop--${p.kind}`} style={{ paddingLeft: 4 + depth * 12 }}>
@@ -44,8 +39,8 @@ function PropertyRow({ p, depth = 0 }: { p: PropertyRecord; depth?: number }) {
           {p.label}
         </span>
         <span className="ig-prop__value" title={p.value}>
-          {p.navTarget
-            ? <button className="ig-link" onClick={() => void goToNavTarget(p)} title={`Go to ${p.navTarget.id} via ${p.navTarget.relClassName}`}>{p.value || p.navTarget.id}</button>
+          {reference
+            ? <InstanceLink reference={reference}>{p.value || reference.id}</InstanceLink>
             : p.value}
         </span>
       </div>
@@ -98,8 +93,8 @@ function NodeDetails({ node }: { node: GraphNode }) {
         <div className="ig-card__sub">{schemaOn
           ? <button className="ig-link" title="Show this class in the Schema panel" onClick={() => showSchemaFor(node.className)}><code>{node.className}</code></button>
           : <code>{node.className}</code>}</div>
-        <div className="ig-card__sub">Id <code>{node.id}</code> · ClassId <code>{node.classId}</code></div>
-        {node.modelName && <div className="ig-card__sub">Model {node.modelName} <code>{node.modelId}</code></div>}
+        <div className="ig-card__sub">Id <InstanceLink reference={{ id: node.id, classId: node.classId }}><code>{node.id}</code></InstanceLink> · ClassId <code>{node.classId}</code></div>
+        {node.modelId && <div className="ig-card__sub">Model {node.modelName} <InstanceLink reference={{ id: node.modelId, targetBaseClass: "BisCore:Model" }}><code>{node.modelId}</code></InstanceLink></div>}
         <div className="ig-card__sub">{node.depth} hop{node.depth === 1 ? "" : "s"} from centre · {edges} relationship{edges === 1 ? "" : "s"} shown</div>
       </div>
       <div className="ig-row ig-row--wrap">

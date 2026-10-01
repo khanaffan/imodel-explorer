@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { GeometricElement3dProps, GeometryStreamProps } from "@itwin/core-common";
-import { classifyOp, parseGeometryStream } from "../src/frontend/engine/geometryStream";
-import { imodelFrameFacts, placementFacts } from "../src/frontend/engine/geometryFacts";
+import { type GeometricElement3dProps, GeometryParams, type GeometryStreamProps, SubCategoryAppearance } from "@itwin/core-common";
+import { classifyOp, describeAppearance, parseGeometryStream } from "../src/frontend/engine/geometryStream";
+import { imodelFrameFacts, placementFacts, subCategoryFacts } from "../src/frontend/engine/geometryFacts";
 import { Range3d } from "@itwin/core-geometry";
 import { createFixture, type Fixture, PUMP1_STREAM_KEYS } from "./fixture";
 
@@ -71,8 +71,23 @@ describe("parseGeometryStream on the fixture element", () => {
     expect(parsed.parts).toEqual([fx.ids.geomPart]);
     const ref = parsed.ops.find((op) => op.kind === "partReference")!;
     expect(ref.partId).toBe(fx.ids.geomPart);
+    expect(ref.facts.find((f) => f.name === "Part")?.reference).toEqual({ id: fx.ids.geomPart, targetBaseClass: "BisCore:GeometryPart" });
     expect(ref.partParams).toBeDefined();
     expect(ref.partToWorld).toBeDefined();
+  });
+
+  describe("geometry reference metadata", () => {
+    it("links known appearance references but not numbers, colours or fonts", () => {
+      const params = new GeometryParams(fx.ids.category, fx.ids.trimSubCat);
+      const baseline = new SubCategoryAppearance({ style: "0x42", material: "0x43" });
+      for (const facts of [describeAppearance(params, baseline), subCategoryFacts(baseline, fx.ids.trimSubCat)]) {
+        expect(facts.find((f) => f.name === "Sub-category")?.reference).toEqual({ id: fx.ids.trimSubCat, targetBaseClass: "BisCore:SubCategory" });
+        expect(facts.find((f) => f.name === "Material")?.reference).toEqual({ id: "0x43", targetBaseClass: "BisCore:RenderMaterial" });
+        expect(facts.find((f) => f.name === "Style" || f.name === "Line style")?.reference).toEqual({ id: "0x42", targetBaseClass: "BisCore:LineStyle" });
+        expect(facts.find((f) => f.name === "Weight")?.reference).toBeUndefined();
+        expect(facts.find((f) => f.name === "Colour")?.reference).toBeUndefined();
+      }
+    });
   });
 
   it("parses a part stream with fromGeometryPart context", () => {

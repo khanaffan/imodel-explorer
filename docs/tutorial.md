@@ -105,8 +105,13 @@ relationship count), **Pin** and **Show in 3D** buttons, and then the ECPresenta
 for elements, with categorized, formatted values, including schema-hidden fields and properties
 from unique and multi aspects. Expand the aspect categories to inspect their values. This uses
 generic explorer rules, not application-specific computed fields or custom related-property paths.
+The **Element** category opens expanded by default; you can collapse it manually.
 Other EC instances retain raw properties. P-101A
 has the domain properties Tag, Description, Criticality and MaintenanceIntervalDays.
+
+Click a navigation-property value or a linked instance/model ID to centre the graph on its target.
+Model links resolve the model class, not the partition element that shares its ID. Class IDs are
+schema identifiers rather than graph instances and remain plain text.
 
 <img src="tutorial/07-properties.png" width="378" alt="Properties of P-101A">
 
@@ -171,10 +176,14 @@ classes.
 ## 12. Geometry
 
 **Geometry** decodes the selected element's geometry stream op by op. For P-101A, that is a box
-base with sphere and cone primitives. The **Stack** rail shows which appearance governs which
-primitives. Further sections show placement, category and sub-categories, the view and the iModel
+base with sphere and cone primitives. Expand an op to inspect its formatted facts and appearance.
+Further sections show placement, category and sub-categories, the view and the iModel
 frame. Toggles control following the selection, BRep data and the range-and-axes decorator in the
 3D view. You can export the stream as JSON.
+
+Part IDs in the op list and part, category, sub-category, line-style and material IDs in the details
+are links: click one to centre the graph on that instance. Missing references and query errors are
+reported in the graph status; Back returns to the previous centre.
 
 <img src="tutorial/17-geometry.png" width="378" alt="Geometry panel for P-101A">
 

@@ -1,10 +1,29 @@
-import { VirtualizedPropertyGridWithDataProvider } from "@itwin/components-react";
+import { type PropertyRecord, PropertyValueFormat } from "@itwin/appui-abstract";
+import { PropertyValueRendererManager, type PropertyValueRendererContext, VirtualizedPropertyGridWithDataProvider } from "@itwin/components-react";
 import type { IModelConnection } from "@itwin/core-frontend";
 import { Text } from "@itwin/itwinui-react";
 import { KeySet } from "@itwin/presentation-common";
 import { PresentationPropertyDataProvider } from "@itwin/presentation-components";
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { ELEMENT_PROPERTIES_RULESET } from "../engine/elementPropertiesRuleset";
+import { InstanceLink } from "./InstanceLink";
+
+class InstanceLinkRendererManager extends PropertyValueRendererManager {
+  public override render(record: PropertyRecord, context?: PropertyValueRendererContext): ReactNode {
+    if (!record.isMerged && record.value.valueFormat === PropertyValueFormat.Primitive) {
+      const value = record.value.value;
+      if (value && typeof value === "object" && "id" in value && "className" in value
+        && typeof value.id === "string" && typeof value.className === "string") {
+        return <InstanceLink reference={{ id: value.id, targetBaseClass: value.className }}>
+          {record.value.displayValue || value.id}
+        </InstanceLink>;
+      }
+    }
+    return PropertyValueRendererManager.defaultManager.render(record, context);
+  }
+}
+
+const instanceLinkRendererManager = new InstanceLinkRendererManager();
 
 class PropertyGridErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
   public override state: { error?: Error } = {};
@@ -51,6 +70,7 @@ export function ElementProperties({ imodel, className, id }: { imodel: IModelCon
             width={size.width}
             height={size.height}
             editorSystem="new"
+            propertyValueRendererManager={instanceLinkRendererManager}
             isPropertyEditingEnabled={false}
           />
         </PropertyGridErrorBoundary>

@@ -1,22 +1,36 @@
-/** The Geometry widget: the selected element's geometry stream as a graphical stack and a formatted
- * op list, with placement / category / view / iModel-frame facts and a 3D range decorator. */
+/** The Geometry widget: the selected element's geometry stream as a formatted op list,
+ * with placement / category / view / iModel-frame facts and a 3D range decorator. */
 import { Button, ExpandableBlock, IconButton, Text, ToggleSwitch } from "@itwin/itwinui-react";
 import { SvgExport, SvgZoomIn } from "@itwin/itwinui-icons-react";
 import * as React from "react";
 import { GeometryClass } from "@itwin/core-common";
-import type { Fact, ParsedStream, StreamOp } from "../engine/geometryStream";
+import type { Fact, ParsedStream, StreamOp, StreamOpKind } from "../engine/geometryStream";
 import {
   imodelFrameFacts, placementFacts, type PlacementSummary, subCategoryFacts, viewFacts,
 } from "../engine/geometryFacts";
-import { resolveNavTargetClassId } from "../engine/instanceProperties";
 import { downloadText, geometryStreamToJson, safeFileStem } from "../services/exporters";
 import { geometryActions, useGeometryStore } from "../state/geometryStore";
-import { graphActions, useGraphStore } from "../state/graphStore";
+import { useGraphStore } from "../state/graphStore";
 import { setGeometryDecoration } from "../content/geometryDecorator";
 import { viewportSync } from "../content/viewportSync";
-import { KIND_COLORS, StreamStack } from "./StreamStack";
-import { stackInput } from "./streamStackLayout";
+import { InstanceLink } from "./InstanceLink";
 import "./widgets.css";
+
+const KIND_COLORS: Record<StreamOpKind, string> = {
+  header: "#8d96a8",
+  appearance: "#b88ae8",
+  styleMod: "#b88ae8",
+  fill: "#e8a04a",
+  pattern: "#e8a04a",
+  material: "#e8a04a",
+  subRange: "#5a6478",
+  partReference: "#4ba7e8",
+  textString: "#53c7a2",
+  image: "#53c7a2",
+  brep: "#e86a6a",
+  geometry: "#6f9ff3",
+  unknown: "#e04f4f",
+};
 
 function Section({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = React.useState(defaultOpen);
@@ -34,20 +48,13 @@ function FactRows({ facts }: { facts: readonly Fact[] }) {
           <span className="ig-prop__name" title={f.name}>{f.name}</span>
           <span className="ig-prop__value" title={f.value}>
             {f.swatch && <span className="ig-swatch" style={{ background: f.swatch }} />}
-            {f.value}
+            {f.reference ? <InstanceLink reference={f.reference}>{f.value}</InstanceLink> : f.value}
             {f.tag && <span className={`ig-chip ig-chip--${f.tag}`}>{f.tag}</span>}
           </span>
         </div>
       ))}
     </div>
   );
-}
-
-async function centreOnPart(partId: string): Promise<void> {
-  const engine = useGraphStore.getState().engine;
-  if (!engine) return;
-  const classId = await resolveNavTargetClassId(engine.port, { id: partId, relClassName: "", targetBaseClass: "BisCore:GeometryPart" });
-  if (classId) await graphActions.centreOn({ id: partId, classId });
 }
 
 function PartExpansion({ partId }: { partId: string }) {
@@ -68,6 +75,7 @@ function OpRow({ op, streamId }: { op: StreamOp; streamId: string }) {
   const expandedPart = useGeometryStore((s) => (op.partId !== undefined ? s.expandedParts.has(op.partId) : false));
   const [open, setOpen] = React.useState(false);
   const hasFacts = op.facts.length > 0 || op.appearance !== undefined;
+  const detailReference = op.facts.find((fact) => fact.reference && fact.value === op.detail)?.reference;
   const ref = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (selected) ref.current?.scrollIntoView({ block: "nearest" });
@@ -85,7 +93,9 @@ function OpRow({ op, streamId }: { op: StreamOp; streamId: string }) {
           ? <button className="ig-caret" onClick={(e) => { e.stopPropagation(); setOpen(!open); }}>{open ? "▾" : "▸"}</button>
           : <span className="ig-caret" />}
         <span className="ig-geom-op__label" title={op.label}>{op.label}</span>
-        {op.detail && <span className="ig-geom-op__detail" title={op.detail}>{op.detail}</span>}
+        {op.detail && <span className="ig-geom-op__detail" title={op.detail}>
+          {detailReference ? <InstanceLink reference={detailReference}>{op.detail}</InstanceLink> : op.detail}
+        </span>}
         {op.notParsed && <span className="ig-chip ig-chip--kind">not parsed</span>}
       </div>
       {open && (
@@ -96,7 +106,6 @@ function OpRow({ op, streamId }: { op: StreamOp; streamId: string }) {
               <Button size="small" onClick={() => expandedPart ? geometryActions.collapsePart(op.partId!) : void geometryActions.expandPart(op.partId!)}>
                 {expandedPart ? "Collapse part" : "Expand part"}
               </Button>
-              <Button size="small" styleType="borderless" onClick={() => void centreOnPart(op.partId!)}>Centre graph on part</Button>
             </div>
           )}
         </div>
@@ -129,12 +138,12 @@ function CategorySection({ parsed, categoryId }: { parsed: ParsedStream; categor
   }, [parsed]);
   return (
     <>
-      <FactRows facts={[{ name: "Category", value: categoryId }]} />
+      <FactRows facts={[{ name: "Category", value: categoryId, reference: { id: categoryId, targetBaseClass: "BisCore:Category" } }]} />
       {subCats.map((id) => {
         const app = connection?.subcategories.getSubCategoryAppearance(id);
         return app
           ? <FactRows key={id} facts={subCategoryFacts(app, id)} />
-          : <Text key={id} variant="small" isMuted>Sub-category {id} (appearance not loaded)</Text>;
+          : <Text key={id} variant="small" isMuted>Sub-category <InstanceLink reference={{ id, targetBaseClass: "BisCore:SubCategory" }} /> (appearance not loaded)</Text>;
       })}
     </>
   );
@@ -169,7 +178,7 @@ function IModelFrameSection() {
 }
 
 function GeometryBody() {
-  const { target, loading, error, result, expandedParts, selectedOp } = useGeometryStore();
+  const { target, loading, error, result, selectedOp } = useGeometryStore();
   const showDecoration = useGeometryStore((s) => s.showDecoration);
   const [renderCap, setRenderCap] = React.useState(OP_RENDER_CAP);
   React.useEffect(() => setRenderCap(OP_RENDER_CAP), [target?.id]);
@@ -201,23 +210,11 @@ function GeometryBody() {
   const parsed = result.parsed;
   if (!parsed) return null;
 
-  const expandedOps = new Map([...expandedParts].flatMap(([id, e]) => (e.parsed ? [[id, e.parsed.ops] as const] : [])));
-  const stackOps = stackInput(parsed.ops, expandedOps);
   const shownOps = parsed.ops.slice(0, renderCap);
-  const selectFromStack = (streamId: string, index: number) => {
-    if (streamId === "") geometryActions.selectOp(index);
-    else {
-      const refOp = parsed.ops.find((o) => o.partId === streamId);
-      if (refOp) geometryActions.selectOp(refOp.index);
-    }
-  };
 
   return (
     <>
       <SummaryChips parsed={parsed} />
-      <Section title="Stack" defaultOpen>
-        <StreamStack ops={stackOps} selected={selectedOp !== undefined ? { streamId: "", index: selectedOp } : undefined} onSelect={selectFromStack} />
-      </Section>
       <Section title={`Ops (${parsed.ops.length})`} defaultOpen>
         <div className="ig-geom-ops">
           {shownOps.map((op) => <OpRow key={op.index} op={op} streamId="" />)}
@@ -263,7 +260,7 @@ export function GeometryWidget() {
         <div className="ig-card">
           <div className="ig-card__title">{target.label ?? target.id}</div>
           {target.className && <div className="ig-card__sub"><code>{target.className}</code></div>}
-          <div className="ig-card__sub">Id <code>{target.id}</code></div>
+          <div className="ig-card__sub">Id <InstanceLink reference={{ id: target.id, targetBaseClass: target.className ?? "BisCore:Element" }}><code>{target.id}</code></InstanceLink></div>
         </div>
       )}
       <div className="ig-row ig-row--wrap">

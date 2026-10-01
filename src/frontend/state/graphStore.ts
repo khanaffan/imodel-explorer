@@ -10,6 +10,7 @@ import { type LayoutMode, reroot } from "../graph/layout";
 import { type ColorTheme, loadTheme, saveTheme } from "./colorTheme";
 import { NavigationHistory } from "./navigationHistory";
 import type { SavedSession } from "../services/sessionStore";
+import { type InstanceReference, resolveInstanceReferenceClassId } from "../engine/instanceProperties";
 
 export type Status =
   | { readonly kind: "idle"; readonly message?: string }
@@ -217,6 +218,21 @@ export const graphActions = {
   /** Recentres from inside the graph (a node, a navigation link, "Centre here"): pins are kept. */
   async centreOn(key: NodeKey): Promise<void> {
     await show(key, { keepPins: true });
+  },
+
+  async centreOnReference(target: InstanceReference): Promise<void> {
+    const engine = get().engine;
+    if (!engine) { fail(new Error("Open an iModel before following an instance link.")); return; }
+    beginWork(`Resolving ${target.id}…`);
+    const myGeneration = generation;
+    try {
+      const classId = await resolveInstanceReferenceClassId(engine.port, target);
+      if (myGeneration !== generation || get().engine !== engine) return;
+      if (!classId) throw new Error(`Instance ${target.id} was not found${target.targetBaseClass ? ` in ${target.targetBaseClass}` : ""}.`);
+      await graphActions.centreOn({ id: target.id, classId });
+    } catch (e) {
+      if (myGeneration === generation && get().engine === engine) fail(e);
+    }
   },
 
   /** Recentres from outside the graph (seed query, 3D view, trees): starts over, clearing pins. */

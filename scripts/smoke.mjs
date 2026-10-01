@@ -2,8 +2,9 @@
 // from an ECSQL query, recentres on a neighbour and captures screenshots.
 // Usage: node scripts/smoke.mjs [file.bim] [ecsql]
 import { _electron as electron } from "playwright-core";
-import { mkdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const file = resolve(process.argv[2] ?? "samples/pump-network.bim");
 const ecsql = process.argv[3] ?? "SELECT ECInstanceId, ECClassId FROM TestIG.Pump WHERE UserLabel = 'Pump-1'";
@@ -11,8 +12,10 @@ const outDir = resolve("dist/smoke");
 mkdirSync(outDir, { recursive: true });
 
 const errors = [];
-const app = await electron.launch({ args: ["."], env: { ...process.env, IG_DEV: "" } });
+const profile = mkdtempSync(join(tmpdir(), "ig-smoke-"));
+let app;
 try {
+  app = await electron.launch({ args: [".", `--user-data-dir=${profile}`], env: { ...process.env, IG_DEV: "" } });
   const page = await app.firstWindow();
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.stack ?? e.message}`));
   page.on("console", (m) => { if (m.type() === "error") errors.push(`console: ${m.text()}`); });
@@ -59,6 +62,10 @@ try {
   const gridBounds = await propertyGrid.boundingBox();
   if (!gridBounds || gridBounds.width <= 0 || gridBounds.height <= 0)
     throw new Error("element property grid has no visible area");
+  await propertyGrid.locator('[data-instance-id][title*="BisCore:PhysicalModel"]').first().waitFor({ timeout: 10_000 });
+  if (await propertyGrid.getByText("Selected Item(s)", { exact: true }).count())
+    throw new Error("single-element properties still use a plural selection category");
+  await propertyGrid.locator(".virtualized-grid-node-category").filter({ hasText: "Element" }).first().click();
   const aspectCategory = propertyGrid.locator(".virtualized-grid-node-category").filter({ hasText: "PumpSpec" });
   await aspectCategory.waitFor({ timeout: 30_000 });
   await aspectCategory.click();
@@ -339,7 +346,7 @@ try {
   if (topSeed !== "Header") throw new Error(`ranking put ${topSeed} first, expected Header`);
   await page.screenshot({ path: `${outDir}/12-ranked.png` });
 
-  // Geometry widget: Pump-1's stream shows the stack, formatted ops and an expandable part.
+  // Geometry widget: Pump-1's stream shows formatted ops and an expandable part, without a stack.
   await page.evaluate(async (k) => {
     const [classId, id] = k.split(":");
     await globalThis.imodelExplorer.graphActions.seedExternal({ classId, id });
@@ -348,13 +355,17 @@ try {
   await page.waitForTimeout(800);
   await page.getByRole("tab", { name: "Geometry" }).click();
   const geom = page.locator('[id="content-container:ig-geometry"]');
-  await geom.locator(".ig-stream-stack").waitFor({ timeout: 30_000 });
-  const bands = await geom.locator(".ig-stream-stack g rect").count();
+  await geom.locator(".ig-geom-op__label", { hasText: "Box" }).first().waitFor({ timeout: 30_000 });
+  if (await geom.getByText("Stack", { exact: true }).count() || await geom.locator(".ig-stream-stack").count())
+    throw new Error("geometry still renders the removed stack view");
   const opLabels = await geom.locator(".ig-geom-op__label").allTextContents();
-  console.log(`geometry: ${bands} stack bands, ops: ${opLabels.join(",")}`);
-  if (bands < 8) throw new Error(`geometry stack rendered ${bands} bands, expected at least 8`);
+  console.log(`geometry ops: ${opLabels.join(",")}`);
+  if (opLabels.length < 8) throw new Error(`geometry rendered ${opLabels.length} ops, expected at least 8`);
   if (!opLabels.includes("Box") || !opLabels.includes("Part reference"))
     throw new Error(`geometry ops missing Box/Part reference: ${opLabels.join(",")}`);
+  const boxRow = geom.locator(".ig-geom-op").filter({ has: page.locator(".ig-geom-op__label", { hasText: /^Box$/ }) }).first();
+  await boxRow.click();
+  await geom.locator(".ig-geom-op--selected", { hasText: "Box" }).waitFor({ timeout: 5_000 });
   const partRow = geom.locator(".ig-geom-op", { hasText: "Part reference" }).first();
   await partRow.locator(".ig-caret").click();
   await geom.getByRole("button", { name: "Expand part" }).click();
@@ -363,6 +374,59 @@ try {
   await geom.getByText("Range & axes").click();
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${outDir}/13-geometry.png` });
+
+  const checkReferenceCentre = async (id, className) => {
+    await toolIdle();
+    const centre = await page.evaluate(() => {
+      const s = globalThis.imodelExplorer.getState();
+      const n = s.graph.nodes.get(s.graph.centreKey);
+      return { id: n?.id, className: n?.className };
+    });
+    if (centre.id !== id || centre.className !== className)
+      throw new Error(`instance link navigated to ${JSON.stringify(centre)}, expected ${className} ${id}`);
+  };
+  const backToGeometry = async () => {
+    await page.evaluate(() => globalThis.imodelExplorer.graphActions.back());
+    await toolIdle();
+    await geom.locator(".ig-geom-op__label", { hasText: "Box" }).first().waitFor({ timeout: 30_000 });
+    const centre = await page.evaluate(() => globalThis.imodelExplorer.getState().graph.centreKey);
+    if (centre !== summary.centre) throw new Error("Back from an instance link did not restore the centre");
+  };
+  const partLink = partRow.locator(".ig-geom-op__detail [data-instance-id]").first();
+  const partId = await partLink.getAttribute("data-instance-id");
+  await partLink.click();
+  await checkReferenceCentre(partId, "BisCore:GeometryPart");
+  await backToGeometry();
+
+  await geom.getByText("Category & sub-categories", { exact: true }).click();
+  const categoryLink = geom.locator(".ig-prop").filter({ has: page.locator(".ig-prop__name", { hasText: /^Category$/ }) }).locator("[data-instance-id]");
+  const categoryId = await categoryLink.getAttribute("data-instance-id");
+  await categoryLink.click();
+  await checkReferenceCentre(categoryId, "BisCore:SpatialCategory");
+  await backToGeometry();
+
+  await geom.getByText("Category & sub-categories", { exact: true }).click();
+  const subCategoryLink = geom.locator(".ig-prop").filter({ has: page.locator(".ig-prop__name", { hasText: /^Sub-category$/ }) }).locator("[data-instance-id]").first();
+  const subCategoryId = await subCategoryLink.getAttribute("data-instance-id");
+  await subCategoryLink.click();
+  await checkReferenceCentre(subCategoryId, "BisCore:SubCategory");
+  await backToGeometry();
+
+  await page.getByRole("tab", { name: "Properties", exact: true }).click();
+  const modelLink = page.locator('[id="content-container:ig-properties"] .ig-card [data-instance-id][title*="BisCore:Model"]');
+  const modelId = await modelLink.getAttribute("data-instance-id");
+  await modelLink.click();
+  await checkReferenceCentre(modelId, "BisCore:PhysicalModel");
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.back());
+  await toolIdle();
+  const navigationValue = propertyGrid.locator('[data-instance-id][title*="BisCore:PhysicalModel"]').first();
+  await navigationValue.waitFor({ timeout: 10_000 });
+  await navigationValue.click();
+  await checkReferenceCentre(modelId, "BisCore:PhysicalModel");
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.back());
+  await toolIdle();
+  console.log("instance links: part, category, sub-category, model header and Presentation navigation, with Back OK");
+  await page.getByRole("tab", { name: "Geometry", exact: true }).click();
 
   // Feature settings: switching a feature off removes its widgets (even the active Geometry tab)
   // and stops its queries; switching back on restores them without reopening the iModel.
@@ -407,7 +471,11 @@ try {
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");
 } finally {
-  await app.close();
+  try {
+    await app?.close();
+  } finally {
+    rmSync(profile, { recursive: true, force: true });
+  }
 }
 const relevant = errors.filter((e) => !/DevTools|Autofill|favicon/i.test(e));
 if (relevant.length) {

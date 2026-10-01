@@ -109,6 +109,8 @@ describe("element property Presentation rules", () => {
 
   it("returns hidden, empty, inherited, array and struct properties", async () => {
     const content = await contentFor(ELEMENT_PROPERTIES_RULESET);
+    expect(content.descriptor.categories.find((category) => category.name === "element-properties"))
+      .toMatchObject({ label: "Element", expand: true });
     expect(valuesFor(content, "HiddenValue")).toEqual(["schema-hidden data"]);
     expect(fieldFor(content, "EmptyValue")).toBeDefined();
     expect(fieldFor(content, "UserLabel")).toBeDefined();

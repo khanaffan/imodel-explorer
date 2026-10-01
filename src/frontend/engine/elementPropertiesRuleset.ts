@@ -9,6 +9,9 @@ const allProperties: PropertySpecification = {
 export const ELEMENT_PROPERTIES_RULESET: Ruleset = {
   id: "imodel-explorer/ElementProperties",
   rules: [{
+    ruleType: "DefaultPropertyCategoryOverride",
+    specification: { id: "element-properties", label: "Element", autoExpand: true },
+  }, {
     ruleType: "Content",
     specifications: [{
       specType: "SelectedNodeInstances",

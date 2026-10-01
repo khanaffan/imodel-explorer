@@ -428,7 +428,6 @@ span.ig-tree-row__twist { cursor: default; }
   padding-left: 6px;
   border-left: 2px solid var(--iui-color-border, #555);
 }
-.ig-stream-stack { user-select: none; }
 
 /* Feature settings dialog */
 .ig-settings { display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; }

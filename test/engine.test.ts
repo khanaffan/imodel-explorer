@@ -331,6 +331,17 @@ describe("properties", () => {
     expect(owner?.kind).toBe("navigation");
     expect(owner?.navTarget?.id).toBe(fx.ids.pump1);
     expect(byName.get("Model")?.navTarget?.id).toBe(fx.ids.plantA);
+    expect(byName.get("ECInstanceId")?.reference).toEqual({ id: fx.ids.pipeA, classId: fx.classIds["TestIG:Pipe"] });
+    expect(byName.get("ECClassId")?.reference).toBeUndefined();
+  });
+
+  it("keeps exact endpoint classes on raw relationship instance references", async () => {
+    const rows = await relations.port.query("SELECT ECInstanceId FROM TestIG.PumpFeedsPipe LIMIT 1");
+    const props = await loadInstanceProperties(relations.port, relations.registry, "TestIG:PumpFeedsPipe", rows[0].ECInstanceId);
+    const byName = new Map(props.map((p) => [p.name, p]));
+    expect(byName.get("SourceECInstanceId")?.reference).toEqual({ id: fx.ids.pump1, classId: fx.classIds["TestIG:Pump"] });
+    expect(byName.get("TargetECInstanceId")?.reference).toEqual({ id: fx.ids.pipeA, classId: fx.classIds["TestIG:Pipe"] });
+    expect(byName.get("SourceECClassId")?.reference).toBeUndefined();
   });
 });
 

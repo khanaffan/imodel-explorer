@@ -25,8 +25,9 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   formatted properties, including schema-hidden fields and unique/multi-aspect properties.
   Other EC instances and relationships show raw database properties. The
   Schema panel shows its class definition: hierarchy, mixins, property types and derived classes.
-- **Geometry panel.** The selected element's geometry stream, op by op: a graphical stack of the
-  stream (with a rail showing which appearance governs which primitives), formatted facts per
+  Instance references in properties, model headers and geometry details are clickable to centre the
+  graph on the referenced instance.
+- **Geometry panel.** The selected element's geometry stream, op by op: formatted facts per
   primitive, inline `GeometryPart` drill-down, placement / category / view / iModel-frame facts,
   a 3D range-and-axes decorator, and JSON export.
 - **Overview.** A census of the iModel: instances per schema, class, relationship and model, with
