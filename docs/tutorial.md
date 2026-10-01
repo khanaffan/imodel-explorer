@@ -102,7 +102,10 @@ remain independent of the selected tool.
 
 When a node is selected, **Properties** shows a header card (class, IDs, model, hop count and
 relationship count), **Pin** and **Show in 3D** buttons, and then the ECPresentation property grid
-for elements, with categorized, formatted values. Other EC instances retain raw properties. P-101A
+for elements, with categorized, formatted values, including schema-hidden fields and properties
+from unique and multi aspects. Expand the aspect categories to inspect their values. This uses
+generic explorer rules, not application-specific computed fields or custom related-property paths.
+Other EC instances retain raw properties. P-101A
 has the domain properties Tag, Description, Criticality and MaintenanceIntervalDays.
 
 <img src="tutorial/07-properties.png" width="378" alt="Properties of P-101A">

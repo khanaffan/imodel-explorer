@@ -59,6 +59,11 @@ try {
   const gridBounds = await propertyGrid.boundingBox();
   if (!gridBounds || gridBounds.width <= 0 || gridBounds.height <= 0)
     throw new Error("element property grid has no visible area");
+  const aspectCategory = propertyGrid.locator(".virtualized-grid-node-category").filter({ hasText: "PumpSpec" });
+  await aspectCategory.waitFor({ timeout: 30_000 });
+  await aspectCategory.click();
+  await propertyGrid.getByText("RatedPower", { exact: true }).waitFor({ timeout: 10_000 });
+  await propertyGrid.getByText(/^7\.50*$/).waitFor({ timeout: 10_000 });
 
   // Inspect a relationship independently of element/viewport selection.
   const relationshipKey = await page.evaluate(() => {

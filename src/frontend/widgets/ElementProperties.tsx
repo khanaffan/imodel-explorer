@@ -4,6 +4,7 @@ import { Text } from "@itwin/itwinui-react";
 import { KeySet } from "@itwin/presentation-common";
 import { PresentationPropertyDataProvider } from "@itwin/presentation-components";
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import { ELEMENT_PROPERTIES_RULESET } from "../engine/elementPropertiesRuleset";
 
 class PropertyGridErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
   public override state: { error?: Error } = {};
@@ -25,7 +26,7 @@ export function ElementProperties({ imodel, className, id }: { imodel: IModelCon
   const [provider, setProvider] = useState<PresentationPropertyDataProvider>();
 
   useEffect(() => {
-    const dataProvider = new PresentationPropertyDataProvider({ imodel });
+    const dataProvider = new PresentationPropertyDataProvider({ imodel, ruleset: ELEMENT_PROPERTIES_RULESET });
     // Inspect the graph selection, not unified selection (which also drives the viewport).
     dataProvider.keys = new KeySet([{ className, id }]);
     setProvider(dataProvider);

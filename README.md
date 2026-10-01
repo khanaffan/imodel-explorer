@@ -22,7 +22,8 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   runtimes that lack it.
 - **Cardinality** from the `ECRelationshipClass` constraints, shown at each end of an edge.
 - **Properties and Schema panels.** Elements use the ECPresentation property grid with categorized,
-  formatted properties. Other EC instances and relationships show raw database properties. The
+  formatted properties, including schema-hidden fields and unique/multi-aspect properties.
+  Other EC instances and relationships show raw database properties. The
   Schema panel shows its class definition: hierarchy, mixins, property types and derived classes.
 - **Geometry panel.** The selected element's geometry stream, op by op: a graphical stack of the
   stream (with a rail showing which appearance governs which primitives), formatted facts per
