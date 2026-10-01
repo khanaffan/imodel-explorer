@@ -1,7 +1,7 @@
 import { StagePanelLocation, StagePanelSection, UiItemsManager, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
 import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgList, SvgModel, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
 import { featureEnabled, type FeatureMap, useFeatureStore } from "../state/featureStore";
-import { FiltersWidget } from "../widgets/FiltersWidget";
+import { FILTERS_WIDGET_ID, FiltersWidget } from "../widgets/FiltersWidget";
 import { GeometryWidget } from "../widgets/GeometryWidget";
 import { OverviewWidget } from "../widgets/OverviewWidget";
 import { LegendWidget } from "../widgets/LegendWidget";
@@ -11,12 +11,14 @@ import { SeedQueryWidget } from "../widgets/SeedQueryWidget";
 import { SessionsWidget } from "../widgets/SessionsWidget";
 import { VisibilityTreesWidget } from "../widgets/VisibilityTreesWidget";
 import { MAIN_STAGE_ID } from "./MainFrontstage";
+import { STATUS_BAR_ITEMS } from "./StatusBarItems";
 
 /** Widgets are provided (not hard-wired into the stage) so a Studio host can place them in its own
  * frontstage. Optional widgets are dropped when their feature is switched off; a settings change
  * re-registers the provider, which makes AppUI refresh the panels live. */
 export const instanceGraphUiProvider: UiItemsProvider = {
   id: "InstanceGraph:Widgets",
+  getStatusBarItems: () => STATUS_BAR_ITEMS,
   provideWidgets(stageId, _usage, location, section): Widget[] {
     if (stageId !== MAIN_STAGE_ID) return [];
     const features = useFeatureStore.getState().features;
@@ -31,7 +33,7 @@ export const instanceGraphUiProvider: UiItemsProvider = {
     }
     if (location === StagePanelLocation.Left && section === StagePanelSection.End) {
       const widgets: Widget[] = [
-        { id: "ig-filters", label: "Traversal & filters", iconNode: <SvgFilter />, content: <FiltersWidget />, defaultState: WidgetState.Open, canPopout: false },
+        { id: FILTERS_WIDGET_ID, label: "Traversal & filters", iconNode: <SvgFilter />, content: <FiltersWidget />, defaultState: WidgetState.Open, canPopout: false },
       ];
       if (on("visibilityTrees")) widgets.push({ id: "ig-visibility", label: "Models & categories", iconNode: <SvgHierarchyTree />, content: <VisibilityTreesWidget />, canPopout: false });
       return widgets;

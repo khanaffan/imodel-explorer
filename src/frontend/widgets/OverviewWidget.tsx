@@ -1,4 +1,4 @@
-import { DropdownMenu, ExpandableBlock, IconButton, MenuItem, ProgressRadial, Text } from "@itwin/itwinui-react";
+import { DropdownMenu, ExpandableBlock, IconButton, MenuItem, Text } from "@itwin/itwinui-react";
 import { SvgExport } from "@itwin/itwinui-icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { type Census, type ClassCensusEntry, type ModelCensusEntry } from "../engine/census";
@@ -14,6 +14,7 @@ import { graphActions, useGraphStore } from "../state/graphStore";
 import { showSchemaFor } from "./SchemaWidget";
 import { TriState } from "./FiltersWidget";
 import { layoutTreemap } from "./treemap";
+import { Skeleton } from "./Skeleton";
 import "./widgets.css";
 
 const fmt = (n: number) => n.toLocaleString();
@@ -281,7 +282,7 @@ export function OverviewWidget() {
 
   if (!engine) return <div className="ig-widget"><Text isMuted>Open an iModel first.</Text></div>;
   if (error) return <div className="ig-widget"><div className="ig-error">{error}</div></div>;
-  if (!census) return <div className="ig-widget"><ProgressRadial size="small" indeterminate /> <Text variant="small" isMuted>Counting instances…</Text></div>;
+  if (!census) return <div className="ig-widget"><Text variant="small" isMuted>Counting instances…</Text><Skeleton label="Counting instances" rows={8} /></div>;
 
   const tree = buildModelTree(engine.models);
   return (

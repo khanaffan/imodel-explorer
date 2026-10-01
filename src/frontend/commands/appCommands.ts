@@ -1,6 +1,6 @@
 import { getCanvasBridge } from "../graph/canvasBridge";
 import { exportGraph, GRAPH_EXPORTS, type GraphExportKind } from "../graph/exportGraph";
-import { appHost } from "../host/AppHost";
+import { appHost, iModelPathProblem } from "../host/AppHost";
 import { closeCurrent, openAndShow } from "../imodel/session";
 import { captureSession, storeSession } from "../services/sessionStore";
 import { APP_THEMES, appThemeActions } from "../state/appTheme";
@@ -10,6 +10,7 @@ import { graphActions, useGraphStore } from "../state/graphStore";
 import { parseNodeKey } from "../engine/GraphModel";
 import { notify } from "./notify";
 import { paletteActions } from "./paletteStore";
+import { shortcutSheetActions } from "./ShortcutSheet";
 import { type AppCommand, type CommandSource, isEditable, registerCommands } from "./registry";
 
 const needIModel = () => (useGraphStore.getState().connection ? undefined : "Open an iModel first.");
@@ -49,6 +50,12 @@ export const APP_COMMANDS: readonly AppCommand[] = [
     children: () => appHost.getRecentFiles().map((p) => ({ label: p, arg: p })),
     run: async (_source, arg) => {
       if (!arg || !appHost.getRecentFiles().includes(arg)) throw new Error("Pick a file from the recent list.");
+      await open(arg);
+    } },
+  { id: "file.openPath", title: "Open iModel file", group: "File", inMenu: false, inPalette: false,
+    run: async (_source, arg) => {
+      const problem = iModelPathProblem(arg ?? "");
+      if (problem) throw new Error(problem);
       await open(arg);
     } },
   { id: "file.close", title: "Close iModel", group: "File", disabledReason: needIModel, run: closeCurrent },
@@ -124,6 +131,10 @@ export const APP_COMMANDS: readonly AppCommand[] = [
   { id: "graph.cancel", title: "Cancel search, find or tool", group: "Graph", shortcut: { key: "Escape" }, inMenu: false, inPalette: false,
     disabledReason: () => (getCanvasBridge() || useGraphStore.getState().pathSearching ? undefined : "Nothing to cancel."),
     run: () => { if (!graphActions.cancelPathSearch()) getCanvasBridge()?.escape(); } },
+
+  // Help
+  { id: "help.shortcuts", title: "Keyboard shortcuts", group: "Help", shortcut: { key: "?" }, keywords: "keys hotkeys help",
+    run: shortcutSheetActions.toggle },
 ];
 
 export function registerAppCommands(): () => void {

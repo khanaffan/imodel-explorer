@@ -6,6 +6,7 @@ import { EXAMPLE_SEED_QUERIES, RANK_LIMIT, rankSeedCandidates, runSeedQuery, SEE
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { useFeature } from "../state/featureStore";
 import { useOverviewStore } from "../state/censusStore";
+import { Skeleton } from "./Skeleton";
 import "./widgets.css";
 
 const QUERY_KEY = "instanceGraph.seedQuery";
@@ -90,7 +91,8 @@ export function SeedQueryWidget() {
         </DropdownMenu>
       </div>
       {error && <div className="ig-error">{error}</div>}
-      {result && (
+      {running && <Skeleton label="Running query" rows={5} twoLine />}
+      {result && !running && (
         <>
           <div className="ig-row ig-row--between">
             <Text variant="small">

@@ -106,3 +106,23 @@
 @media (prefers-reduced-motion: reduce) {
   .ig-palette__backdrop, .ig-palette { animation: none; }
 }
+
+.ig-shortcuts { width: min(560px, calc(100vw - 32px)); max-height: 85vh; }
+.ig-shortcuts__note { display: block; margin: 8px 0 4px; }
+.ig-shortcuts__group { margin-top: 12px; }
+.ig-shortcuts__group dl { margin: 4px 0 0; }
+.ig-shortcuts__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--iui-color-border-subtle, #e0e0e0);
+}
+.ig-shortcuts__row dd { margin: 0; }
+.ig-shortcuts__row kbd {
+  font: 11px/1.4 var(--iui-font-sans, sans-serif);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--iui-color-border, #ccc);
+  white-space: nowrap;
+}

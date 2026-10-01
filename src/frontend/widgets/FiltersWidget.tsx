@@ -178,6 +178,8 @@ function ModelTreeList({ models, states, onChange }: {
   );
 }
 
+export const FILTERS_WIDGET_ID = "ig-filters";
+
 export function FiltersWidget() {
   const engine = useGraphStore((s) => s.engine);
   const models = useGraphStore((s) => s.models);

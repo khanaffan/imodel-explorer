@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { app, Menu, type MenuItemConstructorOptions } from "electron";
+import { app, Menu, type MenuItemConstructorOptions, session } from "electron";
 import { IModelHost, IpcHost } from "@itwin/core-backend";
 import { ECSchemaRpcImpl } from "@itwin/ecschema-rpcinterface-impl";
 import { Presentation } from "@itwin/presentation-backend";
@@ -36,6 +36,9 @@ async function main() {
       console.error("Ignoring malformed application menu from the renderer:", e);
     }
   });
+  // Lets the renderer resolve dropped files to paths (File.path no longer exists).
+  await app.whenReady();
+  session.defaultSession.registerPreloadScript({ type: "frame", filePath: path.join(__dirname, "preload.js") });
   await ElectronHost.openMainWindow({ title: APP_TITLE, width: 1600, height: 1000, show: true, storeWindowName: "instance-graph-main" });
   if (dev)
     ElectronHost.mainWindow?.webContents.openDevTools({ mode: "detach" });

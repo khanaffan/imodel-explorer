@@ -1,12 +1,12 @@
 import { type PropertyRecord, PropertyValueFormat } from "@itwin/appui-abstract";
 import { PropertyValueRendererManager, type PropertyValueRendererContext, VirtualizedPropertyGridWithDataProvider } from "@itwin/components-react";
 import type { IModelConnection } from "@itwin/core-frontend";
-import { Text } from "@itwin/itwinui-react";
 import { KeySet } from "@itwin/presentation-common";
 import { PresentationPropertyDataProvider } from "@itwin/presentation-components";
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { ELEMENT_PROPERTIES_RULESET } from "../engine/elementPropertiesRuleset";
 import { InstanceLink } from "./InstanceLink";
+import { Skeleton } from "./Skeleton";
 
 class InstanceLinkRendererManager extends PropertyValueRendererManager {
   public override render(record: PropertyRecord, context?: PropertyValueRendererContext): ReactNode {
@@ -74,7 +74,7 @@ export function ElementProperties({ imodel, className, id }: { imodel: IModelCon
             isPropertyEditingEnabled={false}
           />
         </PropertyGridErrorBoundary>
-        : <Text variant="small" isMuted>Loading properties...</Text>}
+        : <Skeleton label="Loading properties" rows={6} />}
     </div>
   );
 }

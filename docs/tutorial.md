@@ -19,6 +19,9 @@ The welcome page has **Open iModel…** and a list of recent files. Open
 
 <img src="tutorial/02-welcome.png" width="520" alt="Welcome page">
 
+You can also drag the file from your file manager onto the window. Dropping an iModel while
+another one is open replaces it, and files that are not iModels are rejected with a message.
+
 ## 2. App settings and theme
 
 The gear icon at the end of the graph toolbar opens **App settings**. Under **Appearance**, choose
@@ -67,6 +70,12 @@ Press **Cmd/Ctrl+K** to open the command palette. Type part of a command name ("
 ID. Enter centres the graph on the selected instance; **Shift+Enter** finds a path to it from the
 current centre. Every palette command is also in the native **File / Edit / View / Graph** menus.
 Unavailable commands say why in the palette.
+
+Press **?** for a searchable sheet of every keyboard shortcut.
+
+The status bar along the bottom shows the open iModel, how many instances and relationships are
+in the graph (with a warning when the node budget cut the traversal short), how many filters are
+active (click it to open **Traversal & filters**) and how long the last graph load took.
 
 ### Find in graph
 

@@ -451,3 +451,20 @@ span.ig-tree-row__twist { cursor: default; }
 .ig-settings__row { display: grid; grid-template-columns: minmax(220px, auto) 1fr; gap: 8px; align-items: center; }
 .ig-settings__row--child { margin-left: 24px; grid-template-columns: minmax(196px, auto) 1fr; }
 .ig-settings__desc { overflow: hidden; text-overflow: ellipsis; }
+
+/* Loading placeholders */
+.ig-skeleton { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+.ig-skeleton__row { display: flex; flex-direction: column; gap: 4px; }
+.ig-skeleton__bar {
+  display: block;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--iui-color-background-backdrop, #eef0f2) 0%, var(--iui-color-background-hover, #f7f8f9) 50%, var(--iui-color-background-backdrop, #eef0f2) 100%);
+  background-size: 200% 100%;
+  animation: ig-shimmer 1.2s ease-in-out infinite;
+}
+.ig-skeleton__bar--sub { height: 9px; opacity: 0.7; }
+@keyframes ig-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ig-skeleton__bar { animation: none; }
+}

@@ -346,6 +346,40 @@ try {
   await page.evaluate((key) => { const [classId, id] = key.split(":"); return globalThis.imodelExplorer.graphActions.centreOn({ classId, id }); }, summary.centre);
   await toolIdle();
   console.log("filter undo/redo shortcuts and in-field shortcut guard OK");
+
+  // Status bar: counts follow the graph, the filter count opens Traversal & filters.
+  const statusCounts = page.locator("[data-testid=status-counts]");
+  const expectedCounts = await state(() => {
+    const g = globalThis.imodelExplorer.getState().graph;
+    return `${[...g.nodes.values()].filter((n) => !n.aggregate).length} instances · ${g.edges.size} relationships`;
+  });
+  await page.waitForFunction((t) => document.querySelector("[data-testid=status-counts]")?.textContent?.startsWith(t), expectedCounts, { timeout: 5_000 })
+    .catch(async () => { throw new Error(`status bar shows "${await statusCounts.textContent()}", expected "${expectedCounts}"`); });
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.setFilter("classes", "TestIG:Pipe", "exclude"));
+  await toolIdle();
+  await page.locator("[data-testid=status-filters]", { hasText: "1 filter" }).waitFor({ timeout: 5_000 });
+  await page.getByRole("tab", { name: "Models & categories" }).click().catch(() => {});
+  await page.locator("[data-testid=status-filters]").click();
+  await page.getByText("Node budget", { exact: true }).waitFor({ state: "visible", timeout: 5_000 });
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.clearFilters());
+  await toolIdle();
+  await page.locator("[data-testid=status-filters]", { hasText: "No filters" }).waitFor({ timeout: 5_000 });
+  await page.getByText(/^Loaded in \d/).waitFor({ timeout: 5_000 });
+  console.log("status bar: iModel, counts, filter count (opens Filters) and load time OK");
+
+  // Shortcut sheet: "?" opens it, generated from the registry and searchable.
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  await page.keyboard.press("?");
+  const sheet = page.locator(".ig-shortcuts");
+  await sheet.waitFor({ timeout: 5_000 });
+  for (const title of ["Command palette", "Find in graph…", "Undo", "Keyboard shortcuts", "Find path from the centre to an instance"])
+    if (!(await sheet.getByText(title, { exact: true }).count())) throw new Error(`shortcut sheet is missing "${title}"`);
+  await sheet.getByRole("textbox", { name: "Search shortcuts" }).fill("pin");
+  if (await sheet.getByText("Command palette", { exact: true }).count() || !(await sheet.getByText("Pin or unpin selected node").count()))
+    throw new Error("shortcut sheet search did not filter");
+  await page.keyboard.press("Escape");
+  await sheet.waitFor({ state: "detached", timeout: 5_000 });
+  console.log("shortcut sheet: ? opens it, registry entries, search and Escape OK");
   // Edges exist in the DOM even when CSS collapses their SVG, so check that they actually paint.
   const paintedEdges = await page.evaluate(() => [...document.querySelectorAll(".react-flow__edge")]
     .filter((e) => { const svg = e.closest("svg"); return svg && svg.getBoundingClientRect().width > 0; }).length);
@@ -681,6 +715,36 @@ try {
   if (await page.evaluate(() => globalThis.imodelExplorer.getState().options.excludedInstances.length))
     throw new Error("instance exclusions leaked across connections");
   console.log("graph tools: connection changes reset the active tool and instance exclusions");
+
+  // Drag and drop: real Files (from a file input) so the preload bridge can resolve their paths.
+  await page.evaluate(() => { const i = document.createElement("input"); i.type = "file"; i.id = "smoke-drop"; i.hidden = true; document.body.append(i); });
+  const drop = async (path) => {
+    await page.setInputFiles("#smoke-drop", path);
+    await page.evaluate(() => {
+      const dt = new DataTransfer();
+      dt.items.add(document.getElementById("smoke-drop").files[0]);
+      document.body.dispatchEvent(new DragEvent("dragenter", { dataTransfer: dt, bubbles: true, cancelable: true }));
+    });
+    await page.locator(".ig-drop").waitFor({ timeout: 5_000 });
+    return page.evaluate(() => {
+      const dt = new DataTransfer();
+      dt.items.add(document.getElementById("smoke-drop").files[0]);
+      const ev = new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true });
+      document.body.dispatchEvent(ev);
+      return ev.defaultPrevented;
+    });
+  };
+  if (!(await drop(resolve("package.json")))) throw new Error("file drop was not intercepted; the window would navigate away");
+  await page.getByText(/package\.json is not an iModel/).first().waitFor({ timeout: 5_000 });
+  if (await page.evaluate(() => globalThis.imodelExplorer.getState().fileName) !== file) throw new Error("an invalid drop changed the open iModel");
+  await page.evaluate(() => { globalThis.smokePreviousConnection = globalThis.imodelExplorer.getState().connection; });
+  await drop(file);
+  await page.waitForFunction((f) => {
+    const s = globalThis.imodelExplorer.getState();
+    return s.connection !== undefined && s.connection !== globalThis.smokePreviousConnection && s.fileName === f && s.engine !== undefined;
+  }, file, { timeout: 60_000 });
+  await page.locator(".ig-drop").waitFor({ state: "detached", timeout: 10_000 });
+  console.log("drag and drop: overlay, invalid file rejected with a toast, .bim drop opens it");
 
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");

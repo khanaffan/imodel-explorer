@@ -23,6 +23,11 @@ export function isFilterEmpty(f: FilterSpec): boolean {
   return [f.models, f.schemas, f.classes, f.relationships].every((d) => Object.keys(d).length === 0);
 }
 
+/** Number of include/exclude entries across all dimensions. */
+export function filterCount(f: FilterSpec): number {
+  return Object.keys(f.models).length + Object.keys(f.schemas).length + Object.keys(f.classes).length + Object.keys(f.relationships).length;
+}
+
 function passes<T>(entries: Readonly<Record<string, T>>, stateOf: (e: T) => FilterState, matches: (name: string, e: T) => boolean): boolean {
   let hasInclude = false;
   let included = false;

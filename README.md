@@ -56,6 +56,14 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Breadcrumbs** above the graph jump straight to any earlier stop in the navigation history.
 - **Filter undo/redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, or the Filters panel) for filter and
   instance-exclusion changes. In text fields the shortcuts keep their usual text-editing meaning.
+- **Drag and drop** a `.bim`, `.ibim` or `.imodel` file anywhere on the window to open it.
+- **Status bar** with the iModel name, instance and relationship counts (and whether the node
+  budget was reached), the number of active filters (click to open them) and the last load time.
+- **Keyboard shortcut sheet** (`?` or Help → Keyboard shortcuts), generated from the same command
+  list and searchable.
+- **Feedback.** Toasts confirm saves, exports and imports and report failures. Loading panels show
+  placeholders, the graph shows a progress bar while it loads, and animations are turned off
+  when the OS asks for reduced motion.
 - **Exemplar ranking.** Sort seed-query results by relationship fan-out to find the
   best-connected instances to start from.
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.
@@ -77,6 +85,7 @@ Shortcuts never fire while typing in a field, except Cmd/Ctrl+K, Cmd/Ctrl+F and 
 
 | Shortcut | Command |
 |---|---|
+| ? | Keyboard shortcut sheet |
 | Cmd/Ctrl+K | Command palette |
 | Cmd/Ctrl+F | Find in graph |
 | Cmd/Ctrl+O | Open iModel |

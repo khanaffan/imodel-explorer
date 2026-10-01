@@ -48,6 +48,7 @@ function withoutPlacedPins(graph: GraphData, base: GraphData, placed: ReadonlyMa
 
 function GraphCanvasInner() {
   const graph = useGraphStore((s) => s.graph);
+  const loading = useGraphStore((s) => s.status.kind === "loading");
   const layoutMode = useGraphStore((s) => s.layoutMode);
   const theme = useGraphStore((s) => s.theme);
   const selection = useGraphStore((s) => s.selection);
@@ -283,7 +284,8 @@ function GraphCanvasInner() {
   }, [tool, changeTool]);
 
   return (
-    <div className={`ig-canvas${tool !== "navigate" ? " ig-canvas--tool-active" : ""}`}>
+    <div className={`ig-canvas${tool !== "navigate" ? " ig-canvas--tool-active" : ""}`} aria-busy={loading}>
+      {loading && <div className="ig-canvas__progress" aria-hidden="true" />}
       <ReactFlow<InstanceFlowNode, RelationshipFlowEdge>
         nodes={nodes}
         edges={edges}
@@ -319,6 +321,12 @@ function GraphCanvasInner() {
 
 function GraphEmptyState() {
   const engine = useGraphStore((s) => s.engine);
+  const status = useGraphStore((s) => s.status);
+  if (engine && status.kind === "loading") return (
+    <div className="ig-empty">
+      <div className="ig-empty__title">{status.message ?? "Loading…"}</div>
+    </div>
+  );
   return (
     <div className="ig-empty">
       <div className="ig-empty__title">No instance selected</div>

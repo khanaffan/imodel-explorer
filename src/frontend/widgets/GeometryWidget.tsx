@@ -14,6 +14,7 @@ import { useGraphStore } from "../state/graphStore";
 import { setGeometryDecoration } from "../content/geometryDecorator";
 import { viewportSync } from "../content/viewportSync";
 import { InstanceLink } from "./InstanceLink";
+import { Skeleton } from "./Skeleton";
 import "./widgets.css";
 
 const KIND_COLORS: Record<StreamOpKind, string> = {
@@ -127,7 +128,7 @@ function FactRows({ facts }: { facts: readonly Fact[] }) {
 function PartExpansion({ partId }: { partId: string }) {
   const entry = useGeometryStore((s) => s.expandedParts.get(partId));
   if (!entry) return null;
-  if (entry.loading) return <Text variant="small" isMuted>Loading part…</Text>;
+  if (entry.loading) return <Skeleton label="Loading part" rows={2} />;
   if (entry.error) return <div className="ig-error">{entry.error}</div>;
   if (!entry.parsed) return null;
   return (
@@ -267,7 +268,7 @@ function GeometryBody() {
   }, [showDecoration, placement, selectedOp, result]);
 
   if (!target) return <Text isMuted>Select an element in the graph to inspect its geometry stream.</Text>;
-  if (loading) return <Text variant="small" isMuted>Loading geometry…</Text>;
+  if (loading) return <Skeleton label="Loading geometry" rows={6} twoLine />;
   if (error) return <div className="ig-error">{error}</div>;
   if (!result) return null;
   if (result.emptyReason) return <Text isMuted>{result.emptyReason}</Text>;

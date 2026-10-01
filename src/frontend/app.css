@@ -59,3 +59,55 @@ html, body, #root {
   align-items: center;
   justify-content: center;
 }
+
+/* File drop overlay. Pointer events pass through so drag enter/leave targets stay stable. */
+.ig-drop {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 20%);
+  outline: 3px dashed var(--iui-color-border-accent, #0073e6);
+  outline-offset: -12px;
+  animation: ig-drop-fade 120ms ease-out;
+}
+
+.ig-drop__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: var(--iui-color-background, #fff);
+  color: var(--iui-color-text, #000);
+  fill: var(--iui-color-icon-accent, #0073e6);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 30%);
+}
+
+@keyframes ig-drop-fade { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-drop { animation: none; }
+}
+
+/* Status bar items */
+.ig-statusbar__item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--iui-color-text, inherit);
+}
+.ig-statusbar__button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  height: 100%;
+}
+.ig-statusbar__button:hover { background: var(--iui-color-background-hover, rgb(0 0 0 / 6%)); }
+.ig-statusbar__button:focus-visible { outline: 2px solid var(--iui-color-border-accent, #0073e6); outline-offset: -2px; }
+.ig-statusbar__warn { color: var(--iui-color-text-warning, #b35c00); }

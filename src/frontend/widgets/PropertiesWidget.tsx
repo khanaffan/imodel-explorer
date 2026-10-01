@@ -10,6 +10,7 @@ import { Constraint } from "./Constraint";
 import { showSchemaFor } from "./SchemaWidget";
 import { ElementProperties } from "./ElementProperties";
 import { InstanceLink } from "./InstanceLink";
+import { Skeleton } from "./Skeleton";
 import "./widgets.css";
 
 function usePropertyRecords(className: string | undefined, id: string | undefined) {
@@ -52,7 +53,7 @@ function PropertyRow({ p, depth = 0 }: { p: PropertyRecord; depth?: number }) {
 function PropertyTable({ className, id, emptyText }: { className: string; id: string; emptyText?: string }) {
   const { records, error, loading } = usePropertyRecords(className, id);
   const [showEmpty, setShowEmpty] = useState(false);
-  if (loading) return <Text variant="small" isMuted>Loading properties…</Text>;
+  if (loading) return <Skeleton label="Loading properties" rows={6} />;
   if (error) return <div className="ig-error">{error}</div>;
   if (!records || records.length === 0) return <Text variant="small" isMuted>{emptyText ?? "No properties"}</Text>;
   const system = records.filter((r) => r.kind === "system");

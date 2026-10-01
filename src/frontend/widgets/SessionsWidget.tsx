@@ -1,5 +1,6 @@
 import { Button, Input, Text } from "@itwin/itwinui-react";
 import { useEffect, useRef, useState } from "react";
+import { notify } from "../commands/notify";
 import { downloadText, safeFileStem } from "../services/exporters";
 import { captureSession, deleteSession, listSessions, onSessionsChanged, parseSession, type SavedSession, storeSession } from "../services/sessionStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
@@ -24,6 +25,7 @@ export function SessionsWidget() {
     if (!s) return;
     storeSession(s);
     setName("");
+    notify.success(`Saved "${s.name}".`);
   };
 
   const open = async (s: SavedSession) => {
@@ -41,6 +43,7 @@ export function SessionsWidget() {
     try {
       const s = parseSession(JSON.parse(await file.text()));
       storeSession(s);
+      notify.success(`Imported "${s.name}".`);
       await open(s);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -60,7 +63,10 @@ export function SessionsWidget() {
       <div className="ig-row">
         <Button size="small" styleType="borderless" disabled={!hasGraph} onClick={() => {
           const s = capture(name.trim() || "session");
-          if (s) downloadText(`${safeFileStem(fileName)}-${safeFileStem(s.name)}.igsession.json`, JSON.stringify(s, null, 2), "application/json");
+          if (!s) return;
+          const exported = `${safeFileStem(fileName)}-${safeFileStem(s.name)}.igsession.json`;
+          downloadText(exported, JSON.stringify(s, null, 2), "application/json");
+          notify.success(`Exported ${exported}`);
         }}>Export file…</Button>
         <Button size="small" styleType="borderless" onClick={() => fileInput.current?.click()}>Import file…</Button>
         <input ref={fileInput} type="file" accept=".json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void importFile(f); e.target.value = ""; }} />
