@@ -58,7 +58,8 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   instance-exclusion changes. In text fields the shortcuts keep their usual text-editing meaning.
 - **Drag and drop** a `.bim`, `.ibim` or `.imodel` file anywhere on the window to open it.
 - **Status bar** with the iModel name, instance and relationship counts (and whether the node
-  budget was reached), the number of active filters (click to open them) and the last load time.
+  budget was reached), the number of active filters (click to open them), the last load time and
+  the memory used by the whole app (hover for main/iModel backend, window and GPU).
 - **Keyboard shortcut sheet** (`?` or Help → Keyboard shortcuts), generated from the same command
   list and searchable.
 - **Feedback.** Toasts confirm saves, exports and imports and report failures. Loading panels show

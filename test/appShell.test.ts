@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { matchesShortcut } from "../src/frontend/commands/registry";
 import { EMPTY_FILTERS, filterCount } from "../src/frontend/engine/filters";
 import { iModelPathProblem } from "../src/common/iModelFiles";
+import { formatBytes, summarizeAppMemory } from "../src/common/appMemory";
 
 describe("iModelPathProblem", () => {
   it("accepts iModel extensions in any case on either path style", () => {
@@ -32,5 +33,31 @@ describe("symbol shortcuts", () => {
     expect(matchesShortcut({ key: "?" }, ev(true), true)).toBe(true);
     expect(matchesShortcut({ key: "?" }, ev(false), true)).toBe(true);
     expect(matchesShortcut({ key: "?" }, ev(true, true), true)).toBe(false);
+  });
+});
+
+describe("app memory", () => {
+  it("sums every process in kilobytes and groups them by type in a fixed order", () => {
+    const m = summarizeAppMemory([
+      { type: "Tab", memory: { workingSetSize: 2048 } },
+      { type: "Browser", memory: { workingSetSize: 1024 } },
+      { type: "Utility", memory: { workingSetSize: 512 } },
+      { type: "GPU", memory: { workingSetSize: 256 } },
+      { type: "Zygote", memory: { workingSetSize: 512 } },
+      { type: "Tab", memory: { workingSetSize: Number.NaN } },
+    ]);
+    expect(m.groups).toEqual([
+      { label: "Main & iModel backend", bytes: 1024 * 1024 },
+      { label: "Window", bytes: 2048 * 1024 },
+      { label: "GPU", bytes: 256 * 1024 },
+      { label: "Other", bytes: 1024 * 1024 },
+    ]);
+    expect(m.totalBytes).toBe((1024 + 2048 + 256 + 1024) * 1024);
+    expect(summarizeAppMemory([])).toEqual({ totalBytes: 0, groups: [] });
+  });
+
+  it("formats as MB below a gigabyte and GB above", () => {
+    expect(formatBytes(612.4 * 1024 * 1024)).toBe("612 MB");
+    expect(formatBytes(1.5 * 1024 ** 3)).toBe("1.5 GB");
   });
 });

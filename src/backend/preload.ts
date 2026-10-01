@@ -8,4 +8,6 @@ contextBridge.exposeInMainWorld("imodelExplorerHost", {
   pathForFile: (file: File): string => webUtils.getPathForFile(file),
   // Channel name mirrors FILE_EXISTS_CHANNEL in src/common/hostIpc.ts (no imports here, see above).
   fileExists: (path: string): Promise<boolean> => ipcRenderer.invoke("imodel-explorer.file-exists", path),
+  // Mirrors APP_MEMORY_CHANNEL.
+  appMemory: (): Promise<unknown> => ipcRenderer.invoke("imodel-explorer.app-memory"),
 });

@@ -381,7 +381,11 @@ try {
   await toolIdle();
   await page.locator("[data-testid=status-filters]", { hasText: "No filters" }).waitFor({ timeout: 5_000 });
   await page.getByText(/^Loaded in \d/).waitFor({ timeout: 5_000 });
-  console.log("status bar: iModel, counts, filter count (opens Filters) and load time OK");
+  const memoryText = await page.getByTestId("status-memory").textContent({ timeout: 10_000 });
+  const memoryTitle = await page.getByTestId("status-memory").getAttribute("title");
+  if (!/^Memory \d+(\.\d)? (MB|GB)$/.test(memoryText) || !memoryTitle.includes("Main & iModel backend"))
+    throw new Error(`status bar memory is wrong: ${memoryText} / ${memoryTitle}`);
+  console.log("status bar: iModel, counts, filter count (opens Filters), load time and memory OK");
 
   // Shortcut sheet: "?" opens it, generated from the registry and searchable.
   await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());

@@ -1,4 +1,5 @@
 import { ElectronApp } from "@itwin/core-electron/renderer";
+import type { AppMemory } from "../../common/appMemory";
 import { IMODEL_EXTENSIONS } from "../../common/iModelFiles";
 
 /** Everything the UI needs from its host. Electron implements it today; a Studio host would
@@ -13,14 +14,26 @@ export interface AppHost {
   pathForDroppedFile(file: File): string | undefined;
   /** Whether `path` names an existing file, checked before closing the open iModel for it. */
   fileExists(path: string): Promise<boolean>;
+  /** Memory used by every process of the app. */
+  appMemory(): Promise<AppMemory>;
 }
 
 /** Exposed by src/backend/preload.ts. */
 interface HostBridge {
   pathForFile(file: File): string;
   fileExists(path: string): Promise<boolean>;
+  appMemory(): Promise<unknown>;
 }
 declare global { interface Window { imodelExplorerHost?: HostBridge } }
+
+function parseAppMemory(value: unknown): AppMemory {
+  const v = value as Partial<AppMemory> | null;
+  const isBytes = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n >= 0;
+  if (!v || !isBytes(v.totalBytes) || !Array.isArray(v.groups)
+    || !v.groups.every((g) => g && typeof g.label === "string" && isBytes(g.bytes)))
+    throw new Error("The host returned malformed memory figures.");
+  return { totalBytes: v.totalBytes, groups: v.groups.map((g) => ({ label: g.label, bytes: g.bytes })) };
+}
 
 const RECENT_KEY = "instanceGraph.recentFiles";
 const MAX_RECENT = 10;
@@ -61,6 +74,12 @@ class ElectronAppHost implements AppHost {
     const bridge = window.imodelExplorerHost;
     if (!bridge) throw new Error("Cannot check files: the host preload did not load.");
     return bridge.fileExists(path);
+  }
+
+  public async appMemory(): Promise<AppMemory> {
+    const bridge = window.imodelExplorerHost;
+    if (!bridge) throw new Error("Memory use is unavailable: the host preload did not load.");
+    return parseAppMemory(await bridge.appMemory());
   }
 
   public removeRecentFile(path: string): void {

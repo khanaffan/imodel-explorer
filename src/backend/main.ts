@@ -7,7 +7,8 @@ import { Presentation } from "@itwin/presentation-backend";
 import { ElectronHost } from "@itwin/core-electron/lib/cjs/ElectronBackend";
 import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
 import { DEEP_LINK_PROTOCOL, findDeepLinkArg, looksLikeDeepLink } from "../common/deepLink";
-import { DEEP_LINK_CHANNEL, DEEP_LINK_READY_CHANNEL, FILE_EXISTS_CHANNEL } from "../common/hostIpc";
+import { summarizeAppMemory } from "../common/appMemory";
+import { APP_MEMORY_CHANNEL, DEEP_LINK_CHANNEL, DEEP_LINK_READY_CHANNEL, FILE_EXISTS_CHANNEL } from "../common/hostIpc";
 import { MENU_COMMAND_CHANNEL, MENU_MODEL_CHANNEL, type MenuGroup, type MenuModel, parseMenuModel } from "../common/menuIpc";
 
 /** Thin host shim. All graph work happens in the renderer against the `IModelConnection`; the
@@ -47,6 +48,7 @@ async function main() {
   IpcHost.addListener(DEEP_LINK_READY_CHANNEL, () => links.rendererReady());
   ipcMain.handle(FILE_EXISTS_CHANNEL, (_evt, p: unknown) =>
     typeof p === "string" && path.isAbsolute(p) && fs.statSync(p, { throwIfNoEntry: false })?.isFile() === true);
+  ipcMain.handle(APP_MEMORY_CHANNEL, () => summarizeAppMemory(app.getAppMetrics()));
   // Lets the renderer resolve dropped files to paths (File.path no longer exists).
   await app.whenReady();
   session.defaultSession.registerPreloadScript({ type: "frame", filePath: path.join(__dirname, "preload.js") });

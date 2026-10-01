@@ -1,6 +1,8 @@
 import { type StatusBarItem, StatusBarItemUtilities, StatusBarSection, UiFramework } from "@itwin/appui-react";
 import { useEffect, useState } from "react";
+import { type AppMemory, formatBytes } from "../../common/appMemory";
 import { filterCount } from "../engine/filters";
+import { appHost } from "../host/AppHost";
 import { useClassGraphStore } from "../state/classGraphStore";
 import { useGraphStore } from "../state/graphStore";
 import { FILTERS_WIDGET_ID } from "../widgets/FiltersWidget";
@@ -56,9 +58,39 @@ function LastLoadTime() {
   return <span className="ig-statusbar__item" title="Duration of the last graph load">Loaded in {ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`}</span>;
 }
 
+const MEMORY_POLL_MS = 5000;
+
+/** Memory used by all of the app's processes, refreshed while the window is visible. */
+function MemoryUse() {
+  const [memory, setMemory] = useState<AppMemory>();
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    let live = true;
+    const sample = () => {
+      if (document.visibilityState !== "visible") return;
+      appHost.appMemory().then(
+        (m) => { if (live) { setMemory(m); setError(undefined); } },
+        (e: unknown) => { if (live) setError(e instanceof Error ? e.message : String(e)); });
+    };
+    sample();
+    const timer = setInterval(sample, MEMORY_POLL_MS);
+    document.addEventListener("visibilitychange", sample);
+    return () => { live = false; clearInterval(timer); document.removeEventListener("visibilitychange", sample); };
+  }, []);
+  if (error) return <span className="ig-statusbar__item ig-statusbar__warn" title={error}>Memory unavailable</span>;
+  if (!memory) return null;
+  const detail = memory.groups.map((g) => `${g.label}: ${formatBytes(g.bytes)}`).join("\n");
+  return (
+    <span className="ig-statusbar__item" data-testid="status-memory" title={`Memory used by the app (all processes)\n${detail}`}>
+      Memory {formatBytes(memory.totalBytes)}
+    </span>
+  );
+}
+
 export const STATUS_BAR_ITEMS: readonly StatusBarItem[] = [
   StatusBarItemUtilities.createCustomItem({ id: "ig-status-imodel", section: StatusBarSection.Left, itemPriority: 10, content: <IModelName /> }),
   StatusBarItemUtilities.createCustomItem({ id: "ig-status-counts", section: StatusBarSection.Center, itemPriority: 10, content: <GraphCounts /> }),
   StatusBarItemUtilities.createCustomItem({ id: "ig-status-filters", section: StatusBarSection.Center, itemPriority: 20, content: <FilterCount /> }),
   StatusBarItemUtilities.createCustomItem({ id: "ig-status-time", section: StatusBarSection.Right, itemPriority: 10, content: <LastLoadTime /> }),
+  StatusBarItemUtilities.createCustomItem({ id: "ig-status-memory", section: StatusBarSection.Right, itemPriority: 20, content: <MemoryUse /> }),
 ];
