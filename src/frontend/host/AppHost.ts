@@ -1,4 +1,5 @@
 import { ElectronApp } from "@itwin/core-electron/renderer";
+import type { HostInfo } from "../../common/about";
 import type { AppMemory } from "../../common/appMemory";
 import { IMODEL_EXTENSIONS } from "../../common/iModelFiles";
 
@@ -16,6 +17,10 @@ export interface AppHost {
   fileExists(path: string): Promise<boolean>;
   /** Memory used by every process of the app. */
   appMemory(): Promise<AppMemory>;
+  /** App, Electron and OS versions. */
+  hostInfo(): Promise<HostInfo>;
+  /** Opens a project link (see `isAllowedExternalUrl`) in the system browser. */
+  openExternal(url: string): Promise<void>;
 }
 
 /** Exposed by src/backend/preload.ts. */
@@ -23,6 +28,8 @@ interface HostBridge {
   pathForFile(file: File): string;
   fileExists(path: string): Promise<boolean>;
   appMemory(): Promise<unknown>;
+  hostInfo(): Promise<unknown>;
+  openExternal(url: string): Promise<void>;
 }
 declare global { interface Window { imodelExplorerHost?: HostBridge } }
 
@@ -80,6 +87,25 @@ class ElectronAppHost implements AppHost {
     const bridge = window.imodelExplorerHost;
     if (!bridge) throw new Error("Memory use is unavailable: the host preload did not load.");
     return parseAppMemory(await bridge.appMemory());
+  }
+
+  public async hostInfo(): Promise<HostInfo> {
+    const bridge = window.imodelExplorerHost;
+    if (!bridge) throw new Error("Version details are unavailable: the host preload did not load.");
+    const v = await bridge.hostInfo() as Partial<Record<keyof HostInfo, unknown>> | null;
+    const text = (k: keyof HostInfo): string => {
+      const value = v?.[k];
+      if (typeof value !== "string") throw new Error(`The host returned malformed version details (${k}).`);
+      return value;
+    };
+    return { appVersion: text("appVersion"), electron: text("electron"), chrome: text("chrome"), node: text("node"),
+      platform: text("platform"), arch: text("arch"), osVersion: text("osVersion") };
+  }
+
+  public async openExternal(url: string): Promise<void> {
+    const bridge = window.imodelExplorerHost;
+    if (!bridge) throw new Error("Cannot open links: the host preload did not load.");
+    await bridge.openExternal(url);
   }
 
   public removeRecentFile(path: string): void {

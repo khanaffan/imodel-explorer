@@ -400,6 +400,33 @@ try {
   await page.keyboard.press("Escape");
   await sheet.waitFor({ state: "detached", timeout: 5_000 });
   console.log("shortcut sheet: ? opens it, registry entries, search and Escape OK");
+
+  // About and feedback: versions shown; links go through the backend allowlist (browser stubbed out).
+  await app.evaluate(({ shell }) => { globalThis.smokeOpened = []; shell.openExternal = async (u) => { globalThis.smokeOpened.push(u); }; });
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("help.about", "ui"));
+  const about = page.getByTestId("about");
+  await about.getByText("Chromium").waitFor({ timeout: 5_000 });
+  const aboutText = await about.textContent();
+  if (!/iModel Data Explorer \d+\.\d+\.\d+/.test(aboutText) || !/iTwin\.js\d/.test(aboutText) || !aboutText.includes("Bentley Systems"))
+    throw new Error(`About is missing versions or links: ${aboutText}`);
+  await about.getByText("Bentley Systems, Incorporated").click();
+  await page.getByRole("button", { name: "Report a bug" }).click();
+  await page.getByRole("button", { name: "⭐ Star on GitHub" }).click();
+  let opened = [];
+  for (let i = 0; i < 20 && opened.length < 3; i++) { await page.waitForTimeout(100); opened = await app.evaluate(() => globalThis.smokeOpened); }
+  if (opened[0] !== "https://www.bentley.com/" || !opened[1]?.startsWith("https://github.com/khanaffan/imodel-explorer/issues/new?") || opened[2] !== "https://github.com/khanaffan/imodel-explorer")
+    throw new Error(`About links opened the wrong pages: ${JSON.stringify(opened)}`);
+  if (!decodeURIComponent(opened[1]).includes("iTwin.js")) throw new Error("the bug report is missing the version details");
+  const refused = await page.evaluate(() => globalThis.imodelExplorerHost.openExternal("https://example.com/").then(() => "opened", (e) => e.message));
+  if (!refused.includes("not one the app opens")) throw new Error(`the backend opened a link outside its allowlist: ${refused}`);
+  await page.keyboard.press("Escape");
+  await about.waitFor({ state: "detached", timeout: 5_000 });
+  if (process.platform === "darwin") {
+    const appMenu = await app.evaluate(({ Menu }) => Menu.getApplicationMenu().items[0].submenu.items.map((i) => i.label));
+    if (appMenu[0] !== "About iModel Data Explorer") throw new Error(`About is not first in the macOS app menu: ${appMenu}`);
+  }
+  if (!find("Help > Report a bug…") && !(await menuItems()).some((m) => m.path === "Help > Report a bug…")) throw new Error("Help menu lacks Report a bug…");
+  console.log("about: versions, Bentley/iTwin/GitHub links, bug report prefilled, star, allowlist enforced, app menu entry OK");
   // Edges exist in the DOM even when CSS collapses their SVG, so check that they actually paint.
   const paintedEdges = await page.evaluate(() => [...document.querySelectorAll(".react-flow__edge")]
     .filter((e) => { const svg = e.closest("svg"); return svg && svg.getBoundingClientRect().width > 0; }).length);

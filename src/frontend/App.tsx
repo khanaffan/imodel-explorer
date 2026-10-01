@@ -3,6 +3,7 @@ import { Root as StrataKitRoot } from "@stratakit/mui";
 import { CommandPalette } from "./commands/CommandPalette";
 import { ShortcutSheet } from "./commands/ShortcutSheet";
 import { FirstRunTour } from "./commands/FirstRunTour";
+import { AboutDialog } from "./commands/AboutDialog";
 import { ToastBridge } from "./commands/ToastBridge";
 import { useEffect } from "react";
 import { startDeepLinks } from "./commands/deepLinks";
@@ -28,6 +29,7 @@ export function App() {
         <CommandPalette />
         <ShortcutSheet />
         <FirstRunTour />
+        <AboutDialog />
         <ToastBridge />
         <FileDropTarget />
       </StrataKitRoot>

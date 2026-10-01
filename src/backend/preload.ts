@@ -10,4 +10,7 @@ contextBridge.exposeInMainWorld("imodelExplorerHost", {
   fileExists: (path: string): Promise<boolean> => ipcRenderer.invoke("imodel-explorer.file-exists", path),
   // Mirrors APP_MEMORY_CHANNEL.
   appMemory: (): Promise<unknown> => ipcRenderer.invoke("imodel-explorer.app-memory"),
+  // Mirror HOST_INFO_CHANNEL and OPEN_EXTERNAL_CHANNEL.
+  hostInfo: (): Promise<unknown> => ipcRenderer.invoke("imodel-explorer.host-info"),
+  openExternal: (url: string): Promise<void> => ipcRenderer.invoke("imodel-explorer.open-external", url),
 });

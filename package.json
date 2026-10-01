@@ -1,6 +1,7 @@
 {
   "name": "imodel-explorer",
   "version": "0.1.0",
+  "repository": { "type": "git", "url": "https://github.com/khanaffan/imodel-explorer.git" },
   "private": true,
   "license": "MIT",
   "description": "iModel Data Explorer: a developer tool that opens an iModel and renders an interactive EC instance graph.",

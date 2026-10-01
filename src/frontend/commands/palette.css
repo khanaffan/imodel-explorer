@@ -126,3 +126,16 @@
   border: 1px solid var(--iui-color-border, #ccc);
   white-space: nowrap;
 }
+
+.ig-about { width: min(520px, calc(100vw - 32px)); }
+.ig-about__versions {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 16px;
+  margin: 12px 0;
+  font-size: 12px;
+}
+.ig-about__versions dt { color: var(--iui-color-text-muted, #666); }
+.ig-about__versions dd { margin: 0; font-family: var(--iui-font-mono, monospace); }
+.ig-about__links { margin: 0 0 12px; padding-left: 18px; font-size: 13px; line-height: 1.7; }
+.ig-about__link { color: var(--iui-color-text-accent, #0073e6); }

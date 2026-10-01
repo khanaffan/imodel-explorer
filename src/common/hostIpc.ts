@@ -1,6 +1,10 @@
 /** Channels between the backend and the preload / renderer that are not part of the menu. */
 export const FILE_EXISTS_CHANNEL = "imodel-explorer.file-exists";
 /** Renderer → backend: memory used by every process of the app (an `AppMemory`). */
+/** Renderer → backend: version details (a `HostInfo`). */
+export const HOST_INFO_CHANNEL = "imodel-explorer.host-info";
+/** Renderer → backend: open an allowed project URL in the system browser. */
+export const OPEN_EXTERNAL_CHANNEL = "imodel-explorer.open-external";
 export const APP_MEMORY_CHANNEL = "imodel-explorer.app-memory";
 /** Backend → renderer: a deep link the OS handed to the app. */
 export const DEEP_LINK_CHANNEL = "imodel-explorer.deep-link";

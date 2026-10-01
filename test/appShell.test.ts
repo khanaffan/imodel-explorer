@@ -3,6 +3,7 @@ import { matchesShortcut } from "../src/frontend/commands/registry";
 import { EMPTY_FILTERS, filterCount } from "../src/frontend/engine/filters";
 import { iModelPathProblem } from "../src/common/iModelFiles";
 import { formatBytes, summarizeAppMemory } from "../src/common/appMemory";
+import { ABOUT_LINKS, formatVersionInfo, isAllowedExternalUrl, newIssueUrl } from "../src/common/about";
 
 describe("iModelPathProblem", () => {
   it("accepts iModel extensions in any case on either path style", () => {
@@ -59,5 +60,27 @@ describe("app memory", () => {
   it("formats as MB below a gigabyte and GB above", () => {
     expect(formatBytes(612.4 * 1024 * 1024)).toBe("612 MB");
     expect(formatBytes(1.5 * 1024 ** 3)).toBe("1.5 GB");
+  });
+});
+
+describe("about and feedback links", () => {
+  const info = { appName: "iModel Data Explorer", appVersion: "0.1.0", itwinjs: "5.14.0", electron: "44.4.5", chrome: "140.0", node: "22.1", platform: "darwin", arch: "arm64", osVersion: "25.0.0" };
+
+  it("opens only project, iTwin and Bentley pages over https", () => {
+    for (const ok of Object.values(ABOUT_LINKS)) expect(isAllowedExternalUrl(ok)).toBe(true);
+    expect(isAllowedExternalUrl(newIssueUrl("bug", info))).toBe(true);
+    for (const bad of ["http://github.com/khanaffan/imodel-explorer", "https://github.com/someone/else", "https://github.com/khanaffan/imodel-explorer-evil",
+      "https://github.com.evil.com/iTwin", "https://user@github.com/iTwin", "file:///etc/passwd", "javascript:alert(1)", "https://www.bentley.com.evil.com/", "not a url"])
+      expect(isAllowedExternalUrl(bad), bad).toBe(false);
+  });
+
+  it("prefills new issues with a title prefix and the version details", () => {
+    const url = new URL(newIssueUrl("bug", info));
+    expect(url.pathname).toBe("/khanaffan/imodel-explorer/issues/new");
+    expect(url.searchParams.get("title")).toBe("Bug: ");
+    expect(url.searchParams.get("body")).toContain("Steps to reproduce");
+    expect(url.searchParams.get("body")).toContain(formatVersionInfo(info));
+    expect(new URL(newIssueUrl("feature", info)).searchParams.get("title")).toBe("Feature: ");
+    expect(formatVersionInfo(info)).toBe("iModel Data Explorer 0.1.0\niTwin.js 5.14.0\nElectron 44.4.5 (Chromium 140.0, Node 22.1)\nOS darwin 25.0.0 (arm64)");
   });
 });

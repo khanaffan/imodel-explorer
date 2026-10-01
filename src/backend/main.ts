@@ -1,14 +1,16 @@
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
-import { app, ipcMain, Menu, type MenuItemConstructorOptions, session } from "electron";
+import { app, ipcMain, Menu, type MenuItemConstructorOptions, session, shell } from "electron";
 import { IModelHost, IpcHost } from "@itwin/core-backend";
 import { ECSchemaRpcImpl } from "@itwin/ecschema-rpcinterface-impl";
 import { Presentation } from "@itwin/presentation-backend";
 import { ElectronHost } from "@itwin/core-electron/lib/cjs/ElectronBackend";
 import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
 import { DEEP_LINK_PROTOCOL, findDeepLinkArg, looksLikeDeepLink } from "../common/deepLink";
+import { type HostInfo, isAllowedExternalUrl } from "../common/about";
 import { summarizeAppMemory } from "../common/appMemory";
-import { APP_MEMORY_CHANNEL, DEEP_LINK_CHANNEL, DEEP_LINK_READY_CHANNEL, FILE_EXISTS_CHANNEL } from "../common/hostIpc";
+import { APP_MEMORY_CHANNEL, DEEP_LINK_CHANNEL, DEEP_LINK_READY_CHANNEL, FILE_EXISTS_CHANNEL, HOST_INFO_CHANNEL, OPEN_EXTERNAL_CHANNEL } from "../common/hostIpc";
 import { MENU_COMMAND_CHANNEL, MENU_MODEL_CHANNEL, type MenuGroup, type MenuModel, parseMenuModel } from "../common/menuIpc";
 
 /** Thin host shim. All graph work happens in the renderer against the `IModelConnection`; the
@@ -49,6 +51,14 @@ async function main() {
   ipcMain.handle(FILE_EXISTS_CHANNEL, (_evt, p: unknown) =>
     typeof p === "string" && path.isAbsolute(p) && fs.statSync(p, { throwIfNoEntry: false })?.isFile() === true);
   ipcMain.handle(APP_MEMORY_CHANNEL, () => summarizeAppMemory(app.getAppMetrics()));
+  ipcMain.handle(HOST_INFO_CHANNEL, (): HostInfo => ({
+    appVersion: app.getVersion(), electron: process.versions.electron, chrome: process.versions.chrome, node: process.versions.node,
+    platform: process.platform, arch: process.arch, osVersion: os.release(),
+  }));
+  ipcMain.handle(OPEN_EXTERNAL_CHANNEL, async (_evt, url: unknown) => {
+    if (typeof url !== "string" || !isAllowedExternalUrl(url)) throw new Error("That link is not one the app opens.");
+    await shell.openExternal(url);
+  });
   // Lets the renderer resolve dropped files to paths (File.path no longer exists).
   await app.whenReady();
   session.defaultSession.registerPreloadScript({ type: "frame", filePath: path.join(__dirname, "preload.js") });
@@ -99,6 +109,9 @@ function startDeepLinks() {
   };
 }
 
+/** On macOS, About lives in the app menu rather than Help. */
+const ABOUT_COMMAND = "help.about";
+
 /** Standard roles (clipboard, zoom, window) plus the renderer's commands. Clicks are sent back to
  * the renderer by command id; the renderer decides what they do. Without a model (before the
  * renderer starts) only the standard roles are shown. */
@@ -106,20 +119,26 @@ function setApplicationMenu(model: MenuModel | undefined) {
   const mac = process.platform === "darwin";
   const separator: MenuItemConstructorOptions = { type: "separator" };
   const send = (id: string, arg?: string) => IpcHost.send(MENU_COMMAND_CHANNEL, id, arg);
+  const about = model?.items.find((i) => i.id === ABOUT_COMMAND);
   const itemsOf = (group: MenuGroup): MenuItemConstructorOptions[] => (model?.items ?? [])
-    .filter((i) => i.group === group)
+    .filter((i) => i.group === group && !(mac && i === about))
     .map((i): MenuItemConstructorOptions => i.children
       ? { label: i.label, enabled: i.enabled && i.children.length > 0, submenu: i.children.map((c) => ({ label: c.label, click: () => send(i.id, c.arg) })) }
       : { label: i.label, enabled: i.enabled, accelerator: i.accelerator, click: () => send(i.id) });
   const withSeparator = (items: MenuItemConstructorOptions[]) => (items.length > 0 ? [...items, separator] : []);
+  const help = itemsOf("Help");
+  const appMenu: MenuItemConstructorOptions = { label: app.name, submenu: [
+    ...(about ? [{ label: about.label, click: () => send(about.id) }, separator] : [{ role: "about" } as const, separator]),
+    { role: "services" }, separator, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, separator, { role: "quit" },
+  ] };
   const template: MenuItemConstructorOptions[] = [
-    ...(mac ? [{ role: "appMenu" } as const] : []),
+    ...(mac ? [appMenu] : []),
     { label: "File", submenu: [...withSeparator(itemsOf("File")), mac ? { role: "close" } : { role: "quit" }] },
     { label: "Edit", submenu: [...withSeparator(itemsOf("Edit")), { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
     { label: "View", submenu: [...withSeparator(itemsOf("View")), { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, separator, { role: "togglefullscreen" }, { role: "toggleDevTools" }] },
     ...(itemsOf("Graph").length > 0 ? [{ label: "Graph", submenu: itemsOf("Graph") }] : []),
     ...(mac ? [{ role: "windowMenu" } as const] : []),
-    ...(itemsOf("Help").length > 0 ? [{ role: "help", submenu: itemsOf("Help") } as const] : []),
+    ...(help.length > 0 ? [{ role: "help", submenu: help } as const] : []),
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }

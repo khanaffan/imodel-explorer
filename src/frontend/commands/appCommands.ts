@@ -11,6 +11,8 @@ import { featureActions, isFeatureEnabled } from "../state/featureStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { parseNodeKey } from "../engine/GraphModel";
 import { notify } from "./notify";
+import { aboutActions, openFeedback } from "./AboutDialog";
+import { ABOUT_LINKS } from "../../common/about";
 import { tourActions } from "./FirstRunTour";
 import { currentDeepLink, openDeepLink } from "./deepLinks";
 import { DEEP_LINK_PROTOCOL } from "../../common/deepLink";
@@ -173,6 +175,14 @@ export const APP_COMMANDS: readonly AppCommand[] = [
   { id: "help.tour", title: "Take the tour", group: "Help", keywords: "help intro onboarding coach guide",
     disabledReason: () => (useGraphStore.getState().connection ? undefined : "Open an iModel first; the tour walks through its panels."),
     run: tourActions.start },
+  { id: "help.reportBug", title: "Report a bug…", group: "Help", keywords: "feedback issue problem github",
+    run: () => openFeedback("bug") },
+  { id: "help.suggestFeature", title: "Suggest a feature…", group: "Help", keywords: "feedback idea request github",
+    run: () => openFeedback("feature") },
+  { id: "help.star", title: "Star on GitHub", group: "Help", keywords: "like support github repository",
+    run: () => appHost.openExternal(ABOUT_LINKS.repository) },
+  { id: "help.about", title: "About iModel Data Explorer", group: "Help", keywords: "version info itwin bentley licence",
+    run: aboutActions.open },
 ];
 
 export function registerAppCommands(): () => void {

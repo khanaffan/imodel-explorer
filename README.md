@@ -78,6 +78,10 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   builds register the protocol with the OS; a development run (`electron .`) does not, because
   registration for an unpackaged app varies by platform, so paste links there instead. The app
   runs as a single instance, and a link passed on the command line opens in it.
+- **About and feedback.** Help → About (the app menu on macOS) shows the app, iTwin.js, Electron
+  and OS versions, with links to the source, the iTwin.js and Bentley Systems sites, and a button
+  to copy the versions. Help → Report a bug… / Suggest a feature… open a GitHub issue with the
+  versions filled in, and Star on GitHub opens the repository. Only these sites are opened.
 - **First-run tour.** Six coach marks the first time an iModel is opened; replay with Help → Take
   the tour.
 - **Exemplar ranking.** Sort seed-query results by relationship fan-out to find the
