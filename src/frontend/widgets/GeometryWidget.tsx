@@ -1,10 +1,10 @@
 /** The Geometry widget: the selected element's geometry stream as a formatted op list,
  * with placement / category / view / iModel-frame facts and a 3D range decorator. */
-import { Button, ExpandableBlock, IconButton, Text, ToggleSwitch } from "@itwin/itwinui-react";
+import { Button, ExpandableBlock, IconButton, Input, Select, Text, ToggleSwitch } from "@itwin/itwinui-react";
 import { SvgExport, SvgZoomIn } from "@itwin/itwinui-icons-react";
 import * as React from "react";
 import { GeometryClass } from "@itwin/core-common";
-import type { Fact, ParsedStream, StreamOp, StreamOpKind } from "../engine/geometryStream";
+import { filterGeometryOps, type Fact, type ParsedStream, type StreamOp, type StreamOpFilter, type StreamOpKind } from "../engine/geometryStream";
 import {
   imodelFrameFacts, placementFacts, type PlacementSummary, subCategoryFacts, viewFacts,
 } from "../engine/geometryFacts";
@@ -39,6 +39,73 @@ function Section({ title, children, defaultOpen = false }: { title: string; chil
 
 /** Rows rendered before the "show more" affordance; parsing is never capped. */
 const OP_RENDER_CAP = 500;
+const OP_FILTERS: Array<{ value: StreamOpFilter; label: string }> = [
+  { value: "all", label: "All ops" },
+  { value: "primitives", label: "Primitives" },
+  { value: "appearance", label: "Appearance" },
+  { value: "parts", label: "Parts" },
+  { value: "unparsed", label: "Unparsed" },
+];
+
+function OpList({ ops, streamId }: { ops: readonly StreamOp[]; streamId: string }) {
+  const [search, setSearch] = React.useState("");
+  const [filter, setFilter] = React.useState<StreamOpFilter>("all");
+  const [renderCap, setRenderCap] = React.useState(OP_RENDER_CAP);
+  React.useEffect(() => setRenderCap(OP_RENDER_CAP), [ops, search, filter]);
+  const filtered = React.useMemo(() => filterGeometryOps(ops, filter, search), [ops, filter, search]);
+  const scope = streamId ? `part ${streamId}` : "geometry";
+  return (
+    <>
+      <div className="ig-geom-op-filters">
+        <Input size="small" aria-label={`Search ${scope} ops`} placeholder="Search type, ID or facts…" value={search} onChange={(event) => setSearch(event.target.value)} />
+        <Select<StreamOpFilter> size="small" triggerProps={{ "aria-label": `Filter ${scope} ops` }} options={OP_FILTERS} value={filter} onChange={setFilter} />
+      </div>
+      {(search.trim() || filter !== "all") && <Text variant="small" isMuted role="status">Showing {filtered.length} of {ops.length} ops</Text>}
+      <div className="ig-geom-ops">
+        {filtered.slice(0, renderCap).map((op) => <OpRow key={op.index} op={op} streamId={streamId} />)}
+        {filtered.length === 0 && <Text variant="small" isMuted>No ops match the search and filter.</Text>}
+        {filtered.length > renderCap && (
+          <button className="ig-link" onClick={() => setRenderCap(renderCap + OP_RENDER_CAP)}>
+            Show {Math.min(OP_RENDER_CAP, filtered.length - renderCap)} more of {filtered.length - renderCap} remaining
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+function RawOpJson({ op }: { op: StreamOp }) {
+  const [open, setOpen] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const [copyError, setCopyError] = React.useState<string>();
+  const json = React.useMemo(() => open ? JSON.stringify(op.raw, null, 2) : "", [open, op.raw]);
+  React.useEffect(() => { setCopied(false); setCopyError(undefined); }, [op.raw]);
+  const copy = async () => {
+    setCopied(false);
+    setCopyError(undefined);
+    try {
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+    } catch (error) {
+      setCopyError(`Failed to copy op JSON: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+  return (
+    <div className="ig-geom-raw">
+      <Button size="small" styleType="borderless" aria-expanded={open} onClick={() => setOpen(!open)}>Raw JSON</Button>
+      {open && (
+        <>
+          <div className="ig-row">
+            <Button size="small" onClick={() => void copy()}>Copy JSON</Button>
+            {copied && <Text variant="small" role="status">Copied</Text>}
+          </div>
+          {copyError && <div className="ig-error" role="alert">{copyError}</div>}
+          <pre><code>{json}</code></pre>
+        </>
+      )}
+    </div>
+  );
+}
 
 function FactRows({ facts }: { facts: readonly Fact[] }) {
   return (
@@ -65,7 +132,7 @@ function PartExpansion({ partId }: { partId: string }) {
   if (!entry.parsed) return null;
   return (
     <div className="ig-geom-part">
-      {entry.parsed.ops.map((op) => <OpRow key={op.index} op={op} streamId={partId} />)}
+      <OpList ops={entry.parsed.ops} streamId={partId} />
     </div>
   );
 }
@@ -74,7 +141,6 @@ function OpRow({ op, streamId }: { op: StreamOp; streamId: string }) {
   const selected = useGeometryStore((s) => streamId === "" && s.selectedOp === op.index);
   const expandedPart = useGeometryStore((s) => (op.partId !== undefined ? s.expandedParts.has(op.partId) : false));
   const [open, setOpen] = React.useState(false);
-  const hasFacts = op.facts.length > 0 || op.appearance !== undefined;
   const detailReference = op.facts.find((fact) => fact.reference && fact.value === op.detail)?.reference;
   const ref = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
@@ -89,9 +155,8 @@ function OpRow({ op, streamId }: { op: StreamOp; streamId: string }) {
       >
         <span className="ig-geom-op__dot" style={{ background: KIND_COLORS[op.kind] }} />
         <span className="ig-geom-op__index">#{op.index}</span>
-        {hasFacts
-          ? <button className="ig-caret" onClick={(e) => { e.stopPropagation(); setOpen(!open); }}>{open ? "▾" : "▸"}</button>
-          : <span className="ig-caret" />}
+        <button className="ig-caret" aria-expanded={open} aria-label={`${open ? "Hide" : "Show"} details for ${op.label} op #${op.index}`}
+          onClick={(e) => { e.stopPropagation(); setOpen(!open); }}>{open ? "▾" : "▸"}</button>
         <span className="ig-geom-op__label" title={op.label}>{op.label}</span>
         {op.detail && <span className="ig-geom-op__detail" title={op.detail}>
           {detailReference ? <InstanceLink reference={detailReference}>{op.detail}</InstanceLink> : op.detail}
@@ -101,6 +166,7 @@ function OpRow({ op, streamId }: { op: StreamOp; streamId: string }) {
       {open && (
         <div className="ig-geom-op__facts">
           <FactRows facts={op.facts} />
+          <RawOpJson op={op} />
           {op.partId !== undefined && (
             <div className="ig-row ig-row--wrap">
               <Button size="small" onClick={() => expandedPart ? geometryActions.collapsePart(op.partId!) : void geometryActions.expandPart(op.partId!)}>
@@ -180,8 +246,6 @@ function IModelFrameSection() {
 function GeometryBody() {
   const { target, loading, error, result, selectedOp } = useGeometryStore();
   const showDecoration = useGeometryStore((s) => s.showDecoration);
-  const [renderCap, setRenderCap] = React.useState(OP_RENDER_CAP);
-  React.useEffect(() => setRenderCap(OP_RENDER_CAP), [target?.id]);
 
   const placement = React.useMemo(
     () => (result && !result.emptyReason ? placementFacts(result.props.placement) : undefined),
@@ -210,20 +274,11 @@ function GeometryBody() {
   const parsed = result.parsed;
   if (!parsed) return null;
 
-  const shownOps = parsed.ops.slice(0, renderCap);
-
   return (
     <>
       <SummaryChips parsed={parsed} />
       <Section title={`Ops (${parsed.ops.length})`} defaultOpen>
-        <div className="ig-geom-ops">
-          {shownOps.map((op) => <OpRow key={op.index} op={op} streamId="" />)}
-          {parsed.ops.length > renderCap && (
-            <button className="ig-link" onClick={() => setRenderCap(renderCap + OP_RENDER_CAP)}>
-              Show {Math.min(OP_RENDER_CAP, parsed.ops.length - renderCap)} more of {parsed.ops.length - renderCap} remaining
-            </button>
-          )}
-        </div>
+        <OpList ops={parsed.ops} streamId="" />
       </Section>
       {placement && <Section title="Placement">{<FactRows facts={placement.facts} />}</Section>}
       {result.props.category !== undefined && (

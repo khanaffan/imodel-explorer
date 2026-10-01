@@ -28,7 +28,8 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   Instance references in properties, model headers and geometry details are clickable to centre the
   graph on the referenced instance.
 - **Geometry panel.** The selected element's geometry stream, op by op: formatted facts per
-  primitive, inline `GeometryPart` drill-down, placement / category / view / iModel-frame facts,
+  primitive, searchable/type-filtered op lists with per-op raw JSON and Copy,
+  inline `GeometryPart` drill-down, placement / category / view / iModel-frame facts,
   a 3D range-and-axes decorator, and JSON export.
 - **Overview.** A census of the iModel: instances per schema, class, relationship and model, with
   how much of each schema the authoring app actually used, a treemap of where the data lives, and

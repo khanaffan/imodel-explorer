@@ -1,4 +1,4 @@
-import { SvgChevronLeft, SvgChevronRight, SvgExport, SvgFitToView, SvgHierarchyTree, SvgNetwork, SvgSettings } from "@itwin/itwinui-icons-react";
+import { SvgAdd, SvgChevronLeft, SvgChevronRight, SvgCursor, SvgExport, SvgFitToView, SvgHierarchyTree, SvgLayers, SvgLink, SvgModel, SvgNetwork, SvgRemove, SvgSelection, SvgSettings } from "@itwin/itwinui-icons-react";
 import { Button, ButtonGroup, DropdownMenu, IconButton, MenuDivider, MenuItem, ProgressRadial, Select, Text } from "@itwin/itwinui-react";
 import { Panel, useReactFlow } from "@xyflow/react";
 import { type DirectionFilter, parseNodeKey } from "../engine/GraphModel";
@@ -16,6 +16,31 @@ const DIRECTIONS: Array<{ value: DirectionFilter; label: string }> = [
   { value: "forward", label: "Outgoing" },
   { value: "backward", label: "Incoming" },
 ];
+
+const TOOL_ICONS = {
+  navigate: SvgCursor,
+  "include-relationship": SvgLink,
+  "exclude-relationship": SvgLink,
+  "include-class": SvgLayers,
+  "exclude-class": SvgLayers,
+  "exclude-instance": SvgSelection,
+  "include-model": SvgModel,
+  "exclude-model": SvgModel,
+} satisfies Record<GraphTool, typeof SvgCursor>;
+
+function ToolIcon({ tool }: { tool: GraphTool }) {
+  const TargetIcon = TOOL_ICONS[tool];
+  const BadgeIcon = tool.startsWith("include-") ? SvgAdd : SvgRemove;
+  return (
+    <svg className="ig-tool-icon" viewBox="0 0 20 20" width={16} height={16} aria-hidden="true" focusable="false" data-tool={tool}>
+      <TargetIcon width={16} height={16} fill="currentColor" />
+      {tool !== "navigate" && <>
+        <circle cx={15.5} cy={15.5} r={4.5} fill="var(--iui-color-background, #fff)" />
+        <BadgeIcon x={11} y={11} width={9} height={9} fill="currentColor" />
+      </>}
+    </svg>
+  );
+}
 
 export function GraphToolbar({ tool, onToolChange, feedback }: { tool: GraphTool; onToolChange: (tool: GraphTool) => void; feedback?: ToolResult }) {
   const canGoBack = useGraphStore((s) => s.canGoBack);
@@ -69,8 +94,8 @@ export function GraphToolbar({ tool, onToolChange, feedback }: { tool: GraphTool
       <Panel position="top-left" className="ig-toolbar">
         <ModeToggle />
         <DropdownMenu menuItems={(close) => GRAPH_TOOLS.map((entry) =>
-          <MenuItem key={entry.id} onClick={() => { close(); onToolChange(entry.id === tool ? "navigate" : entry.id); }}>{entry.label}</MenuItem>)}>
-          <Button size="small" className="ig-toolbar__tool" styleType={tool === "navigate" ? "default" : "high-visibility"}
+          <MenuItem key={entry.id} startIcon={<ToolIcon tool={entry.id} />} onClick={() => { close(); onToolChange(entry.id === tool ? "navigate" : entry.id); }}>{entry.label}</MenuItem>)}>
+          <Button size="small" className="ig-toolbar__tool" startIcon={<ToolIcon tool={tool} />} styleType={tool === "navigate" ? "default" : "high-visibility"}
             aria-pressed={tool !== "navigate"} title={`${activeTool.hint} Escape returns to Navigate.`}>Tool: {activeTool.label}</Button>
         </DropdownMenu>
         <ButtonGroup>

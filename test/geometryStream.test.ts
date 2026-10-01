@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type GeometricElement3dProps, GeometryParams, type GeometryStreamProps, SubCategoryAppearance } from "@itwin/core-common";
-import { classifyOp, describeAppearance, parseGeometryStream } from "../src/frontend/engine/geometryStream";
+import { classifyOp, describeAppearance, filterGeometryOps, parseGeometryStream } from "../src/frontend/engine/geometryStream";
 import { imodelFrameFacts, placementFacts, subCategoryFacts } from "../src/frontend/engine/geometryFacts";
 import { Range3d } from "@itwin/core-geometry";
 import { createFixture, type Fixture, PUMP1_STREAM_KEYS } from "./fixture";
@@ -87,6 +87,58 @@ describe("parseGeometryStream on the fixture element", () => {
         expect(facts.find((f) => f.name === "Weight")?.reference).toBeUndefined();
         expect(facts.find((f) => f.name === "Colour")?.reference).toBeUndefined();
       }
+    });
+  });
+
+  describe("geometry op filtering", () => {
+    const parsedPump = () => {
+      const props = pump1Props();
+      return parseGeometryStream(props.geom!, { kind: "element3d", placement: props.placement, category: props.category });
+    };
+
+    it("filters primitives, appearance and parts without renumbering or mutating resolved ops", () => {
+      const parsed = parsedPump();
+      const original = [...parsed.ops];
+      expect(filterGeometryOps(parsed.ops, "all", "")).toEqual(original);
+      const primitives = filterGeometryOps(parsed.ops, "primitives", "");
+      expect(primitives).toHaveLength(5);
+      expect(primitives.every((op) => op.isPrimitive && original[op.index] === op)).toBe(true);
+      expect(primitives.find((op) => op.label === "Box")?.appearance?.subCategoryId).toBe(fx.ids.trimSubCat);
+      expect(filterGeometryOps(parsed.ops, "appearance", "").map((op) => op.kind)).toEqual(["appearance", "appearance"]);
+      expect(filterGeometryOps(parsed.ops, "parts", "").map((op) => op.partId)).toEqual([fx.ids.geomPart]);
+      expect(parsed.ops).toEqual(original);
+    });
+
+    it("combines case-insensitive search with type filtering across labels, IDs, facts and op numbers", () => {
+      const ops = parsedPump().ops;
+      const box = ops.find((op) => op.label === "Box")!;
+      expect(filterGeometryOps(ops, "primitives", " bOx ")).toEqual([box]);
+      expect(filterGeometryOps(ops, "all", "base origin")).toContain(box);
+      expect(filterGeometryOps(ops, "all", `#${box.index}`)).toContain(box);
+      expect(filterGeometryOps(ops, "parts", fx.ids.geomPart).map((op) => op.partId)).toEqual([fx.ids.geomPart]);
+      expect(filterGeometryOps(ops, "appearance", "Box")).toEqual([]);
+      expect(filterGeometryOps(ops, "all", "no match for this")).toEqual([]);
+    });
+
+    it("keeps unknown and unparsed entries inspectable with their exact raw JSON", () => {
+      const props = pump1Props();
+      const bad = { box: { baseOrigin: "nonsense" } };
+      const unknown = { noSuchOp: { id: "0x42" } };
+      const stream: GeometryStreamProps = [...props.geom!, bad as never, unknown as never];
+      const parsed = parseGeometryStream(stream, { kind: "element3d", placement: props.placement, category: props.category });
+      const errors = filterGeometryOps(parsed.ops, "unparsed", "");
+      expect(errors).toHaveLength(2);
+      expect(errors[0].raw).toBe(bad);
+      expect(errors[1].raw).toBe(unknown);
+      expect(JSON.parse(JSON.stringify(errors[0].raw))).toEqual(bad);
+    });
+
+    it("finds matches beyond the default 500-row display cap", () => {
+      const box = parsedPump().ops.find((op) => op.label === "Box")!;
+      const ops = Array.from({ length: 600 }, (_, index) => ({ ...box, index, label: index === 550 ? "Needle" : "Box" }));
+      const match = filterGeometryOps(ops, "all", "Needle");
+      expect(match).toEqual([ops[550]]);
+      expect(match[0].index).toBe(550);
     });
   });
 

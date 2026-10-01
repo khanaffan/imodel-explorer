@@ -81,6 +81,24 @@ export interface ParsedStream {
   readonly parts: string[];
 }
 
+export type StreamOpFilter = "all" | "primitives" | "appearance" | "parts" | "unparsed";
+
+/** Filter parsed rows, not raw entries: hidden modifiers must still resolve subsequent appearance. */
+export function filterGeometryOps(ops: readonly StreamOp[], filter: StreamOpFilter, search: string): readonly StreamOp[] {
+  const query = search.trim().toLowerCase();
+  return ops.filter((op) => {
+    switch (filter) {
+      case "primitives": if (!op.isPrimitive) return false; break;
+      case "appearance": if (!["appearance", "styleMod", "fill", "pattern", "material"].includes(op.kind)) return false; break;
+      case "parts": if (op.kind !== "partReference") return false; break;
+      case "unparsed": if (!op.notParsed && op.kind !== "unknown") return false; break;
+    }
+    if (!query) return true;
+    return [`#${op.index}`, op.kind, op.label, op.detail ?? "", ...op.facts.flatMap((fact) => [fact.name, fact.value])]
+      .some((text) => text.toLowerCase().includes(query));
+  });
+}
+
 /** The context a stream is parsed in. Element streams supply placement + category; part streams
  * supply the params/transform of the referencing entry so inherited symbology is right. */
 export type StreamContext =

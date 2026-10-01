@@ -389,6 +389,22 @@ span.ig-tree-row__twist { cursor: default; }
 }
 .ig-chip--override { color: var(--iui-color-text-warning, #e8a04a); border-color: currentColor; margin-left: 4px; }
 .ig-chip--inherited { margin-left: 4px; }
+.ig-geom-op-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 0.6fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.ig-geom-raw { margin: 4px 0; }
+.ig-geom-raw pre {
+  max-height: 220px;
+  max-width: 100%;
+  overflow: auto;
+  margin: 6px 0;
+  padding: 6px;
+  background: var(--iui-color-background-backdrop, #fafafa);
+  font-size: 11px;
+}
 .ig-geom-ops {
   display: flex;
   flex-direction: column;

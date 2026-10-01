@@ -55,6 +55,39 @@ try {
     return { centre: s.graph.centreKey, nodes: s.graph.nodes.size, edges: s.graph.edges.size, rendered: document.querySelectorAll(".react-flow__node").length };
   });
   console.log("after seed:", JSON.stringify(summary));
+  const checkToolbarClearance = async () => {
+    const cornerButton = page.locator(".nz-app-button");
+    const close = await cornerButton.boundingBox();
+    if (!close) throw new Error("Close iModel button is not visible");
+    const toolbar = page.locator(".ig-toolbar");
+    for (const name of ["Instances", "Classes", /Back \(Alt/, /Forward \(Alt/]) {
+      const button = toolbar.getByRole("button", { name, exact: typeof name === "string" });
+      if (!await button.count()) continue;
+      const bounds = await button.boundingBox();
+      if (!bounds) throw new Error(`Graph toolbar button ${name} is not visible`);
+      if (bounds.x < close.x + close.width && bounds.x + bounds.width > close.x
+        && bounds.y < close.y + close.height && bounds.y + bounds.height > close.y)
+        throw new Error(`Close iModel overlaps ${name}: close=${JSON.stringify(close)} button=${JSON.stringify(bounds)}`);
+      if (await button.isEnabled()) {
+        const uncovered = await button.evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+          return element.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+        });
+        if (!uncovered) throw new Error(`Graph toolbar button ${name} is covered or clipped`);
+      }
+    }
+  };
+  for (const width of [1600, 1200, 1000]) {
+    await app.evaluate(({ BrowserWindow }, w) => BrowserWindow.getAllWindows()[0].setSize(w, 1000), width);
+    await page.waitForTimeout(300);
+    await checkToolbarClearance();
+    await page.locator(".ig-toolbar").getByRole("button", { name: "Classes", exact: true }).click();
+    await checkToolbarClearance();
+    await page.locator(".ig-toolbar").getByRole("button", { name: "Instances", exact: true }).click();
+  }
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1600, 1000));
+  await page.waitForTimeout(300);
+  console.log("graph toolbar: corner-button clearance and visible controls at normal/narrow widths in both modes OK");
   await page.getByRole("tab", { name: "Properties", exact: true }).click();
   const propertyGrid = page.locator(".ig-element-properties .components-virtualized-property-grid");
   await propertyGrid.waitFor({ timeout: 30_000 });
@@ -93,8 +126,22 @@ try {
   };
   const armTool = async (name) => {
     await page.locator(".ig-toolbar__tool").click();
-    await page.getByRole("menuitem", { name, exact: true }).click();
+    const item = page.getByRole("menuitem", { name, exact: true });
+    const icon = item.locator(".ig-tool-icon");
+    await icon.waitFor({ state: "visible", timeout: 5_000 });
+    const tool = await icon.getAttribute("data-tool");
+    await item.click();
+    const activeIcon = page.locator(".ig-toolbar__tool .ig-tool-icon");
+    await activeIcon.waitFor({ state: "visible", timeout: 5_000 });
+    if ((await activeIcon.getAttribute("data-tool")) !== tool)
+      throw new Error(`${name} is missing its active toolbar icon`);
   };
+  await page.locator(".ig-toolbar__tool").click();
+  const toolMenuIcons = page.getByRole("menuitem").locator(".ig-tool-icon");
+  if (await toolMenuIcons.count() !== 8) throw new Error("expected icons for all eight graph tools");
+  await page.getByRole("menuitem", { name: "Navigate", exact: true }).click();
+  if (await page.locator(".ig-toolbar__tool .ig-tool-icon").getAttribute("data-tool") !== "navigate")
+    throw new Error("Navigate is missing its toolbar icon");
   const nodeTarget = (key) => page.locator(`.react-flow__node[data-id="${key}"]`);
   const clearToolsFilters = async () => {
     await page.evaluate(() => globalThis.imodelExplorer.graphActions.clearFilters());
@@ -199,7 +246,8 @@ try {
   const idle = () => page.waitForFunction(() => globalThis.imodelExplorer.getState().status.kind === "idle", null, { timeout: 60_000 });
 
   // Back returns to the previous centre without re-querying.
-  await page.evaluate(() => globalThis.imodelExplorer.graphActions.back());
+  await checkToolbarClearance();
+  await page.locator(".ig-toolbar").getByRole("button", { name: /Back \(Alt/ }).click();
   await page.waitForTimeout(800);
   const back = await page.evaluate(() => globalThis.imodelExplorer.getState().graph.centreKey);
   console.log(`back: ${back === summary.centre}`);
@@ -366,10 +414,51 @@ try {
   const boxRow = geom.locator(".ig-geom-op").filter({ has: page.locator(".ig-geom-op__label", { hasText: /^Box$/ }) }).first();
   await boxRow.click();
   await geom.locator(".ig-geom-op--selected", { hasText: "Box" }).waitFor({ timeout: 5_000 });
+  const boxIndex = await boxRow.locator(".ig-geom-op__index").textContent();
+  const opSearch = geom.getByRole("textbox", { name: "Search geometry ops", exact: true });
+  const opFilter = geom.getByRole("combobox", { name: "Filter geometry ops", exact: true });
+  await opSearch.fill(" bOx ");
+  const filteredLabels = await geom.locator(".ig-geom-op__label").allTextContents();
+  if (JSON.stringify(filteredLabels) !== JSON.stringify(["Box"]) || await boxRow.locator(".ig-geom-op__index").textContent() !== boxIndex)
+    throw new Error("geometry search lost original op indices or returned unexpected rows");
+  await boxRow.locator(".ig-caret").click();
+  await geom.getByRole("button", { name: "Raw JSON", exact: true }).click();
+  const rawJson = await geom.locator(".ig-geom-raw pre").textContent();
+  if (!JSON.parse(rawJson).box) throw new Error("selected Box op did not expose its raw geometry entry");
+  // Exercise the copy boundary without changing the user's system clipboard.
+  await page.evaluate(() => Object.defineProperty(navigator.clipboard, "writeText", {
+    configurable: true, value: async (text) => { globalThis.geometryCopiedJson = text; },
+  }));
+  await geom.getByRole("button", { name: "Copy JSON", exact: true }).click();
+  await geom.getByRole("status").filter({ hasText: /^Copied$/ }).waitFor();
+  if (await page.evaluate(() => globalThis.geometryCopiedJson) !== rawJson)
+    throw new Error("Copy JSON did not preserve the exact displayed op entry");
+  await page.evaluate(() => Object.defineProperty(navigator.clipboard, "writeText", {
+    configurable: true, value: async () => { throw new Error("clipboard unavailable"); },
+  }));
+  await geom.getByRole("button", { name: "Copy JSON", exact: true }).click();
+  await geom.getByRole("alert").filter({ hasText: "Failed to copy op JSON: clipboard unavailable" }).waitFor();
+  await page.evaluate(() => { delete navigator.clipboard.writeText; delete globalThis.geometryCopiedJson; });
+  await opSearch.fill("no matching geometry op");
+  await geom.getByText("No ops match the search and filter.", { exact: true }).waitFor();
+  await opSearch.fill("");
+  await opFilter.click();
+  await page.getByRole("option", { name: "Appearance", exact: true }).click();
+  const appearanceLabels = await geom.locator(".ig-geom-op__label").allTextContents();
+  if (appearanceLabels.length !== 2 || !appearanceLabels.every((label) => label === "Appearance"))
+    throw new Error("Appearance filter returned unexpected geometry ops");
+  await opFilter.click();
+  await page.getByRole("option", { name: "All ops", exact: true }).click();
   const partRow = geom.locator(".ig-geom-op", { hasText: "Part reference" }).first();
   await partRow.locator(".ig-caret").click();
   await geom.getByRole("button", { name: "Expand part" }).click();
   await geom.locator(".ig-geom-part .ig-geom-op__label", { hasText: "Box" }).first().waitFor({ timeout: 30_000 });
+  const partSearch = geom.locator(".ig-geom-part").getByRole("textbox");
+  await partSearch.fill("Arc");
+  if (JSON.stringify(await geom.locator(".ig-geom-part .ig-geom-op__label").allTextContents()) !== JSON.stringify(["Arc"]))
+    throw new Error("expanded part search did not filter its own stream");
+  await partSearch.fill("");
+  console.log("geometry inspection: search/type filters, original indices, raw JSON, copy output/errors and part search OK");
   console.log("geometry: part expanded inline");
   await geom.getByText("Range & axes").click();
   await page.waitForTimeout(600);

@@ -32,8 +32,6 @@ try {
   const tab = (name) => page.getByRole("tab", { name, exact: true }).click();
   const idle = () => page.waitForFunction(() => globalThis.imodelExplorer.getState().status.kind === "idle", null, { timeout: 60_000 });
   const settle = async () => { await idle(); await page.waitForTimeout(1200); };
-  // The AppUI backstage button floats over the graph toolbar's top-left corner.
-  await page.addStyleTag({ content: ".nz-app-button { display: none !important; }" });
   // Graph shots: give the graph the whole centre area instead of sharing it with the 3D view,
   // and hide the viewport's floating tools (nav cube, view toolbars) that would then cover it.
   const wideGraph = async (on) => {

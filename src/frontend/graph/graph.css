@@ -294,7 +294,9 @@
   pointer-events: none;
 }
 
-.ig-toolbar {
+.ig-canvas .ig-toolbar {
+  /* Leave room for AppUI's 36px corner button at its 12px top inset. */
+  margin-top: 52px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

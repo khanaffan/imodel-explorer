@@ -42,6 +42,8 @@ SELECT ECInstanceId, ECClassId FROM WaterPlant.Pump
 
 ## 4. The graph toolbar
 
+The **Close iModel** X sits above the graph toolbar, leaving its controls unobstructed.
+
 <img src="tutorial/04-toolbar.png" width="504" alt="Graph toolbar">
 
 From left to right:
@@ -78,7 +80,12 @@ Click a node to recentre on it. Use Back to return.
 
 ## 6. Properties of nodes and relationships
 
-The graph toolbar's **Tool** menu lets you apply filters directly on the canvas. Select Include or
+The graph toolbar's **Tool** menu lets you apply filters directly on the canvas. Icons beside the
+menu labels and active tool identify the target: a pointer for Navigate, a link for relationships,
+layers for classes, a single selection for an instance, and a model for models. A **+** badge means
+Include; a **−** badge means Exclude.
+
+Select Include or
 Exclude relationship type, then click an edge (or a `+N` relationship group). For node classes or
 models, choose the matching tool and click an ordinary node. Class/type tools match the exact class;
 use the Filters panel's **+ subclasses** checkbox for polymorphic matching. Include creates an
@@ -184,6 +191,12 @@ frame. Toggles control following the selection, BRep data and the range-and-axes
 Part IDs in the op list and part, category, sub-category, line-style and material IDs in the details
 are links: click one to centre the graph on that instance. Missing references and query errors are
 reported in the graph status; Back returns to the previous centre.
+
+Search ops by type, ID or formatted facts, or filter to **Primitives**, **Appearance**, **Parts** or
+**Unparsed**. Original op numbers and resolved appearance are preserved; filters only change the
+displayed rows. Expanded parts have their own search and filter controls. Expand an op, then
+**Raw JSON**, to inspect the stored entry or **Copy JSON** to copy it. Raw JSON is also available
+for unknown or unparsed ops.
 
 <img src="tutorial/17-geometry.png" width="378" alt="Geometry panel for P-101A">
 
