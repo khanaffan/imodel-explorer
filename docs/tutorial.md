@@ -4,7 +4,7 @@ This walkthrough visits every panel of iModel Data Explorer using the demo iMode
 `samples/water-plant.bim`. The screenshots are cropped to the widget being described and use the
 dark theme. To regenerate them, see [Regenerating the screenshots](#regenerating-the-screenshots).
 
-For a one-minute narrated overview, watch [tutorial.mp4](tutorial.mp4).
+For a short (about 75-second) narrated overview, watch [tutorial.mp4](tutorial.mp4).
 
 ## 1. Get the model
 

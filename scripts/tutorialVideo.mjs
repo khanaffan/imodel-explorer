@@ -24,6 +24,7 @@ const script = [
   ["graph", "Pick a result, and the graph centres on it. Solid orange edges are link-table relationships. Dashed edges are navigation properties."],
   ["edge", "Select a relationship to see its own properties, like the coupling between this motor and pump."],
   ["recentre", "Click any node to recentre on it. Back and forward retrace your steps."],
+  ["geometry", "The Geometry panel decodes the selected element's geometry stream, op by op. This pump is a box base with sphere and cone primitives. Expand an op to inspect its details."],
   ["hub", "Busy hubs, like this header, collapse into plus N nodes, so large fan-outs stay readable."],
   ["overview", "The Overview panel is a census of the whole iModel: schemas, classes and relationships."],
   ["classes", "Switch to Classes to see the observed schema: which classes relate, and how often."],
@@ -200,6 +201,14 @@ try {
     await idle();
     await wait(600);
     await zoomTo(await node("P-101A"), 0.6);
+  });
+  await scene("geometry", async () => {
+    await page.evaluate((key) => globalThis.imodelExplorer.graphActions.select({ kind: "node", key }), await (await node("P-101A")).getAttribute("data-id"));
+    await click(page.getByRole("tab", { name: "Geometry", exact: true }));
+    const geom = widget("ig-geometry");
+    await geom.locator(".ig-geom-op__label", { hasText: "Box" }).first().waitFor({ timeout: 30_000 });
+    await wait(600);
+    await click(geom.locator(".ig-geom-op").filter({ has: page.locator(".ig-geom-op__label", { hasText: /^Box$/ }) }).first().locator(".ig-caret"));
   });
   await scene("hub", async () => {
     await page.getByRole("tab", { name: "Seed query", exact: true }).click();
