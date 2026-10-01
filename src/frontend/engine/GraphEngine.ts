@@ -16,6 +16,7 @@ export interface TraversalOptions {
   readonly depth: number;
   readonly direction: DirectionFilter;
   readonly filters: FilterSpec;
+  readonly excludedInstances?: readonly string[];
   /** Hard cap on nodes; traversal stops and marks the graph truncated when reached. */
   readonly nodeBudget: number;
   /** New neighbours per (node, relationship class, direction) above which an aggregate node is shown. */
@@ -25,7 +26,7 @@ export interface TraversalOptions {
 }
 
 export const DEFAULT_OPTIONS: TraversalOptions = {
-  depth: 1, direction: "both", filters: EMPTY_FILTERS, nodeBudget: 750, groupCap: 25, expandedGroups: new Set(),
+  depth: 1, direction: "both", filters: EMPTY_FILTERS, excludedInstances: [], nodeBudget: 750, groupCap: 25, expandedGroups: new Set(),
 };
 
 export interface CancelToken {
@@ -85,6 +86,8 @@ export class GraphEngine {
    * completed ring can be shown while the next loads. */
   public async buildNeighbourhood(centre: NodeKey, opts: TraversalOptions, onProgress?: (g: GraphData) => void, cancel?: CancelToken): Promise<GraphData> {
     const centreKey = nodeKeyString(centre);
+    if (opts.excludedInstances?.includes(centreKey))
+      throw new Error("This instance is excluded. Remove its exclusion in Filters before navigating to it.");
     const resolved = await this.resolver.resolve([centre]);
     this._checkCancelled(cancel);
     const g: MutableGraph = { centreKey, nodes: new Map(), edges: new Map(), truncated: false };
@@ -100,6 +103,7 @@ export class GraphEngine {
 
   /** Adds one hop around `nodeKey`, keeping everything already present. */
   public async expand(graph: GraphData, nodeKey: string, opts: TraversalOptions, cancel?: CancelToken): Promise<GraphData> {
+    if (opts.excludedInstances?.includes(nodeKey)) throw new Error("Cannot expand an excluded instance");
     const g = toMutable(graph);
     if (!g.nodes.has(nodeKey))
       return graph;
@@ -128,10 +132,11 @@ export class GraphEngine {
    * its links are shown whatever the traversal direction. */
   public async connectPinned(base: GraphData, pins: Pins, opts: TraversalOptions, cancel?: CancelToken): Promise<Map<string, GraphEdge>> {
     const out = new Map<string, GraphEdge>();
-    const seeds = [...pins.values()].filter((p) => !p.node.aggregate).map((p) => parseNodeKey(p.node.key));
+    const excluded = new Set(opts.excludedInstances);
+    const seeds = [...pins.values()].filter((p) => !p.node.aggregate && !excluded.has(p.node.key)).map((p) => parseNodeKey(p.node.key));
     if (seeds.length === 0) return out;
     const targets = new Map<string, NodeKey>();
-    for (const n of base.nodes.values()) if (!n.aggregate) targets.set(n.key, { id: n.id, classId: n.classId });
+    for (const n of base.nodes.values()) if (!n.aggregate && !excluded.has(n.key)) targets.set(n.key, { id: n.id, classId: n.classId });
     for (const s of seeds) targets.set(nodeKeyString(s), s);
     const rels = await this.strategy.linksBetween(seeds, [...targets.values()], "both");
     this._checkCancelled(cancel);
@@ -210,7 +215,9 @@ export class GraphEngine {
   /** Queries every frontier node, applies filters, groups oversized fans into aggregate nodes,
    * enforces the budget and resolves new nodes. Returns the newly added node keys. */
   private async _expandFrontier(g: MutableGraph, frontierKeys: string[], opts: TraversalOptions, cancel?: CancelToken): Promise<string[]> {
-    const seeds = frontierKeys.map(parseNodeKey);
+    const excluded = new Set(opts.excludedInstances);
+    const seeds = frontierKeys.filter((key) => !excluded.has(key)).map(parseNodeKey);
+    if (seeds.length === 0) return [];
     const knownIds = new Set<string>();
     for (const n of g.nodes.values()) if (!n.aggregate) knownIds.add(n.id);
     const { relations: raw, totals } = await this.strategy.neighbours(seeds, opts.direction, {
@@ -218,6 +225,7 @@ export class GraphEngine {
       maxRows: Math.max(opts.nodeBudget * 2, opts.groupCap * 2 + 10),
       unlimited: opts.expandedGroups,
       knownIds: [...knownIds],
+      excludedInstances: opts.excludedInstances,
     });
     this._checkCancelled(cancel);
 
@@ -244,6 +252,7 @@ export class GraphEngine {
     const existingInGroup = new Map<string, number>();
     for (const r of raw) {
       const relatedKey = nodeKeyString(r.related);
+      if (excluded.has(relatedKey)) continue;
       const gk = aggregateKey(nodeKeyString(r.seed), r.relClassId, r.direction);
       const { key: edgeKey } = edgeKeyFor(r);
       if (seenEdge.has(edgeKey)) continue;

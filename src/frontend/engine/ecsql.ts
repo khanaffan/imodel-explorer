@@ -1,5 +1,5 @@
 import { Id64 } from "@itwin/core-bentley";
-import type { DirectionFilter, NodeKey } from "./GraphModel";
+import { type DirectionFilter, type NodeKey, parseNodeKey } from "./GraphModel";
 
 /** `Relations()` is experimental. Frontend ECSQL runs on the ConcurrentQuery worker pool, so a
  * connection-level PRAGMA is not a reliable guarantee: every statement that uses `Relations()`
@@ -26,9 +26,17 @@ const RELATIONS_COLUMNS =
 
 /** One statement expanding every seed in the batch. Seeds are supplied as a UNION ALL subquery with
  * an index column, so rows map back to seeds without round-tripping 64-bit ids through numbers. */
-export function buildRelationsQuery(seeds: readonly NodeKey[], direction: DirectionFilter, extra: { limit?: number } = {}): string {
+export function instanceExclusionPredicate(classColumn: string, idColumn: string, excluded: readonly string[] = []): string {
+  return excluded.length === 0 ? "" : `NOT (${excluded.map((key) => {
+    const { classId, id } = parseNodeKey(key);
+    return `(${classColumn} = ${assertId(classId)} AND ${idColumn} = ${assertId(id)})`;
+  }).join(" OR ")})`;
+}
+
+export function buildRelationsQuery(seeds: readonly NodeKey[], direction: DirectionFilter, extra: { limit?: number; excludedInstances?: readonly string[] } = {}): string {
   const limit = extra.limit !== undefined ? ` LIMIT ${Math.max(0, Math.floor(extra.limit))}` : "";
-  return `SELECT s.i SeedIndex, ${RELATIONS_COLUMNS} FROM ${seedTable(seeds)}, ECVLib.Relations(s.id, s.cid, '${direction}') r${limit} ${EXPERIMENTAL_OPTION}`;
+  const predicate = instanceExclusionPredicate("r.RelatedECClassId", "r.RelatedECInstanceId", extra.excludedInstances);
+  return `SELECT s.i SeedIndex, ${RELATIONS_COLUMNS} FROM ${seedTable(seeds)}, ECVLib.Relations(s.id, s.cid, '${direction}') r${predicate ? ` WHERE ${predicate}` : ""}${limit} ${EXPERIMENTAL_OPTION}`;
 }
 
 export interface GroupRef {
@@ -42,10 +50,11 @@ export interface GroupRef {
  * bound to parameter 1 when `withKnownIds`. Every row carries `N`, its group's total row count, so
  * hub fan-outs (a CodeSpec's 200k codes) cost one scan and a handful of transferred rows. */
 export function buildRelationsCappedQuery(seeds: readonly NodeKey[], direction: DirectionFilter,
-  caps: { fetchLimit: number; maxRows: number; unlimited: readonly GroupRef[]; withKnownIds: boolean }): string {
+  caps: { fetchLimit: number; maxRows: number; unlimited: readonly GroupRef[]; withKnownIds: boolean; excludedInstances?: readonly string[] }): string {
   const int = (n: number) => Math.max(0, Math.floor(n));
   const group = "PARTITION BY s.i, r.RelationshipECClassId, r.Direction";
-  const inner = `SELECT s.i SeedIndex, ${RELATIONS_COLUMNS}, ROW_NUMBER() OVER (${group}) Rn, COUNT(*) OVER (${group}) N FROM ${seedTable(seeds)}, ECVLib.Relations(s.id, s.cid, '${direction}') r`;
+  const predicate = instanceExclusionPredicate("r.RelatedECClassId", "r.RelatedECInstanceId", caps.excludedInstances);
+  const inner = `SELECT s.i SeedIndex, ${RELATIONS_COLUMNS}, ROW_NUMBER() OVER (${group}) Rn, COUNT(*) OVER (${group}) N FROM ${seedTable(seeds)}, ECVLib.Relations(s.id, s.cid, '${direction}') r${predicate ? ` WHERE ${predicate}` : ""}`;
   const keep = [`Rn <= ${int(caps.fetchLimit)}`];
   if (caps.unlimited.length > 0)
     keep.push(`(Rn <= ${int(caps.maxRows)} AND (${caps.unlimited.map(groupPredicate).join(" OR ")}))`);

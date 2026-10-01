@@ -77,6 +77,35 @@ describe.each([["relations"], ["fallback"]] as const)("GraphEngine (%s)", (name)
     expect(model).not.toBe(partition);
   });
 
+  it("excludes one instance and paths through it while preserving alternate paths", async () => {
+    const pipeA = key("TestIG:Pipe", fx.ids.pipeA);
+    const pump2 = key("TestIG:Pump", fx.ids.pump2);
+    const filters = { ...EMPTY_FILTERS, schemas: { TestIG: "include" as const } };
+    const options = opts({ depth: 2, filters, excludedInstances: [pipeA] });
+    const progress: GraphData[] = [];
+    const g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), options, (partial) => progress.push(partial));
+    expect(g.nodes.has(pipeA)).toBe(false);
+    expect(g.nodes.has(pump2)).toBe(true); // Still reachable through PipeB.
+    for (const partial of [...progress, g]) {
+      expect(partial.nodes.has(pipeA)).toBe(false);
+      expect([...partial.edges.values()].some((e) => e.source === pipeA || e.target === pipeA)).toBe(false);
+    }
+    const blocked = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      { ...options, excludedInstances: [pipeA, key("TestIG:Pipe", fx.ids.pipeB)] });
+    expect(blocked.nodes.has(pump2)).toBe(false);
+    await expect(engine().buildNeighbourhood(centre("TestIG:Pipe", fx.ids.pipeA), options)).rejects.toThrow("excluded");
+  });
+
+  it("uses full class/id identity when excluding a partition or model", async () => {
+    const model = key("BisCore:PhysicalModel", fx.ids.plantA);
+    const partition = key("BisCore:PhysicalPartition", fx.ids.plantA);
+    const g = await engine().buildNeighbourhood(centre("BisCore:PhysicalModel", fx.ids.plantA),
+      opts({ excludedInstances: [partition] }));
+    expect(g.nodes.has(partition)).toBe(false);
+    expect(g.nodes.has(model)).toBe(true);
+    expect(g.nodes.has(key("TestIG:Pump", fx.ids.pump1))).toBe(true);
+  });
+
   it("assigns BFS depth and closes the cycle without duplicates", async () => {
     const g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), opts({ depth: 2 }));
     expect(g.nodes.get(key("TestIG:Pipe", fx.ids.pipeB))?.depth).toBe(1);
@@ -111,6 +140,28 @@ describe.each([["relations"], ["fallback"]] as const)("GraphEngine (%s)", (name)
       const g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.hub), opts({ groupCap: 3 }));
       expect(g.nodes.get(hubAgg())?.aggregate?.hiddenCount).toBe(HUB_FANOUT - 3);
       expect([...g.nodes.values()].filter((n) => n.className === "TestIG:Pipe")).toHaveLength(3);
+    });
+
+    it("excludes hub targets before caps and totals, including aggregate opening", async () => {
+      const excludedInstances = fx.ids.hubPipes.slice(0, 6).map((id) => key("TestIG:Pipe", id));
+      const options = opts({ groupCap: 3, excludedInstances });
+      const g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.hub), options);
+      expect(g.nodes.get(hubAgg())?.aggregate?.hiddenCount).toBe(HUB_FANOUT - 6 - 3);
+      expect([...g.nodes.values()].filter((n) => n.className === "TestIG:Pipe")).toHaveLength(3);
+      const { graph } = await engine().openAggregate(g, hubAgg(), options);
+      expect([...graph.nodes.values()].filter((n) => n.className === "TestIG:Pipe")).toHaveLength(HUB_FANOUT - 6);
+      for (const key of excludedInstances) expect(graph.nodes.has(key)).toBe(false);
+    });
+
+    it("applies exclusions before the windowed Relations() count without a fallback", async () => {
+      if (name !== "relations") return;
+      const strategy = new RelationsTraversal(createQueryPort(fx.db as unknown as QuerySource));
+      const excludedInstances = fx.ids.hubPipes.slice(0, 6).map((id) => key("TestIG:Pipe", id));
+      const result = await strategy.neighbours([centre("TestIG:Pump", fx.ids.hub)], "both",
+        { fetchLimit: 3, maxRows: 100, unlimited: new Set(), knownIds: [], excludedInstances });
+      expect(result.totals.get(hubAgg())).toBe(HUB_FANOUT - 6);
+      expect(result.relations.filter((r) => r.relClassId === fx.classIds["TestIG:PumpFeedsPipe"])).toHaveLength(3);
+      for (const r of result.relations) expect(excludedInstances).not.toContain(nodeKeyString(r.related));
     });
 
     it("keeps links to instances already on the graph and excludes them from the hidden count", async () => {
@@ -235,6 +286,17 @@ describe("strategy parity", () => {
 });
 
 describe("Relations() degradation", () => {
+  it("reports failed exclusion queries rather than silently omitting relationships", async () => {
+    const base = createQueryPort(fx.db as unknown as QuerySource);
+    const failing = { ...base, query: async (sql: string, binder?: Parameters<typeof base.query>[1]) => {
+      if (sql.includes("NOT (")) throw new Error("Exclusion query failed");
+      return base.query(sql, binder);
+    } };
+    const engine = await GraphEngine.create(failing, "fallback");
+    await expect(engine.buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      opts({ excludedInstances: [key("TestIG:Pipe", fx.ids.pipeA)] }))).rejects.toThrow("Exclusion query failed");
+  });
+
   it("answers a batch with the metadata fallback when its Relations() statement fails", async () => {
     const base = createQueryPort(fx.db as unknown as QuerySource);
     const flaky = { ...base, query: async (sql: string, b?: any) => {

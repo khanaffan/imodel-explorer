@@ -2,7 +2,7 @@ import { Id64 } from "@itwin/core-bentley";
 import { QueryBinder } from "@itwin/core-common";
 import type { SchemaView } from "@itwin/ecschema-metadata";
 import type { ClassRegistry } from "./ClassRegistry";
-import { buildRelationsCappedQuery, ID_LIST_CHUNK, idList, buildRelationsProbeQuery, buildRelationsQuery, type GroupRef, quoteClassName } from "./ecsql";
+import { buildRelationsCappedQuery, ID_LIST_CHUNK, idList, buildRelationsProbeQuery, buildRelationsQuery, type GroupRef, instanceExclusionPredicate, quoteClassName } from "./ecsql";
 import { aggregateKey, type Direction, parseAggregateKey, type DirectionFilter, type NodeKey, nodeKeyString, type RawRelation } from "./GraphModel";
 import type { IModelQueryPort } from "./IModelQueryPort";
 
@@ -21,6 +21,7 @@ export interface NeighbourLimits {
   readonly knownIds: readonly string[];
   /** Return only rows leading to `knownIds` (skips the per-group caps and probes). */
   readonly onlyKnown?: boolean;
+  readonly excludedInstances?: readonly string[];
 }
 
 export interface NeighbourResult {
@@ -126,7 +127,7 @@ export class RelationsTraversal implements TraversalStrategy {
 
     // Common case: nothing big in this batch, one statement.
     const probeRows = RelationsTraversal.probeRows;
-    const probe = await this._port.query(buildRelationsQuery(batch, direction, { limit: probeRows }));
+    const probe = await this._port.query(buildRelationsQuery(batch, direction, { limit: probeRows, excludedInstances: limits.excludedInstances }));
     if (probe.length < probeRows)
       return probe.map(toRelation);
 
@@ -168,7 +169,7 @@ export class RelationsTraversal implements TraversalStrategy {
     }
     const withKnownIds = limits.knownIds.length > 0;
     const rows = await this._port.query(
-      buildRelationsCappedQuery(batch, direction, { fetchLimit: limits.fetchLimit, maxRows: limits.maxRows, unlimited, withKnownIds }),
+      buildRelationsCappedQuery(batch, direction, { fetchLimit: limits.fetchLimit, maxRows: limits.maxRows, unlimited, withKnownIds, excludedInstances: limits.excludedInstances }),
       withKnownIds ? new QueryBinder().bindIdSet(1, [...limits.knownIds]) : undefined);
     const out: RawRelation[] = [];
     for (const row of rows) {
@@ -274,24 +275,27 @@ export class FallbackTraversal implements TraversalStrategy {
 
   /** Runs a per-seed statement that has a `Rel` column (relationship class id) and a related-id
    * column, capping any relationship class that has more rows than its limit. */
-  private async _capped(base: string, binder: () => QueryBinder, idColumn: string, seed: NodeKey, dir: Direction,
+  private async _capped(base: string, binder: () => QueryBinder, idColumn: string, classColumn: string, seed: NodeKey, dir: Direction,
     limits: NeighbourLimits | undefined, totals: Map<string, number>): Promise<Array<Record<string, any>>> {
     if (!limits)
       return this._safeQuery(base, binder());
+    const predicate = instanceExclusionPredicate(classColumn, idColumn, limits.excludedInstances);
+    const query = predicate ? (sql: string, b: QueryBinder) => this._port.query(sql, b) : (sql: string, b: QueryBinder) => this._safeQuery(sql, b);
+    if (predicate) base = `SELECT * FROM (${base}) WHERE ${predicate}`;
     if (limits.onlyKnown) {
       const parts = await Promise.all(chunk([...limits.knownIds], ID_LIST_CHUNK).map(async (known) =>
-        this._safeQuery(`SELECT * FROM (${base}) WHERE ${idColumn} IN (${idList(known)})`, binder())));
+        query(`SELECT * FROM (${base}) WHERE ${idColumn} IN (${idList(known)})`, binder())));
       return parts.flat();
     }
     const owner = nodeKeyString(seed);
     const probeLimit = [...limits.unlimited].some((k) => k.startsWith(`agg|${owner}|`) && k.endsWith(`|${dir}`)) ? limits.maxRows : limits.fetchLimit;
-    const probe = await this._safeQuery(`${base} LIMIT ${probeLimit + 1}`, binder());
+    const probe = await query(`${base} LIMIT ${probeLimit + 1}`, binder());
     if (probe.length <= probeLimit)
       return probe; // complete
 
     const small: Array<string | undefined> = [];
     const big: Array<{ rel: string; limit: number }> = [];
-    for (const c of await this._safeQuery(`SELECT Rel, COUNT(*) N FROM (${base}) GROUP BY Rel`, binder())) {
+    for (const c of await query(`SELECT Rel, COUNT(*) N FROM (${base}) GROUP BY Rel`, binder())) {
       if (!c.Rel || !Id64.isValidId64(c.Rel)) { small.push(undefined); continue; } // unset RelECClassId: never capped
       const gk = aggregateKey(owner, c.Rel, dir);
       const limit = limitFor(limits, gk);
@@ -306,11 +310,11 @@ export class FallbackTraversal implements TraversalStrategy {
     const smallIds = small.filter((r): r is string => r !== undefined);
     const smallPredicate = [smallIds.length ? `Rel IN (${smallIds.join(", ")})` : "", small.includes(undefined) ? "Rel IS NULL" : ""].filter(Boolean).join(" OR ");
     const parts = await Promise.all([
-      smallPredicate ? this._safeQuery(`SELECT * FROM (${base}) WHERE ${smallPredicate}`, binder()) : [],
-      ...big.map((b) => this._safeQuery(`SELECT * FROM (${base}) WHERE Rel = ${b.rel} LIMIT ${b.limit}`, binder())),
+      smallPredicate ? query(`SELECT * FROM (${base}) WHERE ${smallPredicate}`, binder()) : [],
+      ...big.map((b) => query(`SELECT * FROM (${base}) WHERE Rel = ${b.rel} LIMIT ${b.limit}`, binder())),
       // An id list (not InVirtualSet) lets SQLite seek known ids instead of scanning the whole fan.
       ...(big.length ? chunk([...limits.knownIds], ID_LIST_CHUNK) : []).map(async (known) =>
-        this._safeQuery(`SELECT * FROM (${base}) WHERE Rel IN (${big.map((b) => b.rel).join(", ")}) AND ${idColumn} IN (${idList(known)})`, binder())),
+        query(`SELECT * FROM (${base}) WHERE Rel IN (${big.map((b) => b.rel).join(", ")}) AND ${idColumn} IN (${idList(known)})`, binder())),
     ]);
     return parts.flat();
   }
@@ -340,6 +344,7 @@ export class FallbackTraversal implements TraversalStrategy {
     const wantBackward = direction !== "forward";
     const out: RawRelation[] = [];
     const idBinder = () => new QueryBinder().bindId(1, seed.id);
+    const excluded = new Set(limits?.excludedInstances);
 
     // Navigation properties held by the seed.
     const ownNavs = cls.getProperties().filter((p) => p.isNavigation());
@@ -362,6 +367,7 @@ export class FallbackTraversal implements TraversalStrategy {
             ?? await this._classIdOf("BisCore:Element", relatedId);
           if (!classId)
             return;
+          if (excluded.has(nodeKeyString({ id: relatedId, classId }))) return;
           out.push({ seed, related: { id: relatedId, classId }, direction: dir, relClassId: row[`R${i}`], relInstanceId: seed.id, navPropertyName: p.name });
         }));
       }
@@ -374,7 +380,7 @@ export class FallbackTraversal implements TraversalStrategy {
         return;
       const rows = await this._capped(
         `SELECT ECInstanceId Id, ECClassId ClassId, [${d.propName}].RelECClassId Rel FROM ${quoteClassName(d.holderClass)} WHERE [${d.propName}].Id = ?`,
-        idBinder, "Id", seed, dir, limits, totals);
+        idBinder, "Id", "ClassId", seed, dir, limits, totals);
       for (const r of rows)
         out.push({ seed, related: { id: r.Id, classId: r.ClassId }, direction: dir, relClassId: r.Rel, relInstanceId: r.Id, navPropertyName: d.propName });
     }));
@@ -384,13 +390,13 @@ export class FallbackTraversal implements TraversalStrategy {
       const binder = () => new QueryBinder().bindId(1, seed.id).bindId(2, seed.classId);
       if (wantForward && constraintAccepts(root.source, cls)) {
         const rows = await this._capped(`SELECT ECInstanceId Id, ECClassId Rel, TargetECInstanceId OId, TargetECClassId OClassId FROM ${quoteClassName(root.className)} WHERE SourceECInstanceId = ? AND SourceECClassId = ?`,
-          binder, "OId", seed, "forward", limits, totals);
+          binder, "OId", "OClassId", seed, "forward", limits, totals);
         for (const r of rows)
           out.push({ seed, related: { id: r.OId, classId: r.OClassId }, direction: "forward", relClassId: r.Rel, relInstanceId: r.Id });
       }
       if (wantBackward && constraintAccepts(root.target, cls)) {
         const rows = await this._capped(`SELECT ECInstanceId Id, ECClassId Rel, SourceECInstanceId OId, SourceECClassId OClassId FROM ${quoteClassName(root.className)} WHERE TargetECInstanceId = ? AND TargetECClassId = ?`,
-          binder, "OId", seed, "backward", limits, totals);
+          binder, "OId", "OClassId", seed, "backward", limits, totals);
         for (const r of rows)
           out.push({ seed, related: { id: r.OId, classId: r.OClassId }, direction: "backward", relClassId: r.Rel, relInstanceId: r.Id });
       }

@@ -12,6 +12,7 @@ import { avoidPinned, computeLayout, NODE_HEIGHT, NODE_WIDTH, type Point, type P
 import { DEFAULT_DURATION_MS, LayoutAnimator, LEAVE_DURATION_MS, prefersReducedMotion } from "./motion";
 import { RelationshipEdge, type RelationshipFlowEdge } from "./RelationshipEdge";
 import "./graph.css";
+import { applyGraphTool, type GraphTool, type ToolResult } from "./graphTools";
 
 const nodeTypes = { instance: InstanceNode };
 const edgeTypes = { relationship: RelationshipEdge };
@@ -48,7 +49,16 @@ function GraphCanvasInner() {
   const selection = useGraphStore((s) => s.selection);
   const fitRequest = useGraphStore((s) => s.fitRequest);
   const pins = useGraphStore((s) => s.pins);
+  const connection = useGraphStore((s) => s.connection);
   const rf = useReactFlow();
+  const [tool, setTool] = useState<GraphTool>("navigate");
+  const [feedback, setFeedback] = useState<ToolResult>();
+  const changeTool = useCallback((next: GraphTool) => { setTool(next); setFeedback(undefined); }, []);
+  useEffect(() => changeTool("navigate"), [connection, changeTool]);
+  const clickEdge = useCallback((key: string) => {
+    if (tool === "navigate") graphActions.select({ kind: "edge", key });
+    else setFeedback(applyGraphTool(tool, { kind: "edge", key }));
+  }, [tool]);
 
   const [positions, setPositions] = useState<Positions>(new Map());
   const [leaving, setLeaving] = useState<Leaving>({ nodes: new Map(), edges: new Map() });
@@ -193,10 +203,11 @@ function GraphCanvasInner() {
         data: {
           edge: e, parallelIndex: idx, parallelCount: pairCount.get(pk)!, leaving: isLeaving,
           highlighted: focus !== undefined && (e.source === focus || e.target === focus), isSelected: e.key === selectedEdge,
+          onLabelClick: isLeaving ? undefined : () => clickEdge(e.key),
         },
       };
     });
-  }, [graph, leaving, focus, selectedEdge]);
+  }, [graph, leaving, focus, selectedEdge, clickEdge]);
 
   const onNodesChange = useCallback((changes: NodeChange<InstanceFlowNode>[]) => {
     let moved = false;
@@ -220,14 +231,21 @@ function GraphCanvasInner() {
   }, [animator]);
 
   const onNodeClick = useCallback((ev: React.MouseEvent, n: InstanceFlowNode) => {
+    if (tool !== "navigate") {
+      setFeedback(n.data.leaving
+        ? { kind: "invalid", message: "This target is leaving the graph." }
+        : applyGraphTool(tool, { kind: "node", key: n.id }));
+      return;
+    }
     if (ev.shiftKey || ev.metaKey || ev.ctrlKey) graphActions.select({ kind: "node", key: n.id });
     else void graphActions.activate(n.id);
-  }, []);
+  }, [tool]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest("input, textarea, select, [contenteditable]")) return;
-      if (e.altKey && e.key === "ArrowLeft") graphActions.back();
+      if (e.key === "Escape" && !e.defaultPrevented) changeTool("navigate");
+      else if (e.altKey && e.key === "ArrowLeft") graphActions.back();
       else if (e.altKey && e.key === "ArrowRight") graphActions.forward();
       else if (e.key === "f" && !e.metaKey && !e.ctrlKey) graphActions.requestFit();
       else if (e.key === "p" && !e.metaKey && !e.ctrlKey) {
@@ -237,10 +255,10 @@ function GraphCanvasInner() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [changeTool]);
 
   return (
-    <div className="ig-canvas">
+    <div className={`ig-canvas${tool !== "navigate" ? " ig-canvas--tool-active" : ""}`}>
       <ReactFlow<InstanceFlowNode, RelationshipFlowEdge>
         nodes={nodes}
         edges={edges}
@@ -248,10 +266,13 @@ function GraphCanvasInner() {
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onNodeClick={onNodeClick}
-        onEdgeClick={(_, e) => graphActions.select({ kind: "edge", key: e.id })}
+        onEdgeClick={(_, e) => {
+          if (!e.data?.leaving) clickEdge(e.id);
+          else if (tool !== "navigate") setFeedback({ kind: "invalid", message: "This target is leaving the graph." });
+        }}
         onNodeMouseEnter={(_, n) => setHovered(n.id)}
         onNodeMouseLeave={() => setHovered(undefined)}
-        onPaneClick={() => graphActions.select(undefined)}
+        onPaneClick={() => { if (tool === "navigate") graphActions.select(undefined); }}
         nodesConnectable={false}
         elementsSelectable={false}
         zoomOnDoubleClick={false}
@@ -262,7 +283,7 @@ function GraphCanvasInner() {
       >
         <Background gap={24} size={1} />
         <MiniMap pannable zoomable nodeColor={(n) => (n.data as InstanceFlowNode["data"]).color} nodeStrokeWidth={0} />
-        <GraphToolbar />
+        <GraphToolbar tool={tool} onToolChange={changeTool} feedback={feedback} />
       </ReactFlow>
       {graph.nodes.size === 0 && <GraphEmptyState />}
     </div>

@@ -22,6 +22,19 @@
   transition: none;
 }
 
+.ig-canvas--tool-active .ig-node,
+.ig-canvas--tool-active .react-flow__edge-interaction,
+.ig-canvas--tool-active .ig-edge-label {
+  cursor: crosshair;
+}
+
+.ig-tool-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-basis: 100%;
+}
+
 .ig-node {
   box-sizing: border-box;
   background: var(--ig-node-bg);
@@ -243,6 +256,11 @@
   padding: 1px 6px;
   border-radius: 10px;
   font-size: 10px;
+  line-height: 16px;
+  box-sizing: border-box;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   background: var(--iui-color-background, #fff);
   color: var(--ig-text);
@@ -285,6 +303,7 @@
   border-radius: 6px;
   background: var(--iui-color-background, #fff);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  max-width: calc(100% - 20px);
 }
 
 .ig-toolbar__select {

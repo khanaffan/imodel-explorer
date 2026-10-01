@@ -1,6 +1,6 @@
 import { Checkbox, ExpandableBlock, Input, Select, Text, ToggleSwitch } from "@itwin/itwinui-react";
 import { useMemo, useState } from "react";
-import { type ClassFilterEntry, cycleFilterState, type FilterSpec, type FilterState, isFilterEmpty, EMPTY_FILTERS } from "../engine/filters";
+import { type ClassFilterEntry, cycleFilterState, type FilterSpec, type FilterState, isFilterEmpty } from "../engine/filters";
 import { buildModelTree, type ModelInfo, type ModelTreeNode } from "../engine/models";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import "./widgets.css";
@@ -181,6 +181,7 @@ export function FiltersWidget() {
   const models = useGraphStore((s) => s.models);
   const options = useGraphStore((s) => s.options);
   const f = options.filters;
+  const excluded = options.excludedInstances ?? [];
 
   const { classNames, relNames, schemas } = useMemo(() => {
     if (!engine) return { classNames: [], relNames: [], schemas: [] };
@@ -217,7 +218,7 @@ export function FiltersWidget() {
 
       <div className="ig-row ig-row--between">
         <Text variant="leading">Filters</Text>
-        {!isFilterEmpty(f) && <button className="ig-link" onClick={() => graphActions.setOptions({ filters: EMPTY_FILTERS })}>Clear all</button>}
+        {(!isFilterEmpty(f) || excluded.length > 0) && <button className="ig-link" onClick={() => graphActions.clearFilters()}>Clear all</button>}
       </div>
       <Text variant="small" isMuted>✓ include only · ✕ exclude · sub-models follow their parent unless set · the centre is never hidden.</Text>
 
@@ -229,18 +230,17 @@ export function FiltersWidget() {
         onChange={(classes) => updateFilters((x) => ({ ...x, classes }))} />
       <ClassFilterSection title="Relationships" names={relNames} entries={f.relationships}
         onChange={(relationships) => updateFilters((x) => ({ ...x, relationships }))} />
+      {excluded.length > 0 && <Section title="Excluded instances" count={excluded.length}>
+        <Text variant="small" isMuted>These instances and paths through them are excluded. Changing this list clears Back/Forward history.</Text>
+        {excluded.map((key) => {
+          const [classId, id] = key.split(":");
+          return <div key={key} className="ig-filter-row">
+            <span className="ig-filter-row__name">{engine.registry.nameOf(classId)} <code>{id}</code></span>
+            <button className="ig-x" title={`Remove instance exclusion ${key}`} onClick={() => graphActions.removeInstanceExclusion(key)}>×</button>
+          </div>;
+        })}
+        <button className="ig-link" onClick={() => graphActions.setOptions({ excludedInstances: [] })}>Clear instance exclusions</button>
+      </Section>}
     </div>
   );
 }
-
-export const filterEdits = {
-  excludeClass(className: string) {
-    updateFilters((x) => ({ ...x, classes: setIn(x.classes, className, { state: "exclude", polymorphic: false }) }));
-  },
-  excludeModel(modelId: string) {
-    updateFilters((x) => ({ ...x, models: setIn(x.models, modelId, "exclude") }));
-  },
-  excludeRelationship(relClassName: string) {
-    updateFilters((x) => ({ ...x, relationships: setIn(x.relationships, relClassName, { state: "exclude", polymorphic: false }) }));
-  },
-};

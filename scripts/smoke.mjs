@@ -52,6 +52,116 @@ try {
     return { centre: s.graph.centreKey, nodes: s.graph.nodes.size, edges: s.graph.edges.size, rendered: document.querySelectorAll(".react-flow__node").length };
   });
   console.log("after seed:", JSON.stringify(summary));
+  await page.getByRole("tab", { name: "Properties", exact: true }).click();
+  const propertyGrid = page.locator(".ig-element-properties .components-virtualized-property-grid");
+  await propertyGrid.waitFor({ timeout: 30_000 });
+  await propertyGrid.locator(".virtualized-grid-node-category").first().waitFor({ timeout: 30_000 });
+  const gridBounds = await propertyGrid.boundingBox();
+  if (!gridBounds || gridBounds.width <= 0 || gridBounds.height <= 0)
+    throw new Error("element property grid has no visible area");
+
+  // Inspect a relationship independently of element/viewport selection.
+  const relationshipKey = await page.evaluate(() => {
+    const s = globalThis.imodelExplorer.getState();
+    return [...s.graph.edges.values()].find((e) => e.relClassName === "TestIG:PumpFeedsPipe")?.key;
+  });
+  if (!relationshipKey) throw new Error("expected a PumpFeedsPipe relationship");
+  await page.evaluate((key) => globalThis.imodelExplorer.graphActions.select({ kind: "edge", key }), relationshipKey);
+  await page.locator(".ig-prop__name", { hasText: "FlowRate" }).waitFor({ timeout: 30_000 });
+  if (await page.locator(".ig-element-properties").count() !== 0)
+    throw new Error("relationship incorrectly uses the element property grid");
+  await page.evaluate((key) => globalThis.imodelExplorer.graphActions.select({ kind: "node", key }), summary.centre);
+  await propertyGrid.waitFor({ timeout: 30_000 });
+
+  const toolIdle = async () => {
+    await page.waitForFunction(() => globalThis.imodelExplorer.getState().status.kind !== "loading", null, { timeout: 30_000 });
+    const status = await page.evaluate(() => globalThis.imodelExplorer.getState().status);
+    if (status.kind === "error") throw new Error(status.message);
+    await page.waitForTimeout(450); // Let animated targets settle before the next user click.
+  };
+  const armTool = async (name) => {
+    await page.locator(".ig-toolbar__tool").click();
+    await page.getByRole("menuitem", { name, exact: true }).click();
+  };
+  const nodeTarget = (key) => page.locator(`.react-flow__node[data-id="${key}"]`);
+  const clearToolsFilters = async () => {
+    await page.evaluate(() => globalThis.imodelExplorer.graphActions.clearFilters());
+    await toolIdle();
+  };
+  const selectionBeforeTools = await page.evaluate(() => {
+    const s = globalThis.imodelExplorer.getState();
+    return { selection: s.selection, ids: [...s.connection.selectionSet.elements] };
+  });
+  await armTool("Include relationship type");
+  await nodeTarget(summary.centre).click();
+  await page.getByRole("status").filter({ hasText: "Click a relationship edge" }).waitFor({ timeout: 5_000 });
+  await page.locator(".ig-edge-label", { hasText: "PumpFeedsPipe" }).first().click();
+  await toolIdle();
+  await page.locator(".ig-edge-label", { hasText: "PumpFeedsPipe" }).first().click();
+  await page.getByRole("status").filter({ hasText: "Already included" }).waitFor({ timeout: 5_000 });
+  const includedType = await page.evaluate(() => {
+    const s = globalThis.imodelExplorer.getState();
+    return { filter: s.options.filters.relationships["TestIG:PumpFeedsPipe"], centre: s.graph.centreKey,
+      allMatch: [...s.graph.edges.values()].every((e) => e.relClassName === "TestIG:PumpFeedsPipe") };
+  });
+  if (includedType.centre !== summary.centre || !includedType.allMatch || includedType.filter?.state !== "include" || includedType.filter.polymorphic)
+    throw new Error("Include relationship tool did not apply an exact type allowlist");
+  const selectionAfterTools = await page.evaluate(() => {
+    const s = globalThis.imodelExplorer.getState();
+    return { selection: s.selection, ids: [...s.connection.selectionSet.elements] };
+  });
+  if (JSON.stringify(selectionBeforeTools) !== JSON.stringify(selectionAfterTools))
+    throw new Error("graph tool changed inspection or viewport selection");
+  await clearToolsFilters();
+  await armTool("Exclude relationship type");
+  await page.locator(".ig-edge-label", { hasText: "PumpFeedsPipe" }).first().click();
+  await toolIdle();
+  if (await page.evaluate(() => [...globalThis.imodelExplorer.getState().graph.edges.values()].some((e) => e.relClassName === "TestIG:PumpFeedsPipe")))
+    throw new Error("Exclude relationship tool leaked edges");
+  await clearToolsFilters();
+
+  for (const tool of ["Include node class", "Exclude node class", "Include model", "Exclude model"]) {
+    const target = await page.evaluate(() => [...globalThis.imodelExplorer.getState().graph.nodes.values()].find((n) => n.className === "TestIG:Pipe"));
+    if (!target) throw new Error("expected a pipe target for click tools");
+    await armTool(tool);
+    await nodeTarget(target.key).click();
+    await toolIdle();
+    const entry = await page.evaluate(({ tool, target }) => {
+      const f = globalThis.imodelExplorer.getState().options.filters;
+      return tool.endsWith("model") ? f.models[target.modelId] : f.classes[target.className];
+    }, { tool, target });
+    const state = tool.startsWith("Include") ? "include" : "exclude";
+    if (typeof entry === "string" ? entry !== state : entry?.state !== state || entry.polymorphic)
+      throw new Error(`${tool} did not apply its filter`);
+    if ((await page.locator(".ig-toolbar__tool").textContent()) !== `Tool: ${tool}`)
+      throw new Error("click tool did not stay armed");
+    await clearToolsFilters();
+  }
+  await armTool("Exclude this instance");
+  await nodeTarget(summary.centre).click();
+  await page.getByRole("status").filter({ hasText: "centre cannot be excluded" }).waitFor({ timeout: 5_000 });
+  const excludedKey = await page.evaluate(() => [...globalThis.imodelExplorer.getState().graph.nodes.values()].find((n) => n.className === "TestIG:Pipe").key);
+  await nodeTarget(excludedKey).click({ modifiers: ["Shift"] });
+  await toolIdle();
+  const excludedResult = await page.evaluate((key) => {
+    const s = globalThis.imodelExplorer.getState();
+    return { absent: !s.graph.nodes.has(key), sibling: [...s.graph.nodes.values()].some((n) => n.className === "TestIG:Pipe"),
+      centre: s.graph.centreKey, filters: s.options.filters.classes, exclusions: s.options.excludedInstances };
+  }, excludedKey);
+  if (!excludedResult.absent || !excludedResult.sibling || excludedResult.centre !== summary.centre || Object.keys(excludedResult.filters).length || !excludedResult.exclusions.includes(excludedKey))
+    throw new Error("single-instance exclusion changed the wrong scope");
+  await page.keyboard.press("Escape");
+  if ((await page.locator(".ig-toolbar__tool").textContent()) !== "Tool: Navigate")
+    throw new Error("Escape did not restore normal navigation");
+  await clearToolsFilters();
+  await armTool("Exclude node class");
+  await page.locator(".ig-toolbar").getByRole("button", { name: "Classes", exact: true }).click();
+  if (await page.locator(".ig-toolbar__tool").count()) throw new Error("instance tools leaked into the class graph");
+  await page.locator(".ig-toolbar").getByRole("button", { name: "Instances", exact: true }).click();
+  if ((await page.locator(".ig-toolbar__tool").textContent()) !== "Tool: Navigate")
+    throw new Error("returning to the instance graph did not reset the tool");
+  await page.waitForTimeout(450);
+  console.log("graph tools: exact type/class/model filters, instance exclusion, repeated clicks, feedback and Escape OK");
   // Edges exist in the DOM even when CSS collapses their SVG, so check that they actually paint.
   const paintedEdges = await page.evaluate(() => [...document.querySelectorAll(".react-flow__edge")]
     .filter((e) => { const svg = e.closest("svg"); return svg && svg.getBoundingClientRect().width > 0; }).length);
@@ -278,6 +388,16 @@ try {
   await page.getByRole("tab", { name: "Geometry" }).waitFor({ timeout: 10_000 });
   await page.locator("button", { hasText: /^Close$/ }).click();
   console.log("features: settings dialog, persistence and reset OK");
+
+  await armTool("Exclude this instance");
+  await page.evaluate((f) => globalThis.imodelExplorer.openAndShow(f), file);
+  await page.waitForFunction(() => globalThis.imodelExplorer.getState().engine !== undefined, null, { timeout: 60_000 });
+  await page.locator(".ig-toolbar__tool").waitFor({ timeout: 5_000 });
+  if ((await page.locator(".ig-toolbar__tool").textContent()) !== "Tool: Navigate")
+    throw new Error("opening another connection did not reset the active tool");
+  if (await page.evaluate(() => globalThis.imodelExplorer.getState().options.excludedInstances.length))
+    throw new Error("instance exclusions leaked across connections");
+  console.log("graph tools: connection changes reset the active tool and instance exclusions");
 
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");

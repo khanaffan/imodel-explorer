@@ -1,6 +1,6 @@
 import { QueryBinder } from "@itwin/core-common";
 import type { ScreenViewport } from "@itwin/core-frontend";
-import { graphActions, useGraphStore } from "../state/graphStore";
+import { graphActions, sameSelection, useGraphStore } from "../state/graphStore";
 import { isGraphSelection } from "../state/selectionStorage";
 
 let viewport: ScreenViewport | undefined;
@@ -24,6 +24,7 @@ export const viewportSync = {
     unsubscribers.push(useGraphStore.subscribe((s, prev) => {
       if (s.selection === prev.selection && s.graph === prev.graph) return;
       const node = s.selection?.kind === "node" ? s.graph.nodes.get(s.selection.key) : undefined;
+      if (s.status.kind === "loading" && sameSelection(s.selection, prev.selection) && !node) return;
       const want = node && isGeometric(node.category) ? node.id : undefined;
       const current = imodel.selectionSet.elements;
       if (want ? current.size === 1 && current.has(want) : current.size === 0) return;

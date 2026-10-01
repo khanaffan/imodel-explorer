@@ -1,5 +1,5 @@
 import type { TraversalOptions } from "../engine/GraphEngine";
-import { type GraphData, type NodeKey, parseNodeKey } from "../engine/GraphModel";
+import { type GraphData, type NodeKey, nodeKeyString, normalizeExcludedInstances, parseNodeKey } from "../engine/GraphModel";
 import { EMPTY_FILTERS, type FilterSpec } from "../engine/filters";
 import type { LayoutMode } from "../graph/layout";
 import type { PinOffset, Pins } from "../engine/pins";
@@ -23,6 +23,7 @@ export interface SavedSession {
   readonly layoutMode: LayoutMode;
   /** Pinned instances (`classId:id`) and their offsets from the centre. Optional: older files have none. */
   readonly pinned?: ReadonlyArray<{ readonly key: string; readonly offset?: PinOffset }>;
+  readonly excludedInstances?: readonly string[];
 }
 
 const STORAGE_KEY = "instanceGraph.sessions";
@@ -38,6 +39,7 @@ export function captureSession(name: string, fileName: string, graph: GraphData,
     centre: parseNodeKey(graph.centreKey), depth: options.depth, direction: options.direction, filters: options.filters,
     nodeBudget: options.nodeBudget, groupCap: options.groupCap, expandedGroups: [...options.expandedGroups], expandedNodes, layoutMode,
     ...(pins.size > 0 ? { pinned: [...pins].map(([key, p]) => (p.offset ? { key, offset: { x: p.offset.x, y: p.offset.y } } : { key })) } : {}),
+    ...((options.excludedInstances?.length ?? 0) > 0 ? { excludedInstances: [...options.excludedInstances!] } : {}),
   };
 }
 
@@ -50,12 +52,15 @@ export function parseSession(value: unknown): SavedSession {
     throw new Error("Session has no centre instance");
   const num = (x: unknown, d: number) => (typeof x === "number" && Number.isFinite(x) && x > 0 ? x : d);
   const f = v.filters ?? EMPTY_FILTERS;
+  const excludedInstances = normalizeExcludedInstances(v.excludedInstances);
+  const centreKey = normalizeExcludedInstances([nodeKeyString(v.centre)])[0];
+  if (excludedInstances.includes(centreKey)) throw new Error("Session excludes its own centre instance");
   return {
     format: "instance-graph-session", version: 1,
     name: typeof v.name === "string" ? v.name : "Imported session",
     savedAt: typeof v.savedAt === "string" ? v.savedAt : new Date().toISOString(),
     fileName: typeof v.fileName === "string" ? v.fileName : "",
-    centre: { id: v.centre.id, classId: v.centre.classId },
+    centre: parseNodeKey(centreKey),
     depth: Math.min(6, num(v.depth, 1)),
     direction: v.direction === "forward" || v.direction === "backward" ? v.direction : "both",
     filters: { models: f.models ?? {}, schemas: f.schemas ?? {}, classes: f.classes ?? {}, relationships: f.relationships ?? {} },
@@ -65,6 +70,7 @@ export function parseSession(value: unknown): SavedSession {
     expandedNodes: Array.isArray(v.expandedNodes) ? v.expandedNodes.filter((s) => typeof s === "string") : [],
     layoutMode: v.layoutMode === "layered" ? "layered" : "radial",
     ...(Array.isArray(v.pinned) ? { pinned: parsePinned(v.pinned) } : {}),
+    ...(excludedInstances.length > 0 ? { excludedInstances } : {}),
   };
 }
 

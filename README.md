@@ -21,7 +21,8 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   dashed edges. Both are found with `ECVLib.Relations()`, falling back to schema metadata on
   runtimes that lack it.
 - **Cardinality** from the `ECRelationshipClass` constraints, shown at each end of an edge.
-- **Properties and Schema panels.** The Properties panel shows a node's readable properties. The
+- **Properties and Schema panels.** Elements use the ECPresentation property grid with categorized,
+  formatted properties. Other EC instances and relationships show raw database properties. The
   Schema panel shows its class definition: hierarchy, mixins, property types and derived classes.
 - **Geometry panel.** The selected element's geometry stream, op by op: a graphical stack of the
   stream (with a rail showing which appearance governs which primitives), formatted facts per
@@ -36,6 +37,9 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   current neighbourhood or built for the whole iModel. Double-click a class to jump back to its
   instances.
 - **Include or exclude filters** by model (as a hierarchy), schema, class or relationship.
+- **Graph click-tools.** Choose a tool, then click a node or relationship to include/exclude its
+  exact class/type or containing model. Exclude this instance removes just that node and paths
+  through it. Tools stay active until Escape or Navigate; instance exclusions are saved in sessions.
 - **Exemplar ranking.** Sort seed-query results by relationship fan-out to find the
   best-connected instances to start from.
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.

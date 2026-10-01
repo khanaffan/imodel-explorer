@@ -8,6 +8,7 @@ import { featureActions } from "../state/featureStore";
 import { NODE_HEIGHT, NODE_WIDTH } from "./layout";
 import { ModeToggle } from "./ModeToggle";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { GRAPH_TOOLS, type GraphTool, type ToolResult } from "./graphTools";
 
 const DEPTHS = [1, 2, 3, 4, 5, 6].map((d) => ({ value: d, label: `Depth ${d}` }));
 const DIRECTIONS: Array<{ value: DirectionFilter; label: string }> = [
@@ -16,7 +17,7 @@ const DIRECTIONS: Array<{ value: DirectionFilter; label: string }> = [
   { value: "backward", label: "Incoming" },
 ];
 
-export function GraphToolbar() {
+export function GraphToolbar({ tool, onToolChange, feedback }: { tool: GraphTool; onToolChange: (tool: GraphTool) => void; feedback?: ToolResult }) {
   const canGoBack = useGraphStore((s) => s.canGoBack);
   const canGoForward = useGraphStore((s) => s.canGoForward);
   const layoutMode = useGraphStore((s) => s.layoutMode);
@@ -26,6 +27,7 @@ export function GraphToolbar() {
   const hasGraph = useGraphStore((s) => s.graph.nodes.size > 0);
   const pins = useGraphStore((s) => s.pins);
   const rf = useReactFlow();
+  const activeTool = GRAPH_TOOLS.find((entry) => entry.id === tool)!;
 
   const stem = () => safeFileStem(useGraphStore.getState().fileName);
   const exportItems = (close: () => void) => [
@@ -66,6 +68,11 @@ export function GraphToolbar() {
     <>
       <Panel position="top-left" className="ig-toolbar">
         <ModeToggle />
+        <DropdownMenu menuItems={(close) => GRAPH_TOOLS.map((entry) =>
+          <MenuItem key={entry.id} onClick={() => { close(); onToolChange(entry.id === tool ? "navigate" : entry.id); }}>{entry.label}</MenuItem>)}>
+          <Button size="small" className="ig-toolbar__tool" styleType={tool === "navigate" ? "default" : "high-visibility"}
+            aria-pressed={tool !== "navigate"} title={`${activeTool.hint} Escape returns to Navigate.`}>Tool: {activeTool.label}</Button>
+        </DropdownMenu>
         <ButtonGroup>
           <IconButton size="small" styleType="borderless" label="Back (Alt+←)" disabled={!canGoBack} onClick={() => graphActions.back()}><SvgChevronLeft /></IconButton>
           <IconButton size="small" styleType="borderless" label="Forward (Alt+→)" disabled={!canGoForward} onClick={() => graphActions.forward()}><SvgChevronRight /></IconButton>
@@ -90,6 +97,10 @@ export function GraphToolbar() {
           <IconButton size="small" styleType="borderless" label="Export" disabled={!hasGraph}><SvgExport /></IconButton>
         </DropdownMenu>
         <IconButton size="small" styleType="borderless" label="App settings" onClick={featureActions.openSettings}><SvgSettings /></IconButton>
+        {tool !== "navigate" && <div className="ig-tool-hint">
+          <Text variant="small">{activeTool.hint} Escape to cancel.</Text>
+          {feedback && <Text variant="small" role="status" className={feedback.kind === "invalid" ? "ig-status--error" : undefined}>{feedback.message}</Text>}
+        </div>}
       </Panel>
       <Panel position="bottom-left" className="ig-status">
         {status.kind === "loading" && <ProgressRadial size="x-small" indeterminate />}

@@ -78,8 +78,31 @@ Click a node to recentre on it. Use Back to return.
 
 ## 6. Properties of nodes and relationships
 
+The graph toolbar's **Tool** menu lets you apply filters directly on the canvas. Select Include or
+Exclude relationship type, then click an edge (or a `+N` relationship group). For node classes or
+models, choose the matching tool and click an ordinary node. Class/type tools match the exact class;
+use the Filters panel's **+ subclasses** checkbox for polymorphic matching. Include creates an
+allowlist in that filter dimension, not a highlight or an override of other exclusions. Model
+filters apply to the containing model, and sub-models inherit their parent's state unless overridden.
+
+**Exclude this instance** removes only the clicked instance and traversal paths through it, without
+excluding its siblings. It also removes its pin and clears Back/Forward history. The centre cannot
+be excluded individually; class/model exclusion still applies to other nodes while keeping the
+centre visible. Manage individual exclusions under **Excluded instances** in Filters, or use
+**Clear all** to remove every filter. Removing an instance exclusion does not restore its old pin.
+Class/model filters retain the existing pinned-node overlay behavior; use instance exclusion to
+remove a pinned instance completely.
+Instance exclusions survive navigation and are saved with sessions, but clear when you close or
+switch iModels.
+
+Tools remain active for repeated clicks until **Escape**, **Navigate**, or switching to the class
+graph. While a tool is active, clicks apply it rather than recentring, including modifier-clicks.
+Invalid targets show a message without changing filters. Node Pin, preview, and expand buttons
+remain independent of the selected tool.
+
 When a node is selected, **Properties** shows a header card (class, IDs, model, hop count and
-relationship count), **Pin** and **Show in 3D** buttons, and then the readable properties. P-101A
+relationship count), **Pin** and **Show in 3D** buttons, and then the ECPresentation property grid
+for elements, with categorized, formatted values. Other EC instances retain raw properties. P-101A
 has the domain properties Tag, Description, Criticality and MaintenanceIntervalDays.
 
 <img src="tutorial/07-properties.png" width="378" alt="Properties of P-101A">

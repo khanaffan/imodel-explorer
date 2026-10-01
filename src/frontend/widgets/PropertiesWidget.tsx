@@ -2,13 +2,13 @@ import { Button, Text } from "@itwin/itwinui-react";
 import { useEffect, useState } from "react";
 import type { GraphEdge, GraphNode } from "../engine/GraphModel";
 import { loadInstanceProperties, type PropertyRecord, resolveNavTargetClassId } from "../engine/instanceProperties";
-import { graphActions, useGraphStore } from "../state/graphStore";
+import { filterEdits, graphActions, useGraphStore } from "../state/graphStore";
 import { colorFor } from "../state/colorTheme";
 import { useFeature } from "../state/featureStore";
-import { filterEdits } from "./FiltersWidget";
 import { viewportSync } from "../content/viewportSync";
 import { Constraint } from "./Constraint";
 import { showSchemaFor } from "./SchemaWidget";
+import { ElementProperties } from "./ElementProperties";
 import "./widgets.css";
 
 function usePropertyRecords(className: string | undefined, id: string | undefined) {
@@ -74,6 +74,7 @@ function PropertyTable({ className, id, emptyText }: { className: string; id: st
 }
 
 function NodeDetails({ node }: { node: GraphNode }) {
+  const connection = useGraphStore((s) => s.connection);
   const theme = useGraphStore((s) => s.theme);
   const isCentre = useGraphStore((s) => s.graph.centreKey === node.key);
   const isPinned = useGraphStore((s) => s.pins.has(node.key));
@@ -110,7 +111,9 @@ function NodeDetails({ node }: { node: GraphNode }) {
         {!isCentre && <Button size="small" styleType="borderless" onClick={() => filterEdits.excludeClass(node.className)}>Hide class</Button>}
         {!isCentre && node.modelId && <Button size="small" styleType="borderless" onClick={() => filterEdits.excludeModel(node.modelId!)}>Hide model</Button>}
       </div>
-      <PropertyTable className={node.className} id={node.id} />
+      {connection && node.classHierarchy.includes("BisCore:Element")
+        ? <ElementProperties imodel={connection} className={node.className} id={node.id} />
+        : <PropertyTable className={node.className} id={node.id} />}
     </div>
   );
 }

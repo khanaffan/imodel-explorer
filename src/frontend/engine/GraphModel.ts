@@ -1,3 +1,5 @@
+import { Id64 } from "@itwin/core-bentley";
+
 /** An `ECInstanceId` / `ECClassId` pair. Both are required: ids are only unique per table, so a
  * `PhysicalPartition` and the `PhysicalModel` that models it share an id but are different nodes. */
 export interface NodeKey {
@@ -12,6 +14,22 @@ export function nodeKeyString(key: NodeKey): string {
 export function parseNodeKey(key: string): NodeKey {
   const [classId, id] = key.split(":");
   return { classId, id };
+}
+
+export function normalizeExcludedInstances(value: unknown): string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error("Instance exclusions must be a list of classId:id keys");
+  const keys = value.map((key: unknown) => {
+    if (typeof key !== "string" || !/^0x[0-9a-f]+:0x[0-9a-f]+$/i.test(key))
+      throw new Error("Invalid instance exclusion: expected classId:id");
+    const parts = parseNodeKey(key);
+    const classId = Id64.fromString(parts.classId);
+    const id = Id64.fromString(parts.id);
+    if (!Id64.isValidId64(classId) || !Id64.isValidId64(id))
+      throw new Error(`Invalid instance exclusion: ${key}`);
+    return nodeKeyString({ classId, id });
+  });
+  return [...new Set(keys)];
 }
 
 export type Direction = "forward" | "backward";

@@ -1,7 +1,8 @@
 import type { IModelConnection } from "@itwin/core-frontend";
 import { create } from "zustand";
 import { type CancelToken, DEFAULT_OPTIONS, GraphEngine, TraversalCancelled, type TraversalOptions } from "../engine/GraphEngine";
-import { emptyGraph, type GraphData, type GraphEdge, type NodeKey, nodeKeyString, parseNodeKey } from "../engine/GraphModel";
+import { emptyGraph, type GraphData, type GraphEdge, type NodeKey, nodeKeyString, normalizeExcludedInstances, parseNodeKey } from "../engine/GraphModel";
+import { EMPTY_FILTERS, type FilterSpec, type FilterState } from "../engine/filters";
 import { composeDisplay, type Pin, type PinOffset, type Pins, prunePinEdges, retainPins } from "../engine/pins";
 import { createQueryPort, type QuerySource } from "../engine/IModelQueryPort";
 import { RelationsTraversal, type StrategyName } from "../engine/TraversalStrategy";
@@ -62,14 +63,14 @@ const OPTIONS_KEY = "instanceGraph.options";
 function loadOptions(): TraversalOptions {
   try {
     const saved = JSON.parse(localStorage.getItem(OPTIONS_KEY) ?? "{}");
-    return { ...DEFAULT_OPTIONS, ...saved, expandedGroups: new Set() };
+    return { ...DEFAULT_OPTIONS, ...saved, excludedInstances: [], expandedGroups: new Set() };
   } catch {
     return DEFAULT_OPTIONS;
   }
 }
 
 function saveOptions(o: TraversalOptions) {
-  const { expandedGroups: _ignored, ...rest } = o;
+  const { expandedGroups: _ignored, excludedInstances: _instances, ...rest } = o;
   localStorage.setItem(OPTIONS_KEY, JSON.stringify(rest));
 }
 
@@ -111,13 +112,23 @@ function syncHistoryFlags() {
   set({ canGoBack: history.canGoBack, canGoForward: history.canGoForward });
 }
 
+function centreOnly(graph: GraphData, key = graph.centreKey): GraphData {
+  const centre = graph.nodes.get(key);
+  return { ...emptyGraph(key), nodes: centre ? new Map([[key, { ...centre, expanded: false }]]) : new Map() };
+}
+
 /** Sets the traversal result and pins together, deriving the displayed graph. */
-function setBase(baseGraph: GraphData, pins: Pins = get().pins, pinEdges: ReadonlyMap<string, GraphEdge> = get().pinEdges, extra: Partial<GraphState> = {}) {
-  set({ ...extra, baseGraph, pins, pinEdges, graph: composeDisplay(baseGraph, pins, pinEdges) });
+function setBase(baseGraph: GraphData, pins: Pins = get().pins, pinEdges: ReadonlyMap<string, GraphEdge> = get().pinEdges, extra: Partial<GraphState> = {}, showPinOverlay = true) {
+  const excluded = new Set((extra.options ?? get().options).excludedInstances);
+  const eligible = new Map([...pins].filter(([key]) => !excluded.has(key)));
+  const edges = prunePinEdges(baseGraph, eligible, pinEdges);
+  set({ ...extra, baseGraph, pins: eligible, pinEdges: edges, graph: showPinOverlay ? composeDisplay(baseGraph, eligible, edges) : baseGraph });
 }
 
 /** Re-links pins to a new traversal result and drops the ones no longer connected. */
 async function settlePins(base: GraphData, token: CancelToken, pins: Pins = get().pins, extraEdges: Iterable<GraphEdge> = []): Promise<{ pins: Pins; pinEdges: Map<string, GraphEdge> }> {
+  const excluded = new Set(get().options.excludedInstances);
+  pins = new Map([...pins].filter(([key]) => !excluded.has(key)));
   const candidates = new Map<string, GraphEdge>();
   for (const e of extraEdges) candidates.set(e.key, e);
   if (pins.size === 0) return { pins, pinEdges: new Map() };
@@ -125,7 +136,7 @@ async function settlePins(base: GraphData, token: CancelToken, pins: Pins = get(
   try {
     if (engine) for (const [k, e] of await engine.connectPinned(base, pins, get().options, token)) candidates.set(k, e);
   } catch (e) {
-    if (e instanceof TraversalCancelled) throw e;
+    if (e instanceof TraversalCancelled || excluded.size > 0) throw e;
     for (const [k, edge] of get().pinEdges) candidates.set(k, edge); // best effort: keep what we knew
   }
   const kept = retainPins(base, pins, candidates);
@@ -175,9 +186,10 @@ function mergeProgress(partial: GraphData, optimistic: GraphData | undefined): G
 
 export const graphActions = {
   async attach(connection: IModelConnection, fileName: string, prefer?: StrategyName): Promise<void> {
+    const excludedInstances = get().connection === connection ? get().options.excludedInstances : [];
     beginWork("Reading schemas…");
     history.clear();
-    set({ connection, fileName, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], options: { ...get().options, expandedGroups: new Set() } });
+    set({ connection, fileName, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], options: { ...get().options, excludedInstances, expandedGroups: new Set() } });
     syncHistoryFlags();
     try {
       const engine = await GraphEngine.create(createQueryPort(connection as unknown as QuerySource), prefer);
@@ -190,7 +202,7 @@ export const graphActions = {
   detach(): void {
     if (activeToken) activeToken.cancelled = true;
     history.clear();
-    set({ connection: undefined, fileName: undefined, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], status: { kind: "idle" } });
+    set({ connection: undefined, fileName: undefined, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], options: { ...get().options, excludedInstances: [] }, status: { kind: "idle" } });
     syncHistoryFlags();
   },
 
@@ -212,9 +224,9 @@ export const graphActions = {
     await show(key, { keepPins: false, fit: opts.fit });
   },
 
-  async refresh(): Promise<void> {
+  async refresh(discardOptimistic = false): Promise<void> {
     const centre = get().graph.centreKey;
-    if (centre) await show(parseNodeKey(centre), { pushHistory: false, fit: true, keepPins: true });
+    if (centre) await show(parseNodeKey(centre), { pushHistory: false, fit: true, keepPins: true, discardOptimistic, preserveSelection: true });
   },
 
   async expand(nodeKey: string): Promise<void> {
@@ -277,7 +289,7 @@ export const graphActions = {
   togglePin(nodeKey: string): void {
     const { graph, baseGraph, pins, pinEdges } = get();
     const node = graph.nodes.get(nodeKey);
-    if (!node || node.aggregate) return;
+    if (!node || node.aggregate || get().options.excludedInstances?.includes(nodeKey)) return;
     const next = new Map(pins);
     if (next.has(nodeKey)) next.delete(nodeKey);
     else next.set(nodeKey, { node });
@@ -313,9 +325,54 @@ export const graphActions = {
 
   setOptions(patch: Partial<TraversalOptions>, reload = true): void {
     const options = { ...get().options, ...patch };
-    set({ options });
+    if (patch.excludedInstances !== undefined) {
+      options.excludedInstances = normalizeExcludedInstances(patch.excludedInstances);
+      if (options.excludedInstances.includes(get().graph.centreKey))
+        throw new Error("The centre cannot be excluded. Centre on another instance first.");
+    }
+    const changedInstances = !sameExclusions(options.excludedInstances, get().options.excludedInstances);
+    if (changedInstances) {
+      history.clear();
+      syncHistoryFlags();
+    }
+    if (changedInstances) {
+      const { baseGraph, pins } = get();
+      setBase(centreOnly(baseGraph), pins, NO_EDGES, {
+        options,
+        ...(get().engine && baseGraph.centreKey ? { status: { kind: "loading", message: "Applying instance exclusions..." } as const } : {}),
+      }, false);
+    } else set({ options });
     saveOptions(options);
-    if (reload) void graphActions.refresh();
+    if (reload || changedInstances) void graphActions.refresh(changedInstances);
+  },
+
+  setFilter(dimension: "classes" | "relationships" | "models", name: string, state: FilterState): boolean {
+    const filters = get().options.filters;
+    const current = filters[dimension][name];
+    if (dimension === "models" ? current === state : typeof current === "object" && current.state === state && !current.polymorphic)
+      return false;
+    const value = dimension === "models" ? state : { state, polymorphic: false };
+    const next: FilterSpec = dimension === "models"
+      ? { ...filters, models: { ...filters.models, [name]: state } }
+      : { ...filters, [dimension]: { ...filters[dimension], [name]: value } };
+    graphActions.setOptions({ filters: next });
+    return true;
+  },
+
+  excludeInstance(key: string): boolean {
+    const normalized = normalizeExcludedInstances([key])[0];
+    const excluded = get().options.excludedInstances ?? [];
+    if (excluded.includes(normalized)) return false;
+    graphActions.setOptions({ excludedInstances: [...excluded, normalized] });
+    return true;
+  },
+
+  removeInstanceExclusion(key: string): void {
+    graphActions.setOptions({ excludedInstances: (get().options.excludedInstances ?? []).filter((k) => k !== key) });
+  },
+
+  clearFilters(): void {
+    graphActions.setOptions({ filters: EMPTY_FILTERS, excludedInstances: [] });
   },
 
   setLayoutMode(layoutMode: LayoutMode): void { set((s) => ({ layoutMode, fitRequest: s.fitRequest + 1 })); },
@@ -327,20 +384,32 @@ export const graphActions = {
 
   /** Re-applies a saved session to the open iModel: options, centre, then manual expansions. */
   async restoreSession(session: SavedSession): Promise<void> {
+    if (!get().engine) throw new Error("Open an iModel before restoring a session");
+    const excludedInstances = normalizeExcludedInstances(session.excludedInstances);
+    if (excludedInstances.includes(nodeKeyString(session.centre)))
+      throw new Error("Session excludes its own centre instance");
+    history.clear();
+    syncHistoryFlags();
     const { expandedGroups: _g, ...current } = get().options;
     const options: TraversalOptions = {
-      ...current, depth: session.depth, direction: session.direction, filters: session.filters,
+      ...current, depth: session.depth, direction: session.direction, filters: session.filters, excludedInstances,
       nodeBudget: session.nodeBudget, groupCap: session.groupCap, expandedGroups: new Set(session.expandedGroups),
     };
-    set({ options, layoutMode: session.layoutMode });
+    setBase(centreOnly(get().baseGraph, nodeKeyString(session.centre)), NO_PINS, NO_EDGES,
+      { options, layoutMode: session.layoutMode, status: { kind: "loading", message: "Restoring session..." } });
     saveOptions(options);
-    await show(session.centre, { fit: true, expandedGroups: options.expandedGroups, keepPins: false });
+    const loading = show(session.centre, { fit: true, expandedGroups: options.expandedGroups, keepPins: false, discardOptimistic: true });
+    const restoringGeneration = generation;
+    await loading;
+    if (generation !== restoringGeneration) return;
+    const status = get().status;
+    if (status.kind === "error") throw new Error(status.message);
     const engine = get().engine;
     if (engine && session.pinned && session.pinned.length > 0 && get().graph.centreKey === nodeKeyString(session.centre)) {
       const token = beginWork("Restoring pins…");
       const myGeneration = generation;
       try {
-        const keys = session.pinned.map((p) => parseNodeKey(p.key));
+        const keys = session.pinned.filter((p) => !excludedInstances.includes(p.key)).map((p) => parseNodeKey(p.key));
         const existing = await engine.existingKeys(keys);
         const resolved = await engine.resolver.resolve(keys.filter((k) => existing.has(nodeKeyString(k))));
         const pins = new Map<string, Pin>();
@@ -405,6 +474,8 @@ interface ShowOptions {
   readonly pushHistory?: boolean;
   readonly fit?: boolean;
   readonly expandedGroups?: ReadonlySet<string>;
+  readonly discardOptimistic?: boolean;
+  readonly preserveSelection?: boolean;
 }
 
 /** Makes `key` the centre and loads its neighbourhood: degree 1 first, deeper rings streamed. */
@@ -412,6 +483,10 @@ async function show(key: NodeKey, opts: ShowOptions): Promise<void> {
   const { engine, baseGraph } = get();
   if (!engine) return;
   const centreKey = nodeKeyString(key);
+  if (get().options.excludedInstances?.includes(centreKey)) {
+    fail(new Error("This instance is excluded. Remove its exclusion in Filters before navigating to it."));
+    return;
+  }
   const token = beginWork("Loading relationships…");
   const myGeneration = generation;
 
@@ -425,18 +500,20 @@ async function show(key: NodeKey, opts: ShowOptions): Promise<void> {
   }
 
   // Instant feedback: re-root what is already on screen.
-  const optimistic = baseGraph.nodes.has(centreKey) ? reroot(baseGraph, centreKey) : undefined;
-  setBase(optimistic ?? baseGraph, pins, pinEdges, {
+  const optimistic = !opts.discardOptimistic && baseGraph.nodes.has(centreKey) ? reroot(baseGraph, centreKey) : undefined;
+  const previousSelection = get().selection;
+  const initial = opts.discardOptimistic ? centreOnly(baseGraph, centreKey) : baseGraph;
+  setBase(optimistic ?? initial, pins, opts.discardOptimistic ? NO_EDGES : pinEdges, {
     previousCentre: get().graph.centreKey || undefined,
-    selection: { kind: "node", key: centreKey },
-  });
+    selection: opts.preserveSelection ? previousSelection && { ...previousSelection } : { kind: "node", key: centreKey },
+  }, !opts.discardOptimistic);
   const options = opts.pushHistory === false ? get().options : { ...get().options, expandedGroups: new Set<string>(opts.expandedGroups) };
   set({ options });
 
   try {
     const result = await engine.buildNeighbourhood(key, options, (partial) => {
       if (myGeneration === generation)
-        setBase(mergeProgress(partial, optimistic));
+        setBase(mergeProgress(partial, optimistic), get().pins, undefined, {}, !opts.discardOptimistic);
     }, token);
     const settled = await settlePins(result, token, get().pins);
     if (myGeneration !== generation) return;
@@ -449,3 +526,13 @@ async function show(key: NodeKey, opts: ShowOptions): Promise<void> {
 }
 
 export const graphHistory = history;
+
+function sameExclusions(a: readonly string[] = [], b: readonly string[] = []): boolean {
+  return a.length === b.length && a.every((key) => b.includes(key));
+}
+
+export const filterEdits = {
+  excludeClass: (name: string) => graphActions.setFilter("classes", name, "exclude"),
+  excludeModel: (id: string) => graphActions.setFilter("models", id, "exclude"),
+  excludeRelationship: (name: string) => graphActions.setFilter("relationships", name, "exclude"),
+};

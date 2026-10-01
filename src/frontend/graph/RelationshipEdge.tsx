@@ -12,12 +12,15 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   readonly leaving: boolean;
   /** Instance count, shown as `×N`; set by the class-level graph. */
   readonly count?: number;
+  readonly onLabelClick?: () => void;
 }
 
 export type RelationshipFlowEdge = Edge<RelationshipEdgeData, "relationship">;
 
 const LABEL_ZOOM = 0.75;
 const PARALLEL_SPACING = 36;
+const LABEL_WIDTH = 180;
+const LABEL_HEIGHT = 24;
 
 interface Pt { x: number; y: number }
 
@@ -56,7 +59,11 @@ function RelationshipEdgeView({ id, source, target, data, markerEnd }: EdgeProps
   const len = Math.hypot(dx, dy) || 1;
   // Parallel edges bow out on alternating sides; direction is normalised so A→B and B→A agree.
   const flip = source < target ? 1 : -1;
-  const offset = (parallelIndex - (parallelCount - 1) / 2) * PARALLEL_SPACING * flip;
+  // Labels sit halfway along quadratic curves, so their separation is half the control offset.
+  const labelSpacing = Math.min(Math.abs(dy) > 0 ? LABEL_WIDTH * len / Math.abs(dy) : Infinity,
+    Math.abs(dx) > 0 ? LABEL_HEIGHT * len / Math.abs(dx) : Infinity);
+  const spacing = Number.isFinite(labelSpacing) ? Math.max(PARALLEL_SPACING, labelSpacing * 2) : PARALLEL_SPACING;
+  const offset = (parallelIndex - (parallelCount - 1) / 2) * spacing * flip;
   const control = { x: (sc.x + tc.x) / 2 - (dy / len) * offset, y: (sc.y + tc.y) / 2 + (dx / len) * offset };
   const p1 = borderPoint(s, offset === 0 ? tc : control);
   const p2 = borderPoint(t, offset === 0 ? sc : control);
@@ -77,7 +84,8 @@ function RelationshipEdgeView({ id, source, target, data, markerEnd }: EdgeProps
       {showLabel && (
         <EdgeLabelRenderer>
           <div className={`ig-edge-label ig-edge-label--${edge.kind}${isSelected ? " ig-edge-label--selected" : ""}`}
-            style={{ transform: `translate(-50%, -50%) translate(${mid.x}px, ${mid.y}px)` }}
+            onClick={data.onLabelClick ? (event) => { event.stopPropagation(); data.onLabelClick?.(); } : undefined}
+            style={{ pointerEvents: data.onLabelClick ? "all" : undefined, transform: `translate(-50%, -50%) translate(${mid.x}px, ${mid.y}px)` }}
             title={`${edge.relClassName}${edge.navPropertyName ? ` (nav: ${edge.navPropertyName})` : " (link table)"}`}>
             {edge.kind === "navigation" ? "⟶ " : edge.kind === "linkTable" ? "⬌ " : ""}{shortName(edge.relClassName)}
             {edge.navPropertyName && <span className="ig-edge-label__nav">.{edge.navPropertyName}</span>}

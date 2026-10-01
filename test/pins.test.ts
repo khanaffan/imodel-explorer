@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { DEFAULT_OPTIONS, GraphEngine } from "../src/frontend/engine/GraphEngine";
 import { createQueryPort, type QuerySource } from "../src/frontend/engine/IModelQueryPort";
 import type { GraphData, GraphEdge, GraphNode, NodeCategory } from "../src/frontend/engine/GraphModel";
@@ -91,6 +91,16 @@ describe("avoidPinned", () => {
 });
 
 describe("sessions with pins", () => {
+  it("round-trips instance exclusions and rejects invalid imported exclusions", () => {
+    const s = captureSession("excluded", "/a.bim", graph(C, [], []), { ...DEFAULT_OPTIONS, excludedInstances: [P, Q] }, "radial")!;
+    expect(parseSession(JSON.parse(JSON.stringify(s)))).toEqual(s);
+    expect(parseSession({ ...s, excludedInstances: [P, P.toUpperCase().replaceAll("0X", "0x")] }).excludedInstances).toEqual([P]);
+    for (const exclusions of [[C], ["0x0:0x1"], ["bad"], "bad", [null]])
+      expect(() => parseSession({ ...s, excludedInstances: exclusions })).toThrow();
+    const { excludedInstances: _e, ...old } = s;
+    expect(parseSession(old).excludedInstances).toBeUndefined();
+  });
+
   it("round-trips pins and offsets, and stays compatible with files without them", () => {
     const g = graph(C, [N], [[C, N]]);
     const p = new Map<string, Pin>([[P, { node: node(P), offset: { x: 10, y: -20 } }], [Q, { node: node(Q) }]]);
@@ -110,6 +120,10 @@ describe("pins in the store", () => {
   const nk = (cls: string, id: string) => ({ classId: fx.classIds[cls], id });
   const state = () => store.useGraphStore.getState();
   const pinKeys = () => [...state().pins.keys()].sort();
+  const idle = async () => vi.waitFor(() => {
+    if (state().status.kind === "error") throw new Error(state().status.message);
+    expect(state().status.kind).toBe("idle");
+  });
 
   beforeAll(async () => {
     const mem = new Map<string, string>();
@@ -183,6 +197,84 @@ describe("pins in the store", () => {
     expect(pinKeys()).toEqual([pipeA]);
     expect(state().pins.get(pipeA)!.offset).toEqual({ x: 40, y: 50 });
   });
+
+  it("excludes pinned instances, clears history and preserves selection during refresh", async () => {
+    const { graphActions } = store;
+    const pipeA = key("TestIG:Pipe", fx.ids.pipeA), pipeB = key("TestIG:Pipe", fx.ids.pipeB);
+    await graphActions.seedExternal(nk("TestIG:Pump", fx.ids.pump2));
+    await graphActions.centreOn(nk("TestIG:Pump", fx.ids.pump1));
+    expect(state().canGoBack).toBe(true);
+    graphActions.togglePin(pipeA);
+    graphActions.togglePin(pipeB);
+    const selection = state().selection;
+    const seen: GraphData[] = [];
+    const unsubscribe = store.useGraphStore.subscribe((s) => { if (s.options.excludedInstances?.includes(pipeA)) seen.push(s.graph); });
+    graphActions.excludeInstance(pipeA);
+    await idle();
+    unsubscribe();
+    for (const g of seen) expect(g.nodes.has(pipeA)).toBe(false);
+    expect(pinKeys()).toEqual([pipeB]);
+    expect(state().selection).toEqual(selection);
+    expect(state().canGoBack).toBe(false);
+    graphActions.back();
+    expect(state().graph.nodes.has(pipeA)).toBe(false);
+    expect(JSON.parse(localStorage.getItem("instanceGraph.options")!)).not.toHaveProperty("excludedInstances");
+
+    const saved = captureSession("excluded", "fixture.bim", state().graph, state().options, "radial", state().pins)!;
+    await graphActions.restoreSession({ ...saved, pinned: [...saved.pinned!, { key: pipeA }] });
+    expect(state().graph.nodes.has(pipeA)).toBe(false);
+    expect(pinKeys()).toEqual([pipeB]);
+    graphActions.removeInstanceExclusion(pipeA);
+    await idle();
+    expect(state().graph.nodes.has(pipeA)).toBe(true);
+    expect(pinKeys()).toEqual([pipeB]);
+  });
+
+  it("cancels rapid exclusion changes without losing unrelated pins or publishing stale results", async () => {
+    const { graphActions } = store;
+    await graphActions.seedExternal(nk("TestIG:Pump", fx.ids.pump1));
+    const pipeA = key("TestIG:Pipe", fx.ids.pipeA), pipeB = key("TestIG:Pipe", fx.ids.pipeB);
+    graphActions.togglePin(pipeB);
+    const engine = state().engine!;
+    const build = engine.buildNeighbourhood.bind(engine);
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    let first = true;
+    const spy = vi.spyOn(engine, "buildNeighbourhood").mockImplementation(async (...args) => {
+      if (first) { first = false; await gate; }
+      return build(...args);
+    });
+    try {
+      graphActions.excludeInstance(pipeA);
+      graphActions.excludeInstance(key("TestIG:Pump", fx.ids.pump2));
+      release();
+      await idle();
+      expect(state().graph.nodes.has(pipeA)).toBe(false);
+      expect(pinKeys()).toEqual([pipeB]);
+      expect(state().options.excludedInstances).toHaveLength(2);
+      const centreBefore = state().graph.centreKey;
+      await graphActions.centreOn(nk("TestIG:Pipe", fx.ids.pipeA));
+      expect(state().graph.centreKey).toBe(centreBefore);
+      expect(state().status.kind).toBe("error");
+    } finally { release(); spy.mockRestore(); }
+  });
+
+  it("retains exclusions on strategy rebuilds but clears them on a different connection and detach", async () => {
+    const { graphActions } = store;
+    const exclusions = state().options.excludedInstances;
+    await graphActions.switchStrategy("relations");
+    expect(state().options.excludedInstances).toEqual(exclusions);
+    expect(state().graph.nodes.has(key("TestIG:Pipe", fx.ids.pipeA))).toBe(false);
+    const previousPort = state().engine!.port;
+    // A distinct connection identity simulates opening another iModel using the same test DB.
+    const connection = { createQueryReader: fx.db.createQueryReader.bind(fx.db) };
+    await graphActions.attach(connection as never, "other.bim", "fallback");
+    expect(state().options.excludedInstances).toEqual([]);
+    expect(state().engine?.port).not.toBe(previousPort);
+    graphActions.setOptions({ excludedInstances: [key("TestIG:Pipe", fx.ids.pipeA)] }, false);
+    graphActions.detach();
+    expect(state().options.excludedInstances).toEqual([]);
+  });
 });
 
 describe("connecting pins in the engine", () => {
@@ -209,6 +301,8 @@ describe("connecting pins in the engine", () => {
     expect(ends.has(key("TestIG:Pipe", fx.ids.pipeB))).toBe(true);
     for (const e of edges.values()) expect(e.source === pump2 || e.target === pump2).toBe(true);
     for (const e of edges.values()) expect(base.edges.has(e.key)).toBe(false);
+    const excluded = await engine.connectPinned(base, p, { ...opts, excludedInstances: [pump2] });
+    expect(excluded.size).toBe(0);
   });
 
   it.each(["relations", "fallback"])("links a pinned hub to a pipe beyond the group cap (%s)", async (name) => {
