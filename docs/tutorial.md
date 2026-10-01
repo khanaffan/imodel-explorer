@@ -31,6 +31,9 @@ persist across iModels.
 
 <img src="tutorial/01-settings.png" width="420" alt="App settings dialog">
 
+The first time you open an iModel, a short tour points out the main panels. Replay it any time
+with **Help → Take the tour**.
+
 ## 3. Pick a seed with ECSQL
 
 In **Seed query**, enter any ECSQL query that returns `ECInstanceId` (ideally also `ECClassId`),
@@ -42,6 +45,9 @@ SELECT ECInstanceId, ECClassId FROM WaterPlant.Pump
 ```
 
 <img src="tutorial/03-seed-query.png" width="358" alt="Seed query panel listing seven pumps">
+
+**Save…** names a query (optionally only for this iModel) so you can run it again from **Saved**
+or the command palette. **History** lists the last 20 queries you ran.
 
 ## 4. The graph toolbar
 
@@ -297,6 +303,20 @@ pink.
 replays them later.
 
 <img src="tutorial/25-sessions.png" width="358" alt="Sessions panel with a saved session">
+
+Notes you write on instances (in **Properties**, under *Note*) are saved with the session for the
+nodes it shows, and are restored with it without overwriting notes you already have.
+
+The compare button on a session shows what differs from the current graph, or from another
+session: new instances are outlined, ones that are gone are ghosted, and the banner counts them.
+**Exit comparison** (or Escape) returns to the graph you had.
+
+### Links
+
+**File → Copy link to this view** copies an `imodel-explorer://` link to the open iModel and
+centre instance. Paste a link into the command palette (or **File → Open link…**) to open it. In a
+development run the operating system does not know the protocol, so pasting is the way to open
+links there.
 
 ## 18. Export
 

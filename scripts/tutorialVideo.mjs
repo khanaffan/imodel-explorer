@@ -65,7 +65,8 @@ try {
   await app.evaluate(({ BrowserWindow }, s) => { const w = BrowserWindow.getAllWindows()[0]; w.setSize(s.width, s.height); w.center(); }, SIZE);
   await page.waitForFunction(() => globalThis.imodelExplorer !== undefined, null, { timeout: 60_000 });
   // A fresh profile still inherits legacy localStorage (migrateLocalStorage in src/backend/main.ts).
-  await page.evaluate(() => localStorage.clear());
+  // Mark the first-run tour as seen so its coach marks do not cover the screenshots.
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem("instanceGraph.tourSeen", "1"); });
   await page.reload();
   await page.waitForFunction(() => globalThis.imodelExplorer !== undefined, null, { timeout: 60_000 });
 

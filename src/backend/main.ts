@@ -1,17 +1,25 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { app, Menu, type MenuItemConstructorOptions, session } from "electron";
+import { app, ipcMain, Menu, type MenuItemConstructorOptions, session } from "electron";
 import { IModelHost, IpcHost } from "@itwin/core-backend";
 import { ECSchemaRpcImpl } from "@itwin/ecschema-rpcinterface-impl";
 import { Presentation } from "@itwin/presentation-backend";
 import { ElectronHost } from "@itwin/core-electron/lib/cjs/ElectronBackend";
 import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
+import { DEEP_LINK_PROTOCOL, findDeepLinkArg, looksLikeDeepLink } from "../common/deepLink";
+import { DEEP_LINK_CHANNEL, DEEP_LINK_READY_CHANNEL, FILE_EXISTS_CHANNEL } from "../common/hostIpc";
 import { MENU_COMMAND_CHANNEL, MENU_MODEL_CHANNEL, type MenuGroup, type MenuModel, parseMenuModel } from "../common/menuIpc";
 
 /** Thin host shim. All graph work happens in the renderer against the `IModelConnection`; the
  * backend opens files, serves tiles and renders the application menu the renderer describes.
  * This is the only file that knows about Electron — a Studio host would replace it. */
 async function main() {
+  // One window handles every link: a second launch (Windows/Linux deep link) forwards its arguments here.
+  if (!app.requestSingleInstanceLock()) {
+    app.quit();
+    return;
+  }
+  const links = startDeepLinks();
   migrateLocalStorage();
   const dev = process.env.IG_DEV === "1";
   await ElectronHost.startup({
@@ -36,6 +44,9 @@ async function main() {
       console.error("Ignoring malformed application menu from the renderer:", e);
     }
   });
+  IpcHost.addListener(DEEP_LINK_READY_CHANNEL, () => links.rendererReady());
+  ipcMain.handle(FILE_EXISTS_CHANNEL, (_evt, p: unknown) =>
+    typeof p === "string" && path.isAbsolute(p) && fs.statSync(p, { throwIfNoEntry: false })?.isFile() === true);
   // Lets the renderer resolve dropped files to paths (File.path no longer exists).
   await app.whenReady();
   session.defaultSession.registerPreloadScript({ type: "frame", filePath: path.join(__dirname, "preload.js") });
@@ -52,6 +63,39 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+/** Receives `imodel-explorer://` links from the OS and hands them to the renderer, which validates
+ * and opens them. Links arriving before the renderer listens are queued.
+ *
+ * The OS only routes the scheme to a registered app. A packaged build registers itself; an
+ * unpackaged `electron .` does not, because that would register the bare Electron binary for every
+ * user of this machine. In development, pass the link as an argument (`npm start -- "<link>"`) or
+ * paste it into the command palette. */
+function startDeepLinks() {
+  let ready = false;
+  const pending: string[] = [];
+  const deliver = (url: string) => {
+    if (!looksLikeDeepLink(url) || url.length > 4096) return;
+    if (ready) IpcHost.send(DEEP_LINK_CHANNEL, url);
+    else pending.push(url);
+    const win = ElectronHost.mainWindow;
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  };
+  if (app.isPackaged) app.setAsDefaultProtocolClient(DEEP_LINK_PROTOCOL);
+  app.on("open-url", (evt, url) => { evt.preventDefault(); deliver(url); }); // macOS
+  app.on("second-instance", (_evt, argv) => { const url = findDeepLinkArg(argv); if (url) deliver(url); });
+  const initial = findDeepLinkArg(process.argv);
+  if (initial) deliver(initial);
+  return {
+    rendererReady() {
+      ready = true;
+      for (const url of pending.splice(0)) IpcHost.send(DEEP_LINK_CHANNEL, url);
+    },
+  };
+}
 
 /** Standard roles (clipboard, zoom, window) plus the renderer's commands. Clicks are sent back to
  * the renderer by command id; the renderer decides what they do. Without a model (before the

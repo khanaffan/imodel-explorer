@@ -1,14 +1,19 @@
 import { getCanvasBridge } from "../graph/canvasBridge";
 import { exportGraph, GRAPH_EXPORTS, type GraphExportKind } from "../graph/exportGraph";
-import { appHost, iModelPathProblem } from "../host/AppHost";
+import { appHost } from "../host/AppHost";
+import { iModelPathProblem } from "../../common/iModelFiles";
 import { closeCurrent, openAndShow } from "../imodel/session";
-import { captureSession, storeSession } from "../services/sessionStore";
+import { captureSession, listSessions, storeSession } from "../services/sessionStore";
+import { notesFor } from "../services/annotations";
 import { APP_THEMES, appThemeActions } from "../state/appTheme";
 import { classGraphActions, useClassGraphStore } from "../state/classGraphStore";
 import { featureActions, isFeatureEnabled } from "../state/featureStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { parseNodeKey } from "../engine/GraphModel";
 import { notify } from "./notify";
+import { tourActions } from "./FirstRunTour";
+import { currentDeepLink, openDeepLink } from "./deepLinks";
+import { DEEP_LINK_PROTOCOL } from "../../common/deepLink";
 import { paletteActions } from "./paletteStore";
 import { shortcutSheetActions } from "./ShortcutSheet";
 import { type AppCommand, type CommandSource, isEditable, registerCommands } from "./registry";
@@ -21,6 +26,11 @@ const needCanvas = () => needGraph() ?? (getCanvasBridge() ? undefined : "Show t
 const selectedNode = () => {
   const s = useGraphStore.getState().selection;
   return s?.kind === "node" && !useGraphStore.getState().graph.nodes.get(s.key)?.aggregate ? s.key : undefined;
+};
+
+const sessionsForFile = () => {
+  const fileName = useGraphStore.getState().fileName;
+  return fileName ? listSessions().filter((s) => s.fileName === fileName) : [];
 };
 
 async function open(path: string | undefined) {
@@ -63,10 +73,24 @@ export const APP_COMMANDS: readonly AppCommand[] = [
     disabledReason: needGraph,
     run: () => {
       const { graph, options, layoutMode, pins, fileName } = useGraphStore.getState();
-      const session = fileName ? captureSession(`Session ${new Date().toLocaleString()}`, fileName, graph, options, layoutMode, pins) : undefined;
+      const session = fileName ? captureSession(`Session ${new Date().toLocaleString()}`, fileName, graph, options, layoutMode, pins, notesFor(fileName)) : undefined;
       if (!session) throw new Error("There is no centre instance to save.");
       storeSession(session);
       notify.success(`Saved "${session.name}". Find it in the Sessions panel.`);
+    } },
+  { id: "link.copy", title: "Copy link to this view", group: "File", keywords: "share url deep link clipboard",
+    disabledReason: needGraph,
+    run: async () => {
+      const link = currentDeepLink();
+      if (!link) throw new Error("There is no centre instance to link to.");
+      await navigator.clipboard.writeText(link);
+      notify.success("Link copied. Open it from the command palette (paste it) or, in a packaged build, from any app.");
+    } },
+  { id: "link.open", title: "Open link…", group: "File", keywords: "paste url deep link share",
+    run: async (_source, arg) => {
+      if (!arg) { paletteActions.open(`${DEEP_LINK_PROTOCOL}://`); return; }
+      const link = await openDeepLink(arg);
+      notify.success(`Opened link to ${link.file.split(/[\\/]/).pop()}.`);
     } },
   { id: "file.exportGraph", title: "Export graph", group: "File", keywords: "save download json graphml cxl png ecsql",
     disabledReason: needGraph,
@@ -128,6 +152,17 @@ export const APP_COMMANDS: readonly AppCommand[] = [
   { id: "graph.cancelPath", title: "Cancel path search", group: "Graph", keywords: "stop",
     disabledReason: () => (useGraphStore.getState().pathSearching ? undefined : "No path search is running."),
     run: () => { graphActions.cancelPathSearch(); } },
+  { id: "graph.compareSession", title: "Compare current graph with session", group: "Graph", keywords: "diff changes difference",
+    disabledReason: () => needGraph() ?? (sessionsForFile().length ? undefined : "Save a session for this iModel first."),
+    children: () => sessionsForFile().map((s) => ({ label: s.name, arg: s.name })),
+    run: async (_source, arg) => {
+      const session = sessionsForFile().find((s) => s.name === arg);
+      if (!session) throw new Error("Pick a saved session for this iModel.");
+      await graphActions.diffSessions("current", session);
+    } },
+  { id: "graph.exitDiff", title: "Exit comparison", group: "Graph", keywords: "diff close",
+    disabledReason: () => (useGraphStore.getState().diffView ? undefined : "No comparison is shown."),
+    run: () => graphActions.exitDiff() },
   { id: "graph.cancel", title: "Cancel search, find or tool", group: "Graph", shortcut: { key: "Escape" }, inMenu: false, inPalette: false,
     disabledReason: () => (getCanvasBridge() || useGraphStore.getState().pathSearching ? undefined : "Nothing to cancel."),
     run: () => { if (!graphActions.cancelPathSearch()) getCanvasBridge()?.escape(); } },
@@ -135,6 +170,9 @@ export const APP_COMMANDS: readonly AppCommand[] = [
   // Help
   { id: "help.shortcuts", title: "Keyboard shortcuts", group: "Help", shortcut: { key: "?" }, keywords: "keys hotkeys help",
     run: shortcutSheetActions.toggle },
+  { id: "help.tour", title: "Take the tour", group: "Help", keywords: "help intro onboarding coach guide",
+    disabledReason: () => (useGraphStore.getState().connection ? undefined : "Open an iModel first; the tour walks through its panels."),
+    run: tourActions.start },
 ];
 
 export function registerAppCommands(): () => void {

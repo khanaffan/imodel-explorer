@@ -1,4 +1,4 @@
-import { Button, Text } from "@itwin/itwinui-react";
+import { Button, Text, Textarea } from "@itwin/itwinui-react";
 import { useEffect, useState } from "react";
 import type { GraphEdge, GraphNode } from "../engine/GraphModel";
 import { loadInstanceProperties, type PropertyRecord } from "../engine/instanceProperties";
@@ -11,6 +11,8 @@ import { showSchemaFor } from "./SchemaWidget";
 import { ElementProperties } from "./ElementProperties";
 import { InstanceLink } from "./InstanceLink";
 import { Skeleton } from "./Skeleton";
+import { annotationActions, NOTE_MAX_LENGTH, useNote } from "../services/annotations";
+import { notify } from "../commands/notify";
 import "./widgets.css";
 
 function usePropertyRecords(className: string | undefined, id: string | undefined) {
@@ -69,7 +71,36 @@ function PropertyTable({ className, id, emptyText }: { className: string; id: st
   );
 }
 
+/** A free-text note on the instance, kept per iModel file. Saved on blur or ⌘/Ctrl+Enter. */
+function NoteEditor({ fileName, nodeKey }: { fileName: string; nodeKey: string }) {
+  const saved = useNote(fileName, nodeKey) ?? "";
+  const [draft, setDraft] = useState(saved);
+  useEffect(() => setDraft(saved), [saved]);
+  const dirty = draft.trim() !== saved;
+  const save = () => {
+    if (!dirty) return;
+    try {
+      annotationActions.setNote(fileName, nodeKey, draft);
+    } catch (e) {
+      notify.error(e instanceof Error ? e.message : String(e));
+    }
+  };
+  return (
+    <div className="ig-note">
+      <label className="ig-props__section" htmlFor={`ig-note-${nodeKey}`}>Note{dirty ? " (unsaved)" : ""}</label>
+      <Textarea id={`ig-note-${nodeKey}`} rows={2} maxLength={NOTE_MAX_LENGTH} placeholder="Add a note about this instance…" value={draft}
+        data-testid="node-note" onChange={(e) => setDraft(e.target.value)} onBlur={save}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); save(); }
+          else if (e.key === "Escape") { e.stopPropagation(); setDraft(saved); }
+        }} />
+      {saved && !dirty && <button className="ig-link" onClick={() => annotationActions.setNote(fileName, nodeKey, "")}>Remove note</button>}
+    </div>
+  );
+}
+
 function NodeDetails({ node }: { node: GraphNode }) {
+  const fileName = useGraphStore((s) => s.fileName);
   const connection = useGraphStore((s) => s.connection);
   const theme = useGraphStore((s) => s.theme);
   const isCentre = useGraphStore((s) => s.graph.centreKey === node.key);
@@ -107,6 +138,7 @@ function NodeDetails({ node }: { node: GraphNode }) {
         {!isCentre && <Button size="small" styleType="borderless" onClick={() => filterEdits.excludeClass(node.className)}>Hide class</Button>}
         {!isCentre && node.modelId && <Button size="small" styleType="borderless" onClick={() => filterEdits.excludeModel(node.modelId!)}>Hide model</Button>}
       </div>
+      {fileName && <NoteEditor fileName={fileName} nodeKey={node.key} />}
       {connection && node.classHierarchy.includes("BisCore:Element")
         ? <ElementProperties imodel={connection} className={node.className} id={node.id} />
         : <PropertyTable className={node.className} id={node.id} />}
@@ -152,6 +184,10 @@ function EdgeDetails({ edge }: { edge: GraphEdge }) {
 }
 
 export function PropertiesWidget() {
+  return <div className="ig-widget-host" data-tour="properties"><PropertiesContent /></div>;
+}
+
+function PropertiesContent() {
   const selection = useGraphStore((s) => s.selection);
   const node = useGraphStore((s) => (s.selection?.kind === "node" ? s.graph.nodes.get(s.selection.key) : undefined));
   const edge = useGraphStore((s) => (s.selection?.kind === "edge" ? s.graph.edges.get(s.selection.key) : undefined));

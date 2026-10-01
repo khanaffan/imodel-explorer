@@ -1,4 +1,4 @@
-import { Button, DropdownMenu, MenuItem, Text, Textarea } from "@itwin/itwinui-react";
+import { Button, Checkbox, DropdownMenu, Input, MenuDivider, MenuItem, Text, Textarea } from "@itwin/itwinui-react";
 import { UiFramework } from "@itwin/appui-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nodeKeyString } from "../engine/GraphModel";
@@ -6,6 +6,8 @@ import { EXAMPLE_SEED_QUERIES, RANK_LIMIT, rankSeedCandidates, runSeedQuery, SEE
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { useFeature } from "../state/featureStore";
 import { useOverviewStore } from "../state/censusStore";
+import { notify } from "../commands/notify";
+import { deleteSeed, listSeedHistory, listSeedsFor, onSeedsChanged, recordSeedQuery, type SavedSeed, storeSeed } from "../services/seedLibrary";
 import { Skeleton } from "./Skeleton";
 import "./widgets.css";
 
@@ -23,6 +25,14 @@ export function SeedQueryWidget() {
   const [ranks, setRanks] = useState<Map<string, number>>();
   const [ranking, setRanking] = useState(false);
   const rankingOn = useFeature("ranking");
+  const fileName = useGraphStore((s) => s.fileName);
+  const [library, setLibrary] = useState(() => ({ saved: listSeedsFor(fileName), history: listSeedHistory() }));
+  useEffect(() => {
+    const reload = () => setLibrary({ saved: listSeedsFor(fileName), history: listSeedHistory() });
+    reload();
+    return onSeedsChanged(reload);
+  }, [fileName]);
+  const [saving, setSaving] = useState<{ name: string; description: string; thisFileOnly: boolean }>();
 
   const run = useCallback(async (sql?: string) => {
     const text = sql ?? ecsql;
@@ -33,6 +43,7 @@ export function SeedQueryWidget() {
     setRanks(undefined);
     try {
       const r = await runSeedQuery(engine, text);
+      recordSeedQuery(text);
       setResult(r);
       if (r.candidates.length === 1)
         void graphActions.seedExternal(r.candidates[0].key, { fit: true });
@@ -67,12 +78,39 @@ export function SeedQueryWidget() {
     }
   }, [engine, result]);
 
+  const saveSeed = () => {
+    if (!saving) return;
+    try {
+      const seed = storeSeed({
+        name: saving.name, ecsql, description: saving.description, savedAt: new Date().toISOString(),
+        ...(saving.thisFileOnly && fileName ? { fileName } : {}),
+      });
+      setSaving(undefined);
+      notify.success(`Saved query "${seed.name}".`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const savedItems = (close: () => void) => library.saved.length === 0
+    ? [<MenuItem key="none" disabled>No saved queries yet</MenuItem>]
+    : library.saved.map((seed: SavedSeed) => (
+      <MenuItem key={`${seed.fileName ?? ""}|${seed.name}`} sublabel={seed.description ?? (seed.fileName ? "This iModel" : "All iModels")}
+        subMenuItems={[
+          <MenuItem key="run" onClick={() => { close(); setEcsql(seed.ecsql); void run(seed.ecsql); }}>Run</MenuItem>,
+          <MenuItem key="load" onClick={() => { close(); setEcsql(seed.ecsql); }}>Load into editor</MenuItem>,
+          <MenuDivider key="d" />,
+          <MenuItem key="delete" onClick={() => { close(); deleteSeed(seed); }}>Delete</MenuItem>,
+        ]}
+        onClick={() => { close(); setEcsql(seed.ecsql); void run(seed.ecsql); }}>{seed.name}</MenuItem>
+    ));
+
   let visible = result?.candidates.filter((c) => !filter || `${c.label} ${c.className} ${c.key.id}`.toLowerCase().includes(filter.toLowerCase())) ?? [];
   if (ranks)
     visible = [...visible].sort((a, b) => (ranks.get(nodeKeyString(b.key)) ?? -1) - (ranks.get(nodeKeyString(a.key)) ?? -1));
 
   return (
-    <div className="ig-widget">
+    <div className="ig-widget" data-tour="seed">
       <Text variant="small" isMuted>Any ECSQL returning an <code>ECInstanceId</code> (and ideally <code>ECClassId</code>). Pick a row to centre the graph on it.</Text>
       <Textarea
         className="ig-sql"
@@ -89,7 +127,32 @@ export function SeedQueryWidget() {
         ))}>
           <Button size="small" styleType="borderless">Examples</Button>
         </DropdownMenu>
+        <DropdownMenu menuItems={savedItems}>
+          <Button size="small" styleType="borderless" data-testid="seed-saved">Saved ({library.saved.length})</Button>
+        </DropdownMenu>
+        <DropdownMenu menuItems={(close) => library.history.length === 0
+          ? [<MenuItem key="none" disabled>No queries run yet</MenuItem>]
+          : library.history.map((q, i) => (
+            <MenuItem key={i} title={q} onClick={() => { close(); setEcsql(q); }}><span className="ig-seed-history">{q.replace(/\s+/g, " ")}</span></MenuItem>
+          ))}>
+          <Button size="small" styleType="borderless">History</Button>
+        </DropdownMenu>
+        <Button size="small" styleType="borderless" disabled={!ecsql.trim()} aria-expanded={!!saving}
+          onClick={() => setSaving(saving ? undefined : { name: "", description: "", thisFileOnly: false })}>Save…</Button>
       </div>
+      {saving && (
+        <div className="ig-seed-save" role="group" aria-label="Save query">
+          <Input size="small" placeholder="Name" value={saving.name} autoFocus
+            onChange={(e) => setSaving({ ...saving, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") saveSeed(); else if (e.key === "Escape") setSaving(undefined); }} />
+          <Input size="small" placeholder="Description (optional)" value={saving.description}
+            onChange={(e) => setSaving({ ...saving, description: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") saveSeed(); else if (e.key === "Escape") setSaving(undefined); }} />
+          <div className="ig-row">
+            <Checkbox label="Only for this iModel" disabled={!fileName} checked={saving.thisFileOnly}
+              onChange={(e) => setSaving({ ...saving, thisFileOnly: e.target.checked })} />
+            <Button size="small" styleType="high-visibility" disabled={!saving.name.trim()} onClick={saveSeed}>Save query</Button>
+          </div>
+        </div>
+      )}
       {error && <div className="ig-error">{error}</div>}
       {running && <Skeleton label="Running query" rows={5} twoLine />}
       {result && !running && (

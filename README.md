@@ -64,6 +64,21 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Feedback.** Toasts confirm saves, exports and imports and report failures. Loading panels show
   placeholders, the graph shows a progress bar while it loads, and animations are turned off
   when the OS asks for reduced motion.
+- **Saved queries.** Name and describe seed queries, for every iModel or just the open one; the
+  last 20 queries run are kept in **History**. Saved queries also appear in the command palette.
+- **Notes** on instances, per iModel file: write them in Properties, see a 📝 badge on the node,
+  and find them with Find in graph or the palette. Saved sessions carry the notes for their nodes.
+- **Compare sessions.** Compare the current graph, or another saved session, with a saved session
+  of the same iModel: added, removed (ghosted) and unchanged instances and relationships, with a
+  summary banner. Comparing two iModel files is not supported.
+- **Links.** *Copy link to this view* gives an `imodel-explorer://open?file=…&centre=…` link
+  (optionally `&session=<name>`). Paste one into the command palette (or File → Open link…) to
+  open it; the app checks the file exists and the ids are valid before closing anything. Packaged
+  builds register the protocol with the OS; a development run (`electron .`) does not, because
+  registration for an unpackaged app varies by platform, so paste links there instead. The app
+  runs as a single instance, and a link passed on the command line opens in it.
+- **First-run tour.** Six coach marks the first time an iModel is opened; replay with Help → Take
+  the tour.
 - **Exemplar ranking.** Sort seed-query results by relationship fan-out to find the
   best-connected instances to start from.
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.

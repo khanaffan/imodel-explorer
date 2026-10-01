@@ -1,0 +1,52 @@
+.ig-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+
+.ig-tour__ring {
+  position: fixed;
+  border: 2px solid var(--iui-color-border-accent, #0073e6);
+  border-radius: 6px;
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.25);
+  transition: left 0.2s ease, top 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
+.ig-tour__card {
+  position: fixed;
+  width: 320px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 12px;
+  border-radius: 8px;
+  background: var(--iui-color-background, #fff);
+  border: 1px solid var(--iui-color-border, #ccc);
+  box-shadow: var(--iui-shadow-3, 0 8px 24px rgb(0 0 0 / 0.25));
+  pointer-events: auto;
+  animation: ig-tour-in 0.15s ease-out;
+}
+
+.ig-tour__card--centred {
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+}
+
+.ig-tour__actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.ig-tour__spacer { flex: 1; }
+
+@keyframes ig-tour-in { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-tour__ring { transition: none; }
+  .ig-tour__card { animation: none; }
+}

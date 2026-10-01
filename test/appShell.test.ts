@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { matchesShortcut } from "../src/frontend/commands/registry";
 import { EMPTY_FILTERS, filterCount } from "../src/frontend/engine/filters";
-import { iModelPathProblem } from "../src/frontend/host/AppHost";
+import { iModelPathProblem } from "../src/common/iModelFiles";
 
 describe("iModelPathProblem", () => {
   it("accepts iModel extensions in any case on either path style", () => {

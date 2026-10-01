@@ -20,7 +20,8 @@ try {
   await page.waitForFunction(() => globalThis.imodelExplorer !== undefined, null, { timeout: 60_000 });
   // A fresh profile still inherits the legacy InstanceGraph localStorage (see migrateLocalStorage in
   // src/backend/main.ts), which would leak recent files and saved layouts into the shots.
-  await page.evaluate(() => localStorage.clear());
+  // Mark the first-run tour as seen so its coach marks do not cover the screenshots.
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem("instanceGraph.tourSeen", "1"); });
   await page.reload();
   await page.waitForFunction(() => globalThis.imodelExplorer !== undefined, null, { timeout: 60_000 });
 

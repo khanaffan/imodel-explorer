@@ -1,8 +1,14 @@
 import { ProgressRadial, Text } from "@itwin/itwinui-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { NodeKey } from "../engine/GraphModel";
+import { type NodeKey, parseNodeKey } from "../engine/GraphModel";
 import { searchInstances } from "../engine/instanceSearch";
 import { listSessions, type SavedSession } from "../services/sessionStore";
+import { listSeedsFor } from "../services/seedLibrary";
+import { looksLikeDeepLink, parseDeepLink } from "../../common/deepLink";
+import { useNotes } from "../services/annotations";
+import { requestSeedQuery } from "../state/censusStore";
+import { UiFramework } from "@itwin/appui-react";
+import { SEED_WIDGET_ID } from "../widgets/SeedQueryWidget";
 import { useClassGraphStore } from "../state/classGraphStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { fuzzyScore } from "./fuzzy";
@@ -39,17 +45,21 @@ function PaletteDialog() {
   const commands = useCommandStore((s) => s.commands);
   const engine = useGraphStore((s) => s.engine);
   const fileName = useGraphStore((s) => s.fileName);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() => usePaletteStore.getState().initialQuery ?? "");
   const [active, setActive] = useState(0);
   const [instances, setInstances] = useState<InstanceResults>();
   const [searching, setSearching] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const sessions = useMemo<SavedSession[]>(() => (fileName ? listSessions().filter((s) => s.fileName === fileName) : []), [fileName]);
+  const notes = useNotes(engine ? fileName : undefined);
+  const seeds = useMemo(() => (engine ? listSeedsFor(fileName) : []), [engine, fileName]);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     input.current?.focus();
+    const end = input.current?.value.length ?? 0;
+    input.current?.setSelectionRange(end, end);
     return () => previous?.focus?.();
   }, []);
 
@@ -92,6 +102,26 @@ function PaletteDialog() {
         add({ key: `session|${s.name}`, title: `Open session: ${s.name}`, detail: `Saved ${new Date(s.savedAt).toLocaleString()}`,
           run: () => void graphActions.restoreSession(s).catch(reportFailure("Opening the session")) }, `session ${s.name}`);
     }
+    if (query.trim()) {
+      const centreOf = (key: string) => () => void graphActions.seedExternal(parseNodeKey(key), { fit: true }).catch(reportFailure("Centring"));
+      for (const [key, text] of Object.entries(notes)) {
+        const label = useGraphStore.getState().graph.nodes.get(key)?.label;
+        add({ key: `note|${key}`, title: `Note: ${text.length > 80 ? `${text.slice(0, 80)}…` : text}`, detail: label ? `${label} · ${key}` : key,
+          hint: "↵ centre", run: centreOf(key) }, `note ${text} ${label ?? ""}`);
+      }
+    }
+    for (const seed of seeds)
+      add({ key: `seed|${seed.fileName ?? ""}|${seed.name}`, title: `Run saved query: ${seed.name}`, detail: seed.description ?? "Seed query",
+        run: () => {
+          UiFramework.frontstages.activeFrontstageDef?.findWidgetDef(SEED_WIDGET_ID)?.show();
+          requestSeedQuery(seed.ecsql);
+        } }, `saved query seed bookmark ${seed.name} ${seed.description ?? ""}`);
+    if (looksLikeDeepLink(query)) {
+      let problem: string | undefined;
+      try { parseDeepLink(query); } catch (e) { problem = e instanceof Error ? e.message : String(e); }
+      out.push({ key: "link", title: "Open this link", detail: "Link", disabled: problem, score: Number.MAX_SAFE_INTEGER,
+        run: () => void runCommand("link.open", "palette", query.trim()) });
+    }
     const inInstanceGraph = useClassGraphStore.getState().mode === "instances";
     const centre = useGraphStore.getState().graph.centreKey;
     for (const inst of instances?.query === query.trim() ? instances.items : []) {
@@ -107,7 +137,7 @@ function PaletteDialog() {
       });
     }
     return out.sort((a, b) => b.score - a.score).slice(0, MAX_ITEMS);
-  }, [commands, query, sessions, instances]);
+  }, [commands, query, sessions, seeds, notes, instances]);
 
   useEffect(() => setActive(0), [query]);
   useEffect(() => {

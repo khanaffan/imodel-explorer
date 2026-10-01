@@ -396,7 +396,15 @@
   pointer-events: none;
 }
 
-.ig-node__pin-badge + .ig-node__class {
+.ig-node__note-badge {
+  flex: none;
+  font-size: 11px;
+  line-height: 1;
+  cursor: help;
+}
+
+.ig-node__pin-badge + .ig-node__class,
+.ig-node__note-badge + .ig-node__class {
   margin-right: auto;
 }
 
@@ -468,6 +476,56 @@
 
 .ig-node--find-current {
   box-shadow: 0 0 0 4px #f2994a, 0 4px 14px rgb(0 0 0 / 35%);
+}
+
+/* Session comparison */
+.ig-node--diff-added {
+  box-shadow: 0 0 0 3px #3fb950, 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.ig-node--diff-removed {
+  opacity: 0.45;
+  border-style: dashed;
+  filter: grayscale(0.8);
+}
+
+.react-flow__edge-path.ig-edge--diff-added {
+  stroke: #3fb950;
+  stroke-width: 2.5;
+}
+
+.react-flow__edge-path.ig-edge--diff-removed {
+  stroke-dasharray: 6 4;
+  opacity: 0.45;
+}
+
+.ig-diff-banner {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ig-diff-banner__title {
+  font-weight: 600;
+}
+
+.ig-diff-banner__chip {
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  background: var(--iui-color-background-backdrop, rgb(127 127 127 / 15%));
+}
+
+.ig-diff-banner__chip--added {
+  color: #1a7f37;
+  background: rgb(63 185 80 / 18%);
+}
+
+.ig-diff-banner__chip--removed {
+  color: #cf222e;
+  background: rgb(207 34 46 / 14%);
 }
 
 /* History breadcrumbs */

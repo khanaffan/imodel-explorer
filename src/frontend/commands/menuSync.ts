@@ -1,5 +1,6 @@
 import { IpcApp } from "@itwin/core-frontend";
 import { MENU_COMMAND_CHANNEL, MENU_MODEL_CHANNEL, type MenuModel } from "../../common/menuIpc";
+import { onSessionsChanged } from "../services/sessionStore";
 import { useAppThemeStore } from "../state/appTheme";
 import { useClassGraphStore } from "../state/classGraphStore";
 import { useFeatureStore } from "../state/featureStore";
@@ -34,7 +35,8 @@ export function startMenuSync(): () => void {
     IpcApp.send(MENU_MODEL_CHANNEL, model);
   };
   const schedule = () => { timer ??= setTimeout(push, 150); };
-  const unsubscribers = [useCommandStore, useGraphStore, useClassGraphStore, useFeatureStore, useAppThemeStore].map((store) => store.subscribe(schedule));
+  const unsubscribers: Array<() => unknown> = [useCommandStore, useGraphStore, useClassGraphStore, useFeatureStore, useAppThemeStore].map((store) => store.subscribe(schedule));
+  unsubscribers.push(onSessionsChanged(schedule)); // "Compare with session" lists them
   const stopListening = IpcApp.addListener(MENU_COMMAND_CHANNEL, (_evt, id: unknown, arg: unknown) => {
     if (typeof id !== "string" || (arg !== undefined && arg !== null && typeof arg !== "string")) return;
     void runCommand(id, "menu", typeof arg === "string" ? arg : undefined);

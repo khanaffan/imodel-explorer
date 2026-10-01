@@ -3,6 +3,7 @@ import { type GraphData, type NodeKey, nodeKeyString, normalizeExcludedInstances
 import { EMPTY_FILTERS, type FilterSpec } from "../engine/filters";
 import type { LayoutMode } from "../graph/layout";
 import type { PinOffset, Pins } from "../engine/pins";
+import { type Notes, parseNotes } from "./annotations";
 
 export interface SavedSession {
   readonly format: "instance-graph-session";
@@ -24,22 +25,26 @@ export interface SavedSession {
   /** Pinned instances (`classId:id`) and their offsets from the centre. Optional: older files have none. */
   readonly pinned?: ReadonlyArray<{ readonly key: string; readonly offset?: PinOffset }>;
   readonly excludedInstances?: readonly string[];
+  /** Notes on instances in the captured graph (`classId:id` → text). Optional: older files have none. */
+  readonly annotations?: Notes;
 }
 
 const STORAGE_KEY = "instanceGraph.sessions";
 
-export function captureSession(name: string, fileName: string, graph: GraphData, options: TraversalOptions, layoutMode: LayoutMode, pins: Pins = new Map()): SavedSession | undefined {
+export function captureSession(name: string, fileName: string, graph: GraphData, options: TraversalOptions, layoutMode: LayoutMode, pins: Pins = new Map(), notes: Notes = {}): SavedSession | undefined {
   if (!graph.centreKey) return undefined;
   const expandedNodes = [...graph.nodes.values()]
     .filter((n) => n.expanded && !n.aggregate && n.key !== graph.centreKey && n.depth >= options.depth)
     .sort((a, b) => a.depth - b.depth)
     .map((n) => n.key);
+  const annotations = Object.fromEntries(Object.entries(notes).filter(([k]) => graph.nodes.has(k)));
   return {
     format: "instance-graph-session", version: 1, name, savedAt: new Date().toISOString(), fileName,
     centre: parseNodeKey(graph.centreKey), depth: options.depth, direction: options.direction, filters: options.filters,
     nodeBudget: options.nodeBudget, groupCap: options.groupCap, expandedGroups: [...options.expandedGroups], expandedNodes, layoutMode,
     ...(pins.size > 0 ? { pinned: [...pins].map(([key, p]) => (p.offset ? { key, offset: { x: p.offset.x, y: p.offset.y } } : { key })) } : {}),
     ...((options.excludedInstances?.length ?? 0) > 0 ? { excludedInstances: [...options.excludedInstances!] } : {}),
+    ...(Object.keys(annotations).length > 0 ? { annotations } : {}),
   };
 }
 
@@ -71,7 +76,12 @@ export function parseSession(value: unknown): SavedSession {
     layoutMode: v.layoutMode === "layered" ? "layered" : "radial",
     ...(Array.isArray(v.pinned) ? { pinned: parsePinned(v.pinned) } : {}),
     ...(excludedInstances.length > 0 ? { excludedInstances } : {}),
+    ...withNotes(parseNotes(v.annotations)),
   };
+}
+
+function withNotes(annotations: Notes): { annotations?: Notes } {
+  return Object.keys(annotations).length > 0 ? { annotations } : {};
 }
 
 const NODE_KEY = /^0x[0-9a-f]+:0x[0-9a-f]+$/i;

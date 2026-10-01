@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type GraphData, type GraphEdge, type GraphNode, parseNodeKey } from "../engine/GraphModel";
 import { colorFor } from "../state/colorTheme";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { useNotes } from "../services/annotations";
 import { notify } from "../commands/notify";
 import { setCanvasBridge } from "./canvasBridge";
 import { FindBar } from "./FindBar";
@@ -55,6 +56,7 @@ function GraphCanvasInner() {
   const fitRequest = useGraphStore((s) => s.fitRequest);
   const pins = useGraphStore((s) => s.pins);
   const connection = useGraphStore((s) => s.connection);
+  const diff = useGraphStore((s) => s.diffView?.diff);
   const rf = useReactFlow();
   const [tool, setTool] = useState<GraphTool>("navigate");
   const [feedback, setFeedback] = useState<ToolResult>();
@@ -67,7 +69,8 @@ function GraphCanvasInner() {
   }, [tool]);
 
   const [find, setFind] = useState<{ query: string; index: number; focus: number }>();
-  const matches = useMemo(() => (find ? findMatches(graph, find.query) : []), [graph, find]);
+  const notes = useNotes(useGraphStore((s) => s.fileName));
+  const matches = useMemo(() => (find ? findMatches(graph, find.query, notes) : []), [graph, find, notes]);
   const matchSet = useMemo(() => new Set(matches), [matches]);
   const currentMatch = matches.length ? matches[Math.min(find?.index ?? 0, matches.length - 1)] : undefined;
   const panTo = useCallback((key: string | undefined) => {
@@ -88,6 +91,7 @@ function GraphCanvasInner() {
     escape: () => {
       if (find) { setFind(undefined); return true; }
       if (tool !== "navigate") { changeTool("navigate"); return true; }
+      if (useGraphStore.getState().diffView) { graphActions.exitDiff(); return true; }
       return false;
     },
   }), [rf, changeTool, find, tool]);
@@ -200,11 +204,12 @@ function GraphCanvasInner() {
       node: n, color: colorFor(n, theme), isCentre: n.key === graph.centreKey, isSelected: n.key === selectedNode, isPinned: pins.has(n.key),
       leaving: isLeaving, enterDelayMs: firstEnter.current.get(n.key) ?? 0,
       find: !find?.query.trim() ? undefined : n.key === currentMatch ? "current" : matchSet.has(n.key) ? "match" : "dimmed",
+      diff: diff?.nodes.get(n.key),
     });
     for (const n of graph.nodes.values()) add(n, false);
     for (const n of leaving.nodes.values()) if (!m.has(n.key)) add(n, true);
     return m;
-  }, [graph, leaving, theme, selectedNode, pins, find, matchSet, currentMatch]);
+  }, [graph, leaving, theme, selectedNode, pins, find, matchSet, currentMatch, diff]);
 
   const nodes: InstanceFlowNode[] = useMemo(() => {
     const out: InstanceFlowNode[] = [];
@@ -237,10 +242,11 @@ function GraphCanvasInner() {
           edge: e, parallelIndex: idx, parallelCount: pairCount.get(pk)!, leaving: isLeaving,
           highlighted: focus !== undefined && (e.source === focus || e.target === focus), isSelected: e.key === selectedEdge,
           onLabelClick: isLeaving ? undefined : () => clickEdge(e.key),
+          diff: diff?.edges.get(e.key),
         },
       };
     });
-  }, [graph, leaving, focus, selectedEdge, clickEdge]);
+  }, [graph, leaving, focus, selectedEdge, clickEdge, diff]);
 
   const onNodesChange = useCallback((changes: NodeChange<InstanceFlowNode>[]) => {
     let moved = false;
@@ -284,7 +290,7 @@ function GraphCanvasInner() {
   }, [tool, changeTool]);
 
   return (
-    <div className={`ig-canvas${tool !== "navigate" ? " ig-canvas--tool-active" : ""}`} aria-busy={loading}>
+    <div className={`ig-canvas${tool !== "navigate" ? " ig-canvas--tool-active" : ""}`} aria-busy={loading} data-tour="graph">
       {loading && <div className="ig-canvas__progress" aria-hidden="true" />}
       <ReactFlow<InstanceFlowNode, RelationshipFlowEdge>
         nodes={nodes}

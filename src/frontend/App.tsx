@@ -2,7 +2,10 @@ import { ConfigurableUiContent, ThemeManager } from "@itwin/appui-react";
 import { Root as StrataKitRoot } from "@stratakit/mui";
 import { CommandPalette } from "./commands/CommandPalette";
 import { ShortcutSheet } from "./commands/ShortcutSheet";
+import { FirstRunTour } from "./commands/FirstRunTour";
 import { ToastBridge } from "./commands/ToastBridge";
+import { useEffect } from "react";
+import { startDeepLinks } from "./commands/deepLinks";
 import { useAppThemeStore } from "./state/appTheme";
 import { useGraphStore } from "./state/graphStore";
 import { useColorScheme } from "./useColorScheme";
@@ -15,6 +18,7 @@ export function App() {
   const connection = useGraphStore((s) => s.connection);
   const theme = useAppThemeStore((s) => s.theme);
   const colorScheme = useColorScheme();
+  useEffect(() => startDeepLinks(), []);
   return (
     <ThemeManager theme={theme}>
       {/* The tree widget components are built on StrataKit. */}
@@ -23,6 +27,7 @@ export function App() {
         <FeatureSettingsDialog />
         <CommandPalette />
         <ShortcutSheet />
+        <FirstRunTour />
         <ToastBridge />
         <FileDropTarget />
       </StrataKitRoot>

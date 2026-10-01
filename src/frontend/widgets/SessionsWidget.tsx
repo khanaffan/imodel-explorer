@@ -1,9 +1,11 @@
-import { Button, Input, Text } from "@itwin/itwinui-react";
+import { SvgCompare } from "@itwin/itwinui-icons-react";
+import { Button, DropdownMenu, IconButton, Input, MenuItem, Text } from "@itwin/itwinui-react";
 import { useEffect, useRef, useState } from "react";
 import { notify } from "../commands/notify";
 import { downloadText, safeFileStem } from "../services/exporters";
 import { captureSession, deleteSession, listSessions, onSessionsChanged, parseSession, type SavedSession, storeSession } from "../services/sessionStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { notesFor } from "../services/annotations";
 import "./widgets.css";
 
 export function SessionsWidget() {
@@ -17,7 +19,7 @@ export function SessionsWidget() {
 
   const capture = (n: string) => {
     const { graph, options, layoutMode, pins } = useGraphStore.getState();
-    return fileName ? captureSession(n, fileName, graph, options, layoutMode, pins) : undefined;
+    return fileName ? captureSession(n, fileName, graph, options, layoutMode, pins, notesFor(fileName)) : undefined;
   };
 
   const save = () => {
@@ -34,6 +36,15 @@ export function SessionsWidget() {
       setError(`Captured on ${s.fileName}; applying to the open iModel anyway.`);
     try {
       await graphActions.restoreSession(s);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const compare = async (before: SavedSession | "current", after: SavedSession) => {
+    setError(undefined);
+    try {
+      await graphActions.diffSessions(before, after);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -82,6 +93,16 @@ export function SessionsWidget() {
                 {s.fileName !== fileName ? `${safeFileStem(s.fileName)} · ` : ""}depth {s.depth} · {new Date(s.savedAt).toLocaleString()}
               </span>
             </button>
+            {s.fileName === fileName && (
+              <DropdownMenu menuItems={(close) => [
+                <MenuItem key="current" disabled={!hasGraph} onClick={() => { close(); void compare("current", s); }}>Current graph → {s.name}</MenuItem>,
+                ...forThisFile.filter((o) => o !== s).map((o) => (
+                  <MenuItem key={o.name} onClick={() => { close(); void compare(o, s); }}>{o.name} → {s.name}</MenuItem>
+                )),
+              ]}>
+                <IconButton size="small" styleType="borderless" label={`Compare with ${s.name}`}><SvgCompare /></IconButton>
+              </DropdownMenu>
+            )}
             <button className="ig-x" title="Delete" onClick={() => deleteSession(s)}>×</button>
           </div>
         ))}

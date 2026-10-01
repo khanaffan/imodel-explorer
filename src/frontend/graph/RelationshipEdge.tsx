@@ -1,6 +1,7 @@
 import { BaseEdge, type Edge, EdgeLabelRenderer, type EdgeProps, type InternalNode, useInternalNode, useStore } from "@xyflow/react";
 import { memo } from "react";
 import type { GraphEdge } from "../engine/GraphModel";
+import type { DiffStatus } from "../engine/sessionDiff";
 
 export interface RelationshipEdgeData extends Record<string, unknown> {
   readonly edge: GraphEdge;
@@ -10,6 +11,8 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   readonly highlighted: boolean;
   readonly isSelected: boolean;
   readonly leaving: boolean;
+  /** Set while comparing sessions. */
+  readonly diff?: DiffStatus;
   /** Instance count, shown as `×N`; set by the class-level graph. */
   readonly count?: number;
   readonly onLabelClick?: () => void;
@@ -51,7 +54,7 @@ function RelationshipEdgeView({ id, source, target, data, markerEnd }: EdgeProps
   const zoomedIn = useStore((st) => st.transform[2] >= LABEL_ZOOM);
   if (!s || !t || !data) return null;
 
-  const { edge, parallelIndex, parallelCount, highlighted, isSelected, leaving, count } = data;
+  const { edge, parallelIndex, parallelCount, highlighted, isSelected, leaving, count, diff } = data;
   const sc = centreOf(s);
   const tc = centreOf(t);
   const dx = tc.x - sc.x;
@@ -76,7 +79,7 @@ function RelationshipEdgeView({ id, source, target, data, markerEnd }: EdgeProps
   const mid = at(0.5);
   const near = at(0.14);
   const far = at(0.86);
-  const cls = `ig-edge ig-edge--${edge.kind}${highlighted ? " ig-edge--hl" : ""}${isSelected ? " ig-edge--selected" : ""}${leaving ? " ig-edge--leaving" : ""}`;
+  const cls = `ig-edge ig-edge--${edge.kind}${highlighted ? " ig-edge--hl" : ""}${isSelected ? " ig-edge--selected" : ""}${leaving ? " ig-edge--leaving" : ""}${diff && diff !== "same" ? ` ig-edge--diff-${diff}` : ""}`;
 
   return (
     <>

@@ -1,6 +1,8 @@
 import { Handle, type Node, type NodeProps, Position, useStore } from "@xyflow/react";
 import { memo, useCallback, useState } from "react";
 import type { GraphNode } from "../engine/GraphModel";
+import type { DiffStatus } from "../engine/sessionDiff";
+import { useNote } from "../services/annotations";
 import { loadInstanceProperties, type PropertyRecord } from "../engine/instanceProperties";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { contrastText } from "../state/colorTheme";
@@ -17,6 +19,8 @@ export interface InstanceNodeData extends Record<string, unknown> {
   readonly enterDelayMs: number;
   /** Find-in-graph state; undefined when not searching. */
   readonly find?: "current" | "match" | "dimmed";
+  /** Set while comparing sessions. */
+  readonly diff?: DiffStatus;
 }
 
 export type InstanceFlowNode = Node<InstanceNodeData, "instance">;
@@ -32,7 +36,8 @@ function shortClass(fullName: string) {
 const hiddenHandle = { opacity: 0, width: 1, height: 1, minWidth: 0, minHeight: 0, border: 0, left: "50%", top: "50%", pointerEvents: "none" } as const;
 
 function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
-  const { node, color, isCentre, isSelected, isPinned, leaving, enterDelayMs, find } = data;
+  const { node, color, isCentre, isSelected, isPinned, leaving, enterDelayMs, find, diff } = data;
+  const note = useNote(useGraphStore((s) => s.fileName), node.key);
   const compact = useStore(zoomIsCompact);
   const [preview, setPreview] = useState<PropertyRecord[] | "loading" | undefined>();
 
@@ -62,7 +67,7 @@ function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
   }, [node.key]);
 
   const classes = ["ig-node", isCentre && "ig-node--centre", isSelected && "ig-node--selected", isPinned && "ig-node--pinned", leaving && "ig-node--leaving",
-    node.aggregate && "ig-node--aggregate", compact && "ig-node--compact", preview && "ig-node--open", find && `ig-node--find-${find}`].filter(Boolean).join(" ");
+    node.aggregate && "ig-node--aggregate", compact && "ig-node--compact", preview && "ig-node--open", find && `ig-node--find-${find}`, diff && diff !== "same" && `ig-node--diff-${diff}`].filter(Boolean).join(" ");
 
   const handles = (
     <>
@@ -88,6 +93,7 @@ function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
       {handles}
       <div className="ig-node__header" style={{ background: color, color: contrastText(color) }}>
         {isPinned && <span className="ig-node__pin-badge" title="Pinned: stays in view while related to the centre or another pin">📌</span>}
+        {note && <span className="ig-node__note-badge" title={`Note: ${note}`} aria-label="Has a note">📝</span>}
         <span className="ig-node__class">{shortClass(node.className)}</span>
         {!compact && <span className="ig-node__schema">{node.schemaName}</span>}
       </div>

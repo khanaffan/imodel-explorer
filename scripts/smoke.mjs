@@ -29,6 +29,22 @@ try {
   await page.evaluate((f) => globalThis.imodelExplorer.openAndShow(f), file);
   await page.waitForFunction(() => globalThis.imodelExplorer.getState().engine !== undefined, null, { timeout: 60_000 });
 
+  // First-run tour: shown once on a fresh profile; keyboard driven; dismissal persists.
+  const tour = page.getByTestId("tour");
+  await tour.waitFor({ timeout: 10_000 });
+  const tourStep = () => tour.locator("text=/^\\d+ of \\d+$/").first().textContent();
+  if ((await tourStep()) !== "1 of 6") throw new Error(`tour did not start at its first step: ${await tourStep()}`);
+  await page.waitForFunction(() => document.activeElement?.getAttribute("data-testid") === "tour-next", null, { timeout: 5_000 });
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("[data-testid=tour]")?.textContent.includes("2 of 6"), null, { timeout: 5_000 });
+  if (!(await page.locator(".ig-tour__ring").count())) throw new Error("tour step 2 did not highlight the Seed panel");
+  await page.keyboard.press("ArrowLeft");
+  await page.waitForFunction(() => document.querySelector("[data-testid=tour]")?.textContent.includes("1 of 6"), null, { timeout: 5_000 });
+  await page.keyboard.press("Escape");
+  await tour.waitFor({ state: "detached", timeout: 5_000 });
+  if (await page.evaluate(() => localStorage.getItem("instanceGraph.tourSeen")) !== "1") throw new Error("skipping the tour was not remembered");
+  console.log("first-run tour: shown on first open, Enter/←/Escape, dismissal persisted");
+
   const strategy = await page.evaluate(() => globalThis.imodelExplorer.getState().engine.strategy.name);
   console.log(`strategy: ${strategy}`);
 
@@ -715,6 +731,103 @@ try {
   if (await page.evaluate(() => globalThis.imodelExplorer.getState().options.excludedInstances.length))
     throw new Error("instance exclusions leaked across connections");
   console.log("graph tools: connection changes reset the active tool and instance exclusions");
+  await page.waitForTimeout(1000);
+  if (await tour.count()) throw new Error("the tour came back after it was dismissed");
+
+  // Phase 3: replaying the tour, saved seeds, notes, session diff and pasted links.
+  await toolIdle();
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("help.tour", "ui"));
+  await tour.waitFor({ timeout: 5_000 });
+  await page.getByTestId("tour-skip").click();
+  await tour.waitFor({ state: "detached", timeout: 5_000 });
+  console.log("tour: not shown again on reopen; replayable from Help and skippable");
+
+  await page.getByRole("tab", { name: "Seed query", exact: true }).click();
+  await editor.fill(ecsql);
+  await page.getByRole("button", { name: "Save…" }).click();
+  const saveForm = page.getByRole("group", { name: "Save query" });
+  await saveForm.getByPlaceholder("Name").fill("Smoke pump");
+  await saveForm.getByPlaceholder("Description (optional)").fill("Pump-1 by label");
+  await saveForm.getByRole("checkbox").check();
+  await saveForm.getByRole("button", { name: "Save query" }).click();
+  await saveForm.waitFor({ state: "detached", timeout: 5_000 });
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("instanceGraph.savedSeeds")));
+  if (saved.length !== 1 || saved[0].name !== "Smoke pump" || saved[0].ecsql !== ecsql || !saved[0].fileName)
+    throw new Error(`saved seed not persisted as expected: ${JSON.stringify(saved)}`);
+  await editor.fill("");
+  await page.getByTestId("seed-saved").click();
+  await page.getByRole("menuitem", { name: /Smoke pump/ }).first().click();
+  await page.waitForFunction((q) => document.querySelector("textarea.ig-sql")?.value === q, ecsql, { timeout: 5_000 });
+  await page.locator(".ig-list__item").first().waitFor({ timeout: 30_000 });
+  const history = await page.evaluate(() => JSON.parse(localStorage.getItem("instanceGraph.seedHistory")));
+  if (history[0] !== ecsql) throw new Error("running a query did not record it in the history");
+  await page.keyboard.press(`${mod}+k`);
+  await palette.getByRole("combobox").fill("smoke pump");
+  await palette.getByRole("option").filter({ hasText: "Smoke pump" }).first().waitFor({ timeout: 5_000 });
+  await page.keyboard.press("Escape");
+  console.log("saved seeds: save form, persisted with file scope, run from Saved menu, history, offered in palette");
+
+  // Note on Pump-2: badge on the node, persisted, found by Find.
+  await page.evaluate((k) => globalThis.imodelExplorer.graphActions.seedExternal({ classId: k.split(":")[0], id: k.split(":")[1] }, { fit: true }), pump2Key);
+  await toolIdle();
+  await page.evaluate((k) => globalThis.imodelExplorer.graphActions.select({ kind: "node", key: k }), pump2Key);
+  await page.getByRole("tab", { name: "Properties", exact: true }).click();
+  const noteBox = page.getByTestId("node-note");
+  await noteBox.fill("Smoke check valve");
+  await noteBox.blur();
+  await page.locator(".ig-node__note-badge").first().waitFor({ timeout: 5_000 });
+  const notes = await page.evaluate(() => JSON.parse(localStorage.getItem("instanceGraph.annotations")));
+  if (notes[file]?.[pump2Key] !== "Smoke check valve") throw new Error(`note not persisted: ${JSON.stringify(notes)}`);
+  await page.keyboard.press(`${mod}+f`);
+  await page.getByRole("textbox", { name: "Find in graph" }).fill("check valve");
+  await page.waitForFunction(() => document.querySelector(".ig-findbar__count")?.textContent === "1 of 1", null, { timeout: 5_000 });
+  await page.keyboard.press("Escape");
+  console.log("annotations: note saved from Properties, badge shown, persisted per file, matched by Find");
+
+  // Diff: save Pump-2's neighbourhood with its note, centre elsewhere, compare, exit.
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  await page.keyboard.press(`${mod}+s`);
+  await page.getByText(/^Saved "Session /).first().waitFor({ timeout: 5_000 });
+  const sessionName = await page.evaluate((f) => JSON.parse(localStorage.getItem("instanceGraph.sessions")).find((x) => x.fileName === f), file);
+  if (sessionName.annotations?.[pump2Key] !== "Smoke check valve") throw new Error("the saved session did not carry the note");
+  const pipeAKey = await page.evaluate(() => [...globalThis.imodelExplorer.getState().graph.nodes.values()].find((n) => n.label === "Pipe-A")?.key);
+  if (!pipeAKey) throw new Error("Pipe-A should neighbour Pump-2");
+  await page.evaluate((k) => globalThis.imodelExplorer.graphActions.seedExternal({ classId: k.split(":")[0], id: k.split(":")[1] }, { fit: true }), pipeAKey);
+  await toolIdle();
+  const beforeDiff = await state(() => globalThis.imodelExplorer.getState().graph.centreKey);
+  await page.evaluate((n) => globalThis.imodelExplorer.runCommand("graph.compareSession", "ui", n), sessionName.name);
+  const banner = page.getByTestId("diff-banner");
+  await banner.waitFor({ timeout: 30_000 });
+  const diffCounts = await state(() => globalThis.imodelExplorer.getState().diffView.diff.counts);
+  if (!diffCounts.nodes.added || !diffCounts.nodes.removed || !diffCounts.nodes.same) throw new Error(`expected added, removed and shared nodes: ${JSON.stringify(diffCounts)}`);
+  if (!(await page.locator(".ig-node--diff-added").count()) || !(await page.locator(".ig-node--diff-removed").count()))
+    throw new Error("the comparison did not style added and removed nodes");
+  await banner.getByRole("button", { name: "Exit comparison" }).click();
+  await banner.waitFor({ state: "detached", timeout: 5_000 });
+  if (await state(() => globalThis.imodelExplorer.getState().graph.centreKey) !== beforeDiff || await page.locator(".ig-node--diff-added").count())
+    throw new Error("exiting the comparison did not restore the graph");
+  console.log(`session diff: ${JSON.stringify(diffCounts)} shown with banner and styles; exit restores the graph`);
+
+  // Links pasted into the palette: invalid ones explain why; a valid one centres; a missing file keeps the iModel open.
+  await page.keyboard.press(`${mod}+k`);
+  await palette.getByRole("combobox").fill(`imodel-explorer://open?file=${encodeURIComponent(file)}&centre=bogus`);
+  const linkOption = palette.getByRole("option").filter({ hasText: "Open this link" }).first();
+  await linkOption.waitFor({ timeout: 5_000 });
+  if ((await linkOption.getAttribute("aria-disabled")) !== "true" || !(await linkOption.textContent()).includes("not an instance key"))
+    throw new Error(`an invalid link was not disabled with its reason: ${await linkOption.textContent()}`);
+  await palette.getByRole("combobox").fill(`imodel-explorer://open?file=${encodeURIComponent(file)}&centre=${encodeURIComponent(pump2Key)}`);
+  await page.waitForFunction(() => document.querySelector("[role=option]")?.getAttribute("aria-disabled") !== "true", null, { timeout: 5_000 });
+  await page.keyboard.press("Enter");
+  await palette.waitFor({ state: "detached", timeout: 5_000 });
+  await page.waitForFunction((k) => globalThis.imodelExplorer.getState().graph.centreKey === k && globalThis.imodelExplorer.getState().status.kind === "idle", pump2Key, { timeout: 30_000 });
+  await page.evaluate(() => { globalThis.smokeLinkConnection = globalThis.imodelExplorer.getState().connection; });
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("link.open", "ui", "imodel-explorer://open?file=/no/such/dir/missing.bim"));
+  await page.getByText(/missing\.bim does not exist/).first().waitFor({ timeout: 5_000 });
+  if (await page.evaluate(() => globalThis.imodelExplorer.getState().connection !== globalThis.smokeLinkConnection)) throw new Error("a link to a missing file closed the open iModel");
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("link.open", "ui"));
+  await page.waitForFunction(() => document.querySelector("[role=dialog] [role=combobox]")?.value === "imodel-explorer://", null, { timeout: 5_000 });
+  await page.keyboard.press("Escape");
+  console.log("deep links: pasted link validated and opened in the palette; missing file reported without closing the iModel; Open link… prefills");
 
   // Drag and drop: real Files (from a file input) so the preload bridge can resolve their paths.
   await page.evaluate(() => { const i = document.createElement("input"); i.type = "file"; i.id = "smoke-drop"; i.hidden = true; document.body.append(i); });
@@ -745,6 +858,22 @@ try {
   }, file, { timeout: 60_000 });
   await page.locator(".ig-drop").waitFor({ state: "detached", timeout: 10_000 });
   console.log("drag and drop: overlay, invalid file rejected with a toast, .bim drop opens it");
+
+  // A link on the command line (how Windows/Linux deliver protocol links) reaches the renderer once it is ready.
+  const linkProfile = mkdtempSync(join(tmpdir(), "ig-smoke-link-"));
+  const link = `imodel-explorer://open?file=${encodeURIComponent(file)}&centre=${encodeURIComponent(pump2Key)}`;
+  const linked = await electron.launch({ args: [".", `--user-data-dir=${linkProfile}`, link], env: { ...process.env, IG_DEV: "" } });
+  try {
+    const linkedPage = await linked.firstWindow();
+    await linkedPage.waitForFunction((k) => {
+      const s = globalThis.imodelExplorer?.getState();
+      return s?.graph.centreKey === k && s.status.kind === "idle";
+    }, pump2Key, { timeout: 60_000 });
+    console.log("deep links: a link in argv opens the iModel and centres on its instance at launch");
+  } finally {
+    await linked.close();
+    rmSync(linkProfile, { recursive: true, force: true });
+  }
 
   if (summary.nodes < 2 || summary.rendered < 2)
     throw new Error("graph did not render");

@@ -1,4 +1,5 @@
 import { ElectronApp } from "@itwin/core-electron/renderer";
+import { IMODEL_EXTENSIONS } from "../../common/iModelFiles";
 
 /** Everything the UI needs from its host. Electron implements it today; a Studio host would
  * provide its own file picker and storage behind the same interface. */
@@ -10,21 +11,16 @@ export interface AppHost {
   removeRecentFile(path: string): void;
   /** The on-disk path of a file dropped on the window; undefined when it has none. */
   pathForDroppedFile(file: File): string | undefined;
+  /** Whether `path` names an existing file, checked before closing the open iModel for it. */
+  fileExists(path: string): Promise<boolean>;
 }
 
 /** Exposed by src/backend/preload.ts. */
-interface HostBridge { pathForFile(file: File): string }
-declare global { interface Window { imodelExplorerHost?: HostBridge } }
-
-export const IMODEL_EXTENSIONS: readonly string[] = ["bim", "ibim", "imodel"];
-
-/** Why `path` cannot be opened as an iModel, judged by its name; undefined when it looks fine. */
-export function iModelPathProblem(path: string): string | undefined {
-  if (!path) return "No file was given.";
-  const ext = /\.([^.\\/]+)$/.exec(path)?.[1]?.toLowerCase();
-  return ext && IMODEL_EXTENSIONS.includes(ext) ? undefined
-    : `${path.split(/[\\/]/).pop()} is not an iModel (expected ${IMODEL_EXTENSIONS.map((e) => `.${e}`).join(", ")}).`;
+interface HostBridge {
+  pathForFile(file: File): string;
+  fileExists(path: string): Promise<boolean>;
 }
+declare global { interface Window { imodelExplorerHost?: HostBridge } }
 
 const RECENT_KEY = "instanceGraph.recentFiles";
 const MAX_RECENT = 10;
@@ -59,6 +55,12 @@ class ElectronAppHost implements AppHost {
     const bridge = window.imodelExplorerHost;
     if (!bridge) throw new Error("File drop is unavailable: the host preload did not load.");
     return bridge.pathForFile(file) || undefined;
+  }
+
+  public async fileExists(path: string): Promise<boolean> {
+    const bridge = window.imodelExplorerHost;
+    if (!bridge) throw new Error("Cannot check files: the host preload did not load.");
+    return bridge.fileExists(path);
   }
 
   public removeRecentFile(path: string): void {

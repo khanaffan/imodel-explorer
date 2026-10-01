@@ -9,7 +9,10 @@ import { RelationsTraversal, type StrategyName } from "../engine/TraversalStrate
 import { type LayoutMode, reroot } from "../graph/layout";
 import { type ColorTheme, loadTheme, saveTheme } from "./colorTheme";
 import { NavigationHistory } from "./navigationHistory";
+import { diffGraphs, type GraphDiff } from "../engine/sessionDiff";
+import { absorbPin as absorbPinWith, replaySession, sessionOptions, settlePins as settlePinsWith } from "../engine/sessionReplay";
 import type { SavedSession } from "../services/sessionStore";
+import { annotationActions } from "../services/annotations";
 import { type InstanceReference, resolveInstanceReferenceClassId } from "../engine/instanceProperties";
 import { notify } from "../commands/notify";
 
@@ -66,6 +69,8 @@ export interface GraphState {
   /** Set while the graph shows a path search result rather than a neighbourhood. */
   readonly pathView?: { readonly from: string; readonly to: string; readonly label: string };
   readonly pathSearching: boolean;
+  /** Set while the graph shows a comparison; any other graph change ends it. */
+  readonly diffView?: { readonly label: string; readonly diff: GraphDiff };
 }
 
 const OPTIONS_KEY = "instanceGraph.options";
@@ -112,6 +117,8 @@ const history = new NavigationHistory();
 let generation = 0;
 let activeToken: { cancelled: boolean } | undefined;
 let pathToken: { cancelled: boolean } | undefined;
+/** What the graph showed before a comparison, so leaving it puts that back. */
+let beforeDiff: Pick<GraphState, "baseGraph" | "pins" | "pinEdges" | "pathView" | "selection"> | undefined;
 
 const set = useGraphStore.setState;
 const get = useGraphStore.getState;
@@ -175,6 +182,10 @@ function stepFilters(from: FilterSnapshot[], to: FilterSnapshot[]) {
   syncFilterUndo();
 }
 
+function pick(s: GraphState): NonNullable<typeof beforeDiff> {
+  return { baseGraph: s.baseGraph, pins: s.pins, pinEdges: s.pinEdges, pathView: s.pathView, selection: s.selection };
+}
+
 function centreOnly(graph: GraphData, key = graph.centreKey): GraphData {
   const centre = graph.nodes.get(key);
   return { ...emptyGraph(key), nodes: centre ? new Map([[key, { ...centre, expanded: false }]]) : new Map() };
@@ -185,25 +196,12 @@ function setBase(baseGraph: GraphData, pins: Pins = get().pins, pinEdges: Readon
   const excluded = new Set((extra.options ?? get().options).excludedInstances);
   const eligible = new Map([...pins].filter(([key]) => !excluded.has(key)));
   const edges = prunePinEdges(baseGraph, eligible, pinEdges);
-  set({ ...extra, baseGraph, pins: eligible, pinEdges: edges, graph: showPinOverlay ? composeDisplay(baseGraph, eligible, edges) : baseGraph });
+  set({ diffView: undefined, ...extra, baseGraph, pins: eligible, pinEdges: edges, graph: showPinOverlay ? composeDisplay(baseGraph, eligible, edges) : baseGraph });
 }
 
 /** Re-links pins to a new traversal result and drops the ones no longer connected. */
-async function settlePins(base: GraphData, token: CancelToken, pins: Pins = get().pins, extraEdges: Iterable<GraphEdge> = []): Promise<{ pins: Pins; pinEdges: Map<string, GraphEdge> }> {
-  const excluded = new Set(get().options.excludedInstances);
-  pins = new Map([...pins].filter(([key]) => !excluded.has(key)));
-  const candidates = new Map<string, GraphEdge>();
-  for (const e of extraEdges) candidates.set(e.key, e);
-  if (pins.size === 0) return { pins, pinEdges: new Map() };
-  const engine = get().engine;
-  try {
-    if (engine) for (const [k, e] of await engine.connectPinned(base, pins, get().options, token)) candidates.set(k, e);
-  } catch (e) {
-    if (e instanceof TraversalCancelled || excluded.size > 0) throw e;
-    for (const [k, edge] of get().pinEdges) candidates.set(k, edge); // best effort: keep what we knew
-  }
-  const kept = retainPins(base, pins, candidates);
-  return { pins: kept, pinEdges: prunePinEdges(base, kept, candidates) };
+function settlePins(base: GraphData, token: CancelToken, pins: Pins = get().pins, extraEdges: Iterable<GraphEdge> = []): Promise<{ pins: Pins; pinEdges: Map<string, GraphEdge> }> {
+  return settlePinsWith(get().engine, base, pins, get().options, token, get().pinEdges, extraEdges);
 }
 
 /** Base edges touching a pin: after a collapse they can be all that still links a pin. */
@@ -314,6 +312,7 @@ export const graphActions = {
   },
 
   async expand(nodeKey: string): Promise<void> {
+    graphActions.exitDiff(); // these edit the traversal result, not the comparison
     const { engine, options } = get();
     if (!engine) return;
     const token = beginWork("Expanding…");
@@ -331,6 +330,7 @@ export const graphActions = {
   },
 
   collapse(nodeKey: string): void {
+    graphActions.exitDiff(); // these edit the traversal result, not the comparison
     const { engine, baseGraph, pins, pinEdges } = get();
     if (!engine || !baseGraph.nodes.has(nodeKey)) return;
     const result = engine.collapse(baseGraph, nodeKey);
@@ -342,6 +342,7 @@ export const graphActions = {
   },
 
   async openAggregate(aggKey: string): Promise<void> {
+    graphActions.exitDiff(); // these edit the traversal result, not the comparison
     const { engine, baseGraph, options } = get();
     if (!engine) return;
     const token = beginWork("Loading hidden relationships…");
@@ -371,6 +372,7 @@ export const graphActions = {
 
   /** Pins or unpins a displayed instance. */
   togglePin(nodeKey: string): void {
+    graphActions.exitDiff(); // these edit the traversal result, not the comparison
     const { graph, baseGraph, pins, pinEdges } = get();
     const node = graph.nodes.get(nodeKey);
     if (!node || node.aggregate || get().options.excludedInstances?.includes(nodeKey)) return;
@@ -534,55 +536,80 @@ export const graphActions = {
     saveTheme(theme);
   },
 
-  /** Re-applies a saved session to the open iModel: options, centre, then manual expansions. */
+  /** Re-applies a saved session to the open iModel: options, centre, pins, then manual expansions. */
   async restoreSession(session: SavedSession): Promise<void> {
-    if (!get().engine) throw new Error("Open an iModel before restoring a session");
-    const excludedInstances = normalizeExcludedInstances(session.excludedInstances);
-    if (excludedInstances.includes(nodeKeyString(session.centre)))
-      throw new Error("Session excludes its own centre instance");
+    const engine = get().engine;
+    if (!engine) throw new Error("Open an iModel before restoring a session");
+    const { expandedGroups: _g, ...current } = get().options;
+    const options = sessionOptions(session, { ...current, expandedGroups: new Set() });
     history.clear();
     syncHistoryFlags();
     clearFilterUndo();
-    const { expandedGroups: _g, ...current } = get().options;
-    const options: TraversalOptions = {
-      ...current, depth: session.depth, direction: session.direction, filters: session.filters, excludedInstances,
-      nodeBudget: session.nodeBudget, groupCap: session.groupCap, expandedGroups: new Set(session.expandedGroups),
-    };
-    setBase(centreOnly(get().baseGraph, nodeKeyString(session.centre)), NO_PINS, NO_EDGES,
-      { options, layoutMode: session.layoutMode, status: { kind: "loading", message: "Restoring session..." } });
+    const centreKey = nodeKeyString(session.centre);
+    setBase(centreOnly(get().baseGraph, centreKey), NO_PINS, NO_EDGES,
+      { options, layoutMode: session.layoutMode, pathView: undefined, previousCentre: undefined, selection: { kind: "node", key: centreKey } }, false);
     saveOptions(options);
-    const loading = show(session.centre, { fit: true, expandedGroups: options.expandedGroups, keepPins: false, discardOptimistic: true });
-    const restoringGeneration = generation;
-    await loading;
-    if (generation !== restoringGeneration) return;
-    const status = get().status;
-    if (status.kind === "error") throw new Error(status.message);
-    const engine = get().engine;
-    if (engine && session.pinned && session.pinned.length > 0 && get().graph.centreKey === nodeKeyString(session.centre)) {
-      const token = beginWork("Restoring pins…");
-      const myGeneration = generation;
-      try {
-        const keys = session.pinned.filter((p) => !excludedInstances.includes(p.key)).map((p) => parseNodeKey(p.key));
-        const existing = await engine.existingKeys(keys);
-        const resolved = await engine.resolver.resolve(keys.filter((k) => existing.has(nodeKeyString(k))));
-        const pins = new Map<string, Pin>();
-        for (const p of session.pinned) {
-          const n = resolved.get(p.key);
-          if (n) pins.set(p.key, { node: { ...n, depth: 0, expanded: false }, offset: p.offset });
-        }
-        const base = get().baseGraph;
-        const settled = await settlePins(base, token, pins);
-        if (myGeneration !== generation) return;
-        setBase(base, settled.pins, settled.pinEdges, { status: { kind: "idle", message: describe(base) } });
-      } catch (e) {
-        if (myGeneration === generation) fail(e);
-      }
+    const token = beginWork("Restoring session…");
+    const myGeneration = generation;
+    try {
+      const replayed = await replaySession(engine, session, options, token, (partial) => {
+        if (myGeneration === generation) setBase(partial, NO_PINS, NO_EDGES, {}, false);
+      });
+      if (myGeneration !== generation) return;
+      const fileName = get().fileName;
+      if (session.annotations && fileName) annotationActions.mergeNotes(fileName, session.annotations);
+      setBase(replayed.base, replayed.pins, replayed.pinEdges, { options: replayed.options, status: { kind: "idle", message: describe(replayed.base) } });
+      set((s) => ({ fitRequest: s.fitRequest + 1 }));
+      recordHistory(replayed.base);
+    } catch (e) {
+      if (e instanceof TraversalCancelled || myGeneration !== generation) return;
+      fail(e);
+      throw e;
     }
-    for (const k of session.expandedNodes) {
-      const n = get().graph.nodes.get(k);
-      if (n && !n.expanded) await graphActions.expand(k);
+  },
+
+  /** Shows how `after` differs from `before` (a saved session, or what is on screen now). Sessions
+   * are rebuilt with the same replay as {@link restoreSession}; the store's graph is not changed
+   * until the comparison is ready, and leaving it ({@link exitDiff}) restores what was shown. */
+  async diffSessions(before: SavedSession | "current", after: SavedSession): Promise<GraphDiff | undefined> {
+    const { engine, options } = get();
+    if (!engine) throw new Error("Open an iModel before comparing sessions.");
+    const snapshot = get().diffView && beforeDiff ? beforeDiff : pick(get());
+    const current = get().diffView ? composeDisplay(snapshot.baseGraph, snapshot.pins, snapshot.pinEdges) : get().graph;
+    if (before === "current" && !current.centreKey) throw new Error("Centre the graph on an instance first, or pick two sessions.");
+    const token = beginWork("Comparing sessions…");
+    const myGeneration = generation;
+    const rebuild = async (s: SavedSession) => {
+      const r = await replaySession(engine, s, options, token);
+      return composeDisplay(r.base, r.pins, r.pinEdges);
+    };
+    try {
+      const a = before === "current" ? current : await rebuild(before);
+      const b = await rebuild(after);
+      if (myGeneration !== generation || get().engine !== engine) return undefined;
+      const diff = diffGraphs(a, b);
+      const label = `${before === "current" ? "Current graph" : before.name} → ${after.name}`;
+      const { nodes: n, edges: e } = diff.counts;
+      beforeDiff = snapshot;
+      setBase(diff.graph, NO_PINS, NO_EDGES, {
+        diffView: { label, diff }, pathView: undefined, selection: undefined,
+        status: { kind: "idle", message: `${label}: +${n.added} −${n.removed} instances, +${e.added} −${e.removed} relationships, ${n.same} unchanged` },
+      });
+      set((s) => ({ fitRequest: s.fitRequest + 1 }));
+      return diff;
+    } catch (e) {
+      if (e instanceof TraversalCancelled || myGeneration !== generation) return undefined;
+      fail(e);
+      throw e;
     }
-    recordHistory(get().baseGraph, true);
+  },
+
+  exitDiff(): void {
+    if (!get().diffView || !beforeDiff) return;
+    const { baseGraph, pins, pinEdges, ...rest } = beforeDiff;
+    beforeDiff = undefined;
+    setBase(baseGraph, pins, pinEdges, { ...rest, status: { kind: "idle", message: describe(baseGraph) } });
+    set((s) => ({ fitRequest: s.fitRequest + 1 }));
   },
 
   requestFit(): void { set((s) => ({ fitRequest: s.fitRequest + 1 })); },
@@ -609,17 +636,8 @@ function recordPinChange() {
   if (get().status.kind !== "loading" && get().baseGraph.centreKey) recordHistory(get().baseGraph, true);
 }
 
-/** Expanding a pin that is outside the traversal result first brings it (and its links) into it. */
 function absorbPin(base: GraphData, nodeKey: string): GraphData {
-  const { pins, pinEdges } = get();
-  if (base.nodes.has(nodeKey) || !pins.has(nodeKey)) return base;
-  const display = composeDisplay(base, pins, pinEdges);
-  const nodes = new Map(base.nodes);
-  nodes.set(nodeKey, display.nodes.get(nodeKey)!);
-  const edges = new Map(base.edges);
-  for (const [k, e] of pinEdges)
-    if ((e.source === nodeKey && nodes.has(e.target)) || (e.target === nodeKey && nodes.has(e.source))) edges.set(k, e);
-  return { ...base, nodes, edges };
+  return absorbPinWith(base, get().pins, get().pinEdges, nodeKey);
 }
 
 interface ShowOptions {

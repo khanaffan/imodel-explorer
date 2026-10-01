@@ -1,3 +1,7 @@
+.ig-widget-host {
+  height: 100%;
+}
+
 .ig-widget {
   display: flex;
   flex-direction: column;
@@ -467,4 +471,35 @@ span.ig-tree-row__twist { cursor: default; }
 @keyframes ig-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) {
   .ig-skeleton__bar { animation: none; }
+}
+
+/* Seed query library */
+.ig-seed-save {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--iui-color-border, rgb(127 127 127 / 30%));
+  border-radius: 4px;
+}
+
+.ig-seed-history {
+  display: block;
+  max-width: 320px;
+  overflow: hidden;
+  font-family: var(--iui-font-mono, monospace);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Instance notes */
+.ig-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ig-note .ig-link {
+  align-self: flex-start;
 }

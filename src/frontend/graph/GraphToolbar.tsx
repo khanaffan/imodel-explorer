@@ -54,6 +54,7 @@ export function GraphToolbar({ tool, onToolChange, feedback }: { tool: GraphTool
   const crumbs = useGraphStore((s) => s.crumbs);
   const pathSearching = useGraphStore((s) => s.pathSearching);
   const crumbIndex = useGraphStore((s) => s.crumbIndex);
+  const diffView = useGraphStore((s) => s.diffView);
   const activeTool = GRAPH_TOOLS.find((entry) => entry.id === tool)!;
 
   const exportItems = (close: () => void) => GRAPH_EXPORTS.map((e) => (
@@ -77,7 +78,7 @@ export function GraphToolbar({ tool, onToolChange, feedback }: { tool: GraphTool
         <ModeToggle />
         <DropdownMenu menuItems={(close) => GRAPH_TOOLS.map((entry) =>
           <MenuItem key={entry.id} startIcon={<ToolIcon tool={entry.id} />} onClick={() => { close(); onToolChange(entry.id === tool ? "navigate" : entry.id); }}>{entry.label}</MenuItem>)}>
-          <Button size="small" className="ig-toolbar__tool" startIcon={<ToolIcon tool={tool} />} styleType={tool === "navigate" ? "default" : "high-visibility"}
+          <Button size="small" className="ig-toolbar__tool" data-tour="tools" startIcon={<ToolIcon tool={tool} />} styleType={tool === "navigate" ? "default" : "high-visibility"}
             aria-pressed={tool !== "navigate"} title={`${activeTool.hint} Escape returns to Navigate.`}>Tool: {activeTool.label}</Button>
         </DropdownMenu>
         <ButtonGroup>
@@ -112,6 +113,15 @@ export function GraphToolbar({ tool, onToolChange, feedback }: { tool: GraphTool
                 className={c.isPath ? "ig-crumbs__item ig-crumbs__path" : "ig-crumbs__item"}>{c.label}</Breadcrumbs.Item>
             ))}
           </Breadcrumbs>
+        )}
+        {diffView && (
+          <div className="ig-diff-banner" role="status" data-testid="diff-banner">
+            <Text variant="small" className="ig-diff-banner__title">Comparing {diffView.label}</Text>
+            <span className="ig-diff-banner__chip ig-diff-banner__chip--added">+{diffView.diff.counts.nodes.added} added</span>
+            <span className="ig-diff-banner__chip ig-diff-banner__chip--removed">−{diffView.diff.counts.nodes.removed} removed</span>
+            <span className="ig-diff-banner__chip">{diffView.diff.counts.nodes.same} unchanged</span>
+            <Button size="small" styleType="borderless" onClick={() => graphActions.exitDiff()}>Exit comparison</Button>
+          </div>
         )}
         {tool !== "navigate" && <div className="ig-tool-hint">
           <Text variant="small">{activeTool.hint} Escape to cancel.</Text>
