@@ -47,17 +47,18 @@ try {
     await page.waitForTimeout(1200);
   };
   // Crop a graph shot to the rendered nodes and edge labels rather than the whole (mostly empty) pane.
-  const graphShot = async (name) => {
-    const box = await page.evaluate(() => {
+  // `extra` adds selectors (e.g. the find bar or diff banner) that must also be in the crop.
+  const graphShot = async (name, extra = "") => {
+    const box = await page.evaluate((more) => {
       const pane = document.querySelector(".ig-canvas").getBoundingClientRect();
-      const rects = [...document.querySelectorAll(".ig-canvas .react-flow__node, .ig-canvas .ig-edge-label")].map((e) => e.getBoundingClientRect());
+      const rects = [...document.querySelectorAll(`.ig-canvas .react-flow__node, .ig-canvas .ig-edge-label${more ? `, ${more}` : ""}`)].map((e) => e.getBoundingClientRect());
       const pad = 24;
       const x0 = Math.max(pane.left, Math.min(...rects.map((r) => r.left)) - pad);
       const y0 = Math.max(pane.top, Math.min(...rects.map((r) => r.top)) - pad);
       const x1 = Math.min(pane.right, Math.max(...rects.map((r) => r.right)) + pad);
       const y1 = Math.min(pane.bottom, Math.max(...rects.map((r) => r.bottom)) + pad);
       return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
-    });
+    }, extra);
     const minimap = page.locator(".ig-canvas .react-flow__minimap");
     await minimap.evaluate((el) => { el.style.visibility = "hidden"; });
     await page.screenshot({ path: join(outDir, `${name}.png`), clip: box, animations: "disabled" });
@@ -102,17 +103,69 @@ try {
   await page.getByRole("button", { name: /^Run/ }).first().click();
   await page.locator(".ig-list__item").nth(4).waitFor({ timeout: 30_000 });
   await shot(widget("ig-seed"), "03-seed-query");
+  // Save the query, then show it in the Saved menu.
+  const seed = widget("ig-seed");
+  await seed.getByRole("button", { name: "Save…" }).click();
+  await seed.getByPlaceholder("Name").fill("All pumps");
+  await seed.getByPlaceholder("Description (optional)").fill("Every WaterPlant pump");
+  await seed.getByRole("button", { name: "Save query" }).click();
+  await page.getByTestId("seed-saved").click();
+  await page.waitForTimeout(400);
+  await shot(page.locator('[role="menu"]').first(), "29-saved-seeds");
+  await page.keyboard.press("Escape");
   await page.locator(".ig-list__item", { hasText: "P-101A" }).first().click();
   await page.waitForFunction(() => globalThis.imodelExplorer.getState().graph.nodes.size > 1, null, { timeout: 60_000 });
   await settle();
   await shot(page.locator(".ig-toolbar").first(), "04-toolbar");
   await wideGraph(true);
+  // Status bar: crop the full-width bar that holds the graph counts.
+  const statusBox = await page.getByTestId("status-memory").waitFor({ timeout: 15_000 }).then(() => page.evaluate(() => {
+    // Hide transient toasts (e.g. "Saved query") that float over the status bar.
+    for (const t of document.querySelectorAll("[class*='toast-wrapper']")) t.style.visibility = "hidden";
+    let el = document.querySelector("[data-testid=status-counts]");
+    while (el.parentElement && el.getBoundingClientRect().width < window.innerWidth * 0.9) el = el.parentElement;
+    const r = el.getBoundingClientRect();
+    return { x: r.left, y: r.top, width: r.width, height: r.height };
+  }));
+  await page.screenshot({ path: join(outDir, "30-status-bar.png"), clip: statusBox, animations: "disabled" });
+  console.log("  30-status-bar.png");
+  await page.evaluate(() => { for (const t of document.querySelectorAll("[class*='toast-wrapper']")) t.style.visibility = ""; });
   await graphShot("05-graph-p101a");
+
+  // Command palette, find bar and shortcut sheet.
+  const mod = process.platform === "darwin" ? "Meta" : "Control";
+  await page.keyboard.press(`${mod}+k`);
+  await page.locator(".ig-palette__input").fill("layout");
+  await page.waitForTimeout(600);
+  await shot(page.locator(".ig-palette"), "31-command-palette");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press(`${mod}+f`);
+  await page.getByRole("textbox", { name: "Find in graph" }).fill("pipe");
+  await page.waitForFunction(() => /\d+ of \d+/.test(document.querySelector(".ig-findbar__count")?.textContent ?? ""), null, { timeout: 5_000 });
+  await page.waitForTimeout(600);
+  await graphShot("32-find", ".ig-findbar, .ig-canvas .ig-toolbar");
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("help.shortcuts", "ui"));
+  const sheet = page.locator('[role="dialog"]', { has: page.getByPlaceholder("Search shortcuts") });
+  await sheet.waitFor({ timeout: 5_000 });
+  await page.waitForTimeout(400);
+  await shot(sheet, "33-shortcuts");
+  await sheet.getByRole("button", { name: "Close" }).first().click();
+  await sheet.waitFor({ state: "detached", timeout: 5_000 });
 
   // 3. Node close-up and the Properties card.
   await shot(await node("P-101A"), "06-node");
   await tab("Properties");
   await shot(widget("ig-properties"), "07-properties");
+  // A note on P-101A: the editor in Properties and the badge on the node.
+  const noteBox = page.getByTestId("node-note");
+  await noteBox.fill("Seal replaced 2024-03; check at next shutdown.");
+  await noteBox.blur();
+  await page.locator(".ig-node__note-badge").first().waitFor({ timeout: 5_000 });
+  await page.waitForTimeout(400);
+  await shot(widget("ig-properties").locator(".ig-note"), "34-note");
+  await shot(await node("P-101A"), "35-node-note");
 
   // 4. Link-table relationship edge selected: Properties shows the relationship instance.
   await page.locator(".ig-edge-label", { hasText: "MotorDrivesPump" }).first().click({ force: true }).catch(async () => {
@@ -239,6 +292,22 @@ try {
   await page.waitForTimeout(600);
   await shot(sessions, "25-sessions");
 
+  // Compare the saved P-101A session with a graph centred on its motor.
+  await page.evaluate(async (k) => {
+    const [classId, id] = k.split(":");
+    await globalThis.imodelExplorer.graphActions.centreOn({ classId, id });
+  }, await nodeKey("M-101A"));
+  await settle();
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("graph.compareSession", "ui", "P-101A seal job"));
+  const banner = page.getByTestId("diff-banner");
+  await banner.waitFor({ timeout: 30_000 });
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.requestFit());
+  await page.waitForTimeout(1500);
+  await graphShot("36-diff", ".ig-canvas .ig-toolbar");
+  await banner.getByRole("button", { name: "Exit comparison" }).click();
+  await banner.waitFor({ state: "detached", timeout: 5_000 });
+  await settle();
+
   // 16. Export menu.
   await page.locator(".ig-toolbar").getByRole("button", { name: "Export", exact: true }).click();
   await page.waitForTimeout(400);
@@ -257,6 +326,14 @@ try {
   await widget("ig-properties").getByRole("button", { name: "Show in 3D" }).click();
   await page.waitForTimeout(3000);
   await shot(page.locator(".SplitPane .Pane2").first(), "28-viewport");
+
+  // About dialog: versions and links.
+  await page.evaluate(() => globalThis.imodelExplorer.runCommand("help.about", "ui"));
+  const about = page.locator('[role="dialog"]', { has: page.getByTestId("about") });
+  await about.getByText("Chromium").waitFor({ timeout: 5_000 });
+  await page.waitForTimeout(400);
+  await shot(about, "37-about");
+  await page.keyboard.press("Escape");
 } finally {
   await app.close();
   rmSync(profile, { recursive: true, force: true });

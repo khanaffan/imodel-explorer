@@ -24,7 +24,8 @@ another one is open replaces it, and files that are not iModels are rejected wit
 
 ## 2. App settings and theme
 
-The gear icon at the end of the graph toolbar opens **App settings**. Under **Appearance**, choose
+The gear icon on the welcome page or at the end of the graph toolbar (or **Cmd/Ctrl+,**) opens
+**App settings**. Under **Appearance**, choose
 System, Light, Dark or High contrast. The switches below it turn off optional features (Overview,
 class graph, Schema, Geometry, visibility trees and more), which skips their queries. Settings
 persist across iModels.
@@ -46,8 +47,10 @@ SELECT ECInstanceId, ECClassId FROM WaterPlant.Pump
 
 <img src="tutorial/03-seed-query.png" width="358" alt="Seed query panel listing seven pumps">
 
-**Save…** names a query (optionally only for this iModel) so you can run it again from **Saved**
-or the command palette. **History** lists the last 20 queries you ran.
+**Save…** names a query, with an optional description, and can limit it to this iModel. Run it
+again from **Saved** or the command palette. **History** lists the last 20 queries you ran.
+
+<img src="tutorial/29-saved-seeds.png" width="182" alt="Saved queries menu">
 
 ## 4. The graph toolbar
 
@@ -58,14 +61,17 @@ The **Close iModel** X sits above the graph toolbar, leaving its controls unobst
 From left to right:
 
 - **Instances / Classes**: switch between the instance graph and the class graph.
+- **Tool**: what a click on the canvas does (see [section 6](#6-properties-of-nodes-and-relationships)).
 - **Back / Forward** (Alt+← / Alt+→): retrace your steps.
 - **Fit to view** (F).
+- **Find in graph** (Cmd/Ctrl+F).
 - **Radial / Layered**: the layout.
 - **Depth** (1–6 hops) and **direction**: in & out, outgoing or incoming.
+- **📌 n**: the pins menu, shown once you pin a node (see [section 9](#9-pins)).
 - **Export**.
 - **App settings**.
 
-When you have navigated more than once, **breadcrumbs** above the toolbar list each stop in the
+When you have navigated more than once, **breadcrumbs** below the toolbar list each stop in the
 history; click one to jump straight back to it. Jumping back keeps the forward stops, so
 **Forward** still works.
 
@@ -77,17 +83,29 @@ ID. Enter centres the graph on the selected instance; **Shift+Enter** finds a pa
 current centre. Every palette command is also in the native **File / Edit / View / Graph** menus.
 Unavailable commands say why in the palette.
 
-Press **?** for a searchable sheet of every keyboard shortcut.
+<img src="tutorial/31-command-palette.png" width="512" alt="Command palette filtered to layout commands">
+
+Press **?** (or **Help → Keyboard shortcuts**) for a searchable sheet of every keyboard shortcut.
+Shortcuts do not fire while you type in a field, except Cmd/Ctrl+K, Cmd/Ctrl+F and Escape.
+
+<img src="tutorial/33-shortcuts.png" width="448" alt="Keyboard shortcut sheet">
+
+### Status bar
 
 The status bar along the bottom shows the open iModel, how many instances and relationships are
 in the graph (with a warning when the node budget cut the traversal short), how many filters are
-active (click it to open **Traversal & filters**) and how long the last graph load took.
+active (click it to open **Traversal & filters**), how long the last graph load took, and how much
+memory the whole app is using. Hover the memory figure for a breakdown by process.
+
+<img src="tutorial/30-status-bar.png" width="800" alt="Status bar">
 
 ### Find in graph
 
 **Cmd/Ctrl+F** opens a find bar over the graph. Matching nodes (by label, class or ID) are
 highlighted and the rest dimmed. Enter and Shift+Enter move to the next and previous match and pan
-to it; the counter shows "n of m". Escape closes the bar.
+to it; the counter shows "n of m". Notes are searched too. Escape closes the bar.
+
+<img src="tutorial/32-find.png" width="700" alt="Find bar matching two pipes">
 
 ## 5. Read the graph
 
@@ -105,7 +123,8 @@ and aspect.
   constraints.
 
 Each node shows its class, schema, label, ID and model. The node buttons are 📌 (pin), ▾ (preview
-properties) and + (expand one hop here).
+properties) and + (expand one hop here). A 📝 before the class name means the instance has a note
+(see [Notes](#notes)).
 
 <img src="tutorial/06-node.png" width="126" alt="Single node">
 
@@ -141,7 +160,8 @@ Invalid targets show a message without changing filters. Node Pin, preview, and 
 remain independent of the selected tool.
 
 When a node is selected, **Properties** shows a header card (class, IDs, model, hop count and
-relationship count), **Pin** and **Show in 3D** buttons, and then the ECPresentation property grid
+relationship count), the buttons that apply (**Pin**, plus **Centre here**, **Expand**, **Show in 3D**,
+**Hide class** and **Hide model** where relevant), a **Note** box, and then the ECPresentation property grid
 for elements, with categorized, formatted values, including schema-hidden fields and properties
 from unique and multi aspects. Expand the aspect categories to inspect their values. This uses
 generic explorer rules, not application-specific computed fields or custom related-property paths.
@@ -304,12 +324,30 @@ replays them later.
 
 <img src="tutorial/25-sessions.png" width="358" alt="Sessions panel with a saved session">
 
-Notes you write on instances (in **Properties**, under *Note*) are saved with the session for the
-nodes it shows, and are restored with it without overwriting notes you already have.
+**Cmd/Ctrl+S** saves a session with a default name from anywhere.
 
-The compare button on a session shows what differs from the current graph, or from another
-session: new instances are outlined, ones that are gone are ghosted, and the banner counts them.
-**Exit comparison** (or Escape) returns to the graph you had.
+### Notes
+
+Type a note in the **Note** box in **Properties** and click away (or press Cmd/Ctrl+Enter) to save
+it. Notes belong to the instance in this iModel file, show as 📝 on the node, and are matched by
+Find and the command palette. **Remove note** deletes one.
+
+<img src="tutorial/34-note.png" width="351" alt="Note on P-101A in Properties">
+
+<img src="tutorial/35-node-note.png" width="126" alt="Node with a note badge">
+
+Notes on the nodes a session shows are saved with it, and restoring the session adds them back
+without overwriting notes you already have.
+
+### Comparing sessions
+
+The compare button beside a session compares it with the current graph (**Current graph → name**)
+or with another saved session. Instances only in the session are outlined in green, ones that are
+gone are ghosted, and the banner counts added, removed and unchanged nodes. **Exit comparison** (or
+Escape) returns to the graph you had. Here the session saved on P-101A is compared with the graph
+centred on its motor.
+
+<img src="tutorial/36-diff.png" width="700" alt="Comparing the current graph with a saved session">
 
 ### Links
 
@@ -339,6 +377,19 @@ the 3D view, and picking an element in the view selects it in the graph. This is
 in the view.
 
 <img src="tutorial/28-viewport.png" width="430" alt="3D view with P-101A selected">
+
+## 21. Help, About and feedback
+
+The **Help** menu has **Keyboard shortcuts**, **Take the tour**, **Report a bug…**, **Suggest a
+feature…** and **Star on GitHub**. **About iModel Data Explorer** is in the app menu on macOS and
+in Help elsewhere, and in the command palette everywhere.
+
+About shows the app, iTwin.js, Electron, Chromium, Node and OS versions, with links to the source
+code, the licence, [iTwin.js](https://www.itwinjs.org), [iTwin on GitHub](https://github.com/iTwin)
+and [Bentley Systems](https://www.bentley.com). **Copy version details** copies the versions for a
+bug report. **Report a bug** opens a new GitHub issue with them filled in.
+
+<img src="tutorial/37-about.png" width="520" alt="About dialog">
 
 ## Regenerating the screenshots
 

@@ -519,12 +519,12 @@
 }
 
 .ig-diff-banner__chip--added {
-  color: #1a7f37;
+  color: var(--iui-color-text-positive, #1a7f37);
   background: rgb(63 185 80 / 18%);
 }
 
 .ig-diff-banner__chip--removed {
-  color: #cf222e;
+  color: var(--iui-color-text-negative, #cf222e);
   background: rgb(207 34 46 / 14%);
 }
 
