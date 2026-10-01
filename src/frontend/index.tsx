@@ -9,6 +9,9 @@ import { LOCALIZATION_NAMESPACES as TREE_WIDGET_NAMESPACES } from "@itwin/tree-w
 import { createRoot } from "react-dom/client";
 import { APP_TITLE, getRpcInterfaces } from "../common/appInfo";
 import { App } from "./App";
+import { registerAppCommands } from "./commands/appCommands";
+import { startMenuSync } from "./commands/menuSync";
+import { installShortcutHandler, runCommand, useCommandStore } from "./commands/registry";
 import { instanceGraphUiProvider } from "./frontstages/InstanceGraphUiProvider";
 import { MAIN_STAGE_ID } from "./frontstages/MainFrontstage";
 import { openAndShow } from "./imodel/session";
@@ -29,8 +32,14 @@ async function start() {
   await UiFramework.initialize();
   UiItemsManager.register(instanceGraphUiProvider);
   StandardNavigationToolsProvider.register("InstanceGraph:Navigation", undefined, (stageId) => stageId === MAIN_STAGE_ID);
+  registerAppCommands();
+  installShortcutHandler();
+  startMenuSync();
   // Automation / console hook for developers and smoke tests.
-  (globalThis as Record<string, unknown>).imodelExplorer = { openAndShow, graphActions, getState: useGraphStore.getState, classGraphActions, getClassState: useClassGraphStore.getState, featureActions, getFeatureState: useFeatureStore.getState, IModelApp };
+  (globalThis as Record<string, unknown>).imodelExplorer = {
+    openAndShow, graphActions, getState: useGraphStore.getState, classGraphActions, getClassState: useClassGraphStore.getState, featureActions, getFeatureState: useFeatureStore.getState, IModelApp,
+    runCommand, getCommands: () => [...useCommandStore.getState().commands.keys()],
+  };
   createRoot(document.getElementById("root")!).render(<App />);
 }
 

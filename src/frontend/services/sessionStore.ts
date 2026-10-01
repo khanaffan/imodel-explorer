@@ -102,11 +102,21 @@ export function listSessions(storage: Pick<Storage, "getItem"> = localStorage): 
   }
 }
 
+const listeners = new Set<() => void>();
+
+/** Called after any save or delete, so every list of sessions stays current. */
+export function onSessionsChanged(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 export function storeSession(session: SavedSession, storage: Pick<Storage, "getItem" | "setItem"> = localStorage): void {
   const others = listSessions(storage).filter((s) => !(s.name === session.name && s.fileName === session.fileName));
   storage.setItem(STORAGE_KEY, JSON.stringify([session, ...others]));
+  for (const l of listeners) l();
 }
 
 export function deleteSession(session: SavedSession, storage: Pick<Storage, "getItem" | "setItem"> = localStorage): void {
   storage.setItem(STORAGE_KEY, JSON.stringify(listSessions(storage).filter((s) => !(s.name === session.name && s.fileName === session.fileName))));
+  for (const l of listeners) l();
 }

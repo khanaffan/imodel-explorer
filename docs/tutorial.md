@@ -56,6 +56,24 @@ From left to right:
 - **Export**.
 - **App settings**.
 
+When you have navigated more than once, **breadcrumbs** above the toolbar list each stop in the
+history; click one to jump straight back to it. Jumping back keeps the forward stops, so
+**Forward** still works.
+
+### Command palette, menu and shortcuts
+
+Press **Cmd/Ctrl+K** to open the command palette. Type part of a command name ("radial", "fit",
+"theme") and press Enter to run it. Typing also searches instances by UserLabel, CodeValue or exact
+ID. Enter centres the graph on the selected instance; **Shift+Enter** finds a path to it from the
+current centre. Every palette command is also in the native **File / Edit / View / Graph** menus.
+Unavailable commands say why in the palette.
+
+### Find in graph
+
+**Cmd/Ctrl+F** opens a find bar over the graph. Matching nodes (by label, class or ID) are
+highlighted and the rest dimmed. Enter and Shift+Enter move to the next and previous match and pan
+to it; the counter shows "n of m". Escape closes the bar.
+
 ## 5. Read the graph
 
 Click **P-101A**. The pump sits in the centre, with its depth-1 neighbours around it: motor, pipes,
@@ -171,6 +189,20 @@ traversal strategy (`ECVLib.Relations()` or schema metadata).
 With the **BisCore** schema excluded, P-101A shows only the domain relationships.
 
 <img src="tutorial/15-graph-filtered.png" width="700" alt="P-101A with BisCore excluded">
+
+Filter and instance-exclusion changes can be undone with **Cmd/Ctrl+Z** (redo with
+**Cmd/Ctrl+Shift+Z**) or with the Undo/Redo buttons at the top of the panel. History resets when you
+close the iModel or restore a session.
+
+### Finding a path
+
+To see how two instances are connected, choose **Find path from centre** in the tool menu and
+click a node, use **Graph → Find path from centre to selected node**, or press Shift+Enter on an
+instance in the palette. The graph switches to the shortest path, up to 6 hops, using the current
+direction, filters and instance exclusions, so filter to just the relationships you care about
+first. Long searches show progress and can be cancelled with Escape or the Cancel button. If no
+path exists within the limits, a status message says why. The path is a history stop, so Back
+returns to where you were.
 
 ## 11. Schema
 

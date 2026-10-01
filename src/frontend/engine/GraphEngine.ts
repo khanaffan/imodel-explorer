@@ -29,6 +29,21 @@ export const DEFAULT_OPTIONS: TraversalOptions = {
   depth: 1, direction: "both", filters: EMPTY_FILTERS, excludedInstances: [], nodeBudget: 750, groupCap: 25, expandedGroups: new Set(),
 };
 
+export interface PathLimits {
+  /** Relationships on the longest path searched for. */
+  readonly maxHops: number;
+  /** Instances reached (from both ends) before giving up. */
+  readonly maxVisited: number;
+  /** Rows fetched per hub relationship group. */
+  readonly fanoutCap: number;
+}
+
+export const DEFAULT_PATH_LIMITS: PathLimits = { maxHops: 6, maxVisited: 5000, fanoutCap: 200 };
+
+export type PathResult =
+  | { readonly kind: "found"; readonly graph: GraphData; readonly hops: number; readonly visited: number }
+  | { readonly kind: "none"; readonly reason: "exhausted" | "hops" | "visited"; readonly visited: number; readonly capped: boolean };
+
 export interface CancelToken {
   readonly cancelled: boolean;
 }
@@ -132,7 +147,8 @@ export class GraphEngine {
    * its links are shown whatever the traversal direction. */
   public async connectPinned(base: GraphData, pins: Pins, opts: TraversalOptions, cancel?: CancelToken): Promise<Map<string, GraphEdge>> {
     const out = new Map<string, GraphEdge>();
-    const excluded = new Set(opts.excludedInstances);
+    const admit = this._admission(opts);
+    const excluded = admit.excluded;
     const seeds = [...pins.values()].filter((p) => !p.node.aggregate && !excluded.has(p.node.key)).map((p) => parseNodeKey(p.node.key));
     if (seeds.length === 0) return out;
     const targets = new Map<string, NodeKey>();
@@ -143,7 +159,7 @@ export class GraphEngine {
     for (const r of rels) {
       const { key, source, target } = edgeKeyFor(r);
       if (base.edges.has(key) || out.has(key) || !targets.has(source) || !targets.has(target)) continue;
-      if (!passesRelationshipFilters(opts.filters, this.registry.hierarchyOf(r.relClassId))) continue;
+      if (!admit.relationship(r.relClassId)) continue;
       out.set(key, this._edgeFor(r, key, source, target));
     }
     return out;
@@ -207,6 +223,112 @@ export class GraphEngine {
     return { centreKey: graph.centreKey, nodes, edges, truncated: false };
   }
 
+  /** Shortest relationship path from `from` to `to` that traversal could also take: same filters,
+   * exclusions and direction (the search from `to` walks it in reverse). Both endpoints are exempt
+   * from class/model filters, as the centre is. Hubs are capped at `fanoutCap` rows per
+   * relationship group, so "none" with `capped` means a path may still exist through a hub. */
+  public async findPath(from: NodeKey, to: NodeKey, opts: TraversalOptions, limits: PathLimits = DEFAULT_PATH_LIMITS,
+    cancel?: CancelToken, onProgress?: (visited: number) => void): Promise<PathResult> {
+    const fromKey = nodeKeyString(from);
+    const toKey = nodeKeyString(to);
+    const admit = this._admission(opts);
+    for (const k of [fromKey, toKey])
+      if (admit.excluded.has(k)) throw new Error("An excluded instance cannot be a path endpoint. Remove its exclusion in Filters first.");
+    const reverse: Record<DirectionFilter, DirectionFilter> = { forward: "backward", backward: "forward", both: "both" };
+    type Step = { readonly parent: string; readonly via: RawRelation } | null;
+    const sides = [
+      { parents: new Map<string, Step>([[fromKey, null]]), frontier: [from], direction: opts.direction, depth: 0 },
+      { parents: new Map<string, Step>([[toKey, null]]), frontier: [to], direction: reverse[opts.direction], depth: 0 },
+    ];
+    const filterModels = Object.keys(opts.filters.models).length > 0;
+    let capped = false;
+    let meet: string | undefined = fromKey === toKey ? fromKey : undefined;
+    const visited = () => sides[0].parents.size + sides[1].parents.size;
+
+    while (!meet) {
+      if (sides[0].depth + sides[1].depth >= limits.maxHops) return { kind: "none", reason: "hops", visited: visited(), capped };
+      if (visited() >= limits.maxVisited) return { kind: "none", reason: "visited", visited: visited(), capped };
+      const live = sides.filter((s) => s.frontier.length > 0);
+      if (live.length < 2) return { kind: "none", reason: "exhausted", visited: visited(), capped };
+      const side = live[0].frontier.length <= live[1].frontier.length ? live[0] : live[1];
+      const other = side === sides[0] ? sides[1] : sides[0];
+      const { relations, totals } = await this.strategy.neighbours(side.frontier, side.direction, {
+        fetchLimit: limits.fanoutCap, maxRows: limits.fanoutCap, unlimited: new Set(), knownIds: [], excludedInstances: opts.excludedInstances,
+      });
+      this._checkCancelled(cancel);
+      if (totals.size > 0) capped = true;
+      const found = new Map<string, Step>();
+      for (const r of relations) {
+        const k = nodeKeyString(r.related);
+        if (side.parents.has(k) || found.has(k) || admit.excluded.has(k) || !admit.relationship(r.relClassId)) continue;
+        if (k !== fromKey && k !== toKey && !admit.cls(r.related.classId)) continue;
+        found.set(k, { parent: nodeKeyString(r.seed), via: r });
+      }
+      if (filterModels) {
+        const resolved = await this.resolver.resolve([...found.keys()].filter((k) => k !== fromKey && k !== toKey).map(parseNodeKey));
+        this._checkCancelled(cancel);
+        for (const [k, n] of resolved) if (!admit.model(n)) found.delete(k);
+      }
+      side.depth++;
+      side.frontier = [];
+      for (const [k, step] of found) {
+        side.parents.set(k, step);
+        side.frontier.push(parseNodeKey(k));
+        if (!meet && other.parents.has(k)) meet = k;
+      }
+      onProgress?.(visited());
+    }
+
+    const chain = (parents: Map<string, Step>, start: string) => {
+      const out: Array<{ key: string; via?: RawRelation }> = [];
+      for (let k: string | undefined = start; k !== undefined;) {
+        const step: Step | undefined = parents.get(k);
+        out.push({ key: k, via: step?.via });
+        k = step?.parent;
+      }
+      return out;
+    };
+    // from … meet, then meet … to; each relation links an entry to its neighbour on the path.
+    const head = chain(sides[0].parents, meet).reverse();
+    const tail = chain(sides[1].parents, meet);
+    const keys = [...head.map((s) => s.key), ...tail.slice(1).map((s) => s.key)];
+    const relations = [...head.slice(1).map((s) => s.via!), ...tail.slice(0, -1).map((s) => s.via!)];
+    const resolved = await this.resolver.resolve(keys.map(parseNodeKey));
+    this._checkCancelled(cancel);
+    const nodes = new Map<string, GraphNode>();
+    keys.forEach((k, depth) => {
+      const n = resolved.get(k);
+      if (!n) throw new Error(`Instance ${k} on the path no longer exists.`);
+      nodes.set(k, { ...n, depth, expanded: false });
+    });
+    const edges = new Map<string, GraphEdge>();
+    for (const r of relations) {
+      const { key, source, target } = edgeKeyFor(r);
+      edges.set(key, this._edgeFor(r, key, source, target));
+    }
+    return { kind: "found", graph: { centreKey: fromKey, nodes, edges, truncated: false }, hops: relations.length, visited: visited() };
+  }
+
+  /** The filter and exclusion rules traversal applies to what it admits; shared by every search so
+   * paths and pins honour exactly what the neighbourhood does. */
+  private _admission(opts: TraversalOptions) {
+    const excluded = new Set(opts.excludedInstances);
+    const classCache = new Map<string, boolean>();
+    return {
+      excluded,
+      relationship: (relClassId: string) => passesRelationshipFilters(opts.filters, this.registry.hierarchyOf(relClassId)),
+      cls: (classId: string) => {
+        let ok = classCache.get(classId);
+        if (ok === undefined) {
+          ok = passesClassFilters(opts.filters, this.registry.hierarchyOf(classId));
+          classCache.set(classId, ok);
+        }
+        return ok;
+      },
+      model: (n: Pick<GraphNode, "modelId">) => passesModelFilters(opts.filters, n, this._parentOf),
+    };
+  }
+
   private _checkCancelled(cancel?: CancelToken) {
     if (cancel?.cancelled)
       throw new TraversalCancelled();
@@ -215,7 +337,8 @@ export class GraphEngine {
   /** Queries every frontier node, applies filters, groups oversized fans into aggregate nodes,
    * enforces the budget and resolves new nodes. Returns the newly added node keys. */
   private async _expandFrontier(g: MutableGraph, frontierKeys: string[], opts: TraversalOptions, cancel?: CancelToken): Promise<string[]> {
-    const excluded = new Set(opts.excludedInstances);
+    const admit = this._admission(opts);
+    const excluded = admit.excluded;
     const seeds = frontierKeys.filter((key) => !excluded.has(key)).map(parseNodeKey);
     if (seeds.length === 0) return [];
     const knownIds = new Set<string>();
@@ -234,16 +357,6 @@ export class GraphEngine {
       if (n) g.nodes.set(k, { ...n, expanded: true });
     }
 
-    const passesClass = new Map<string, boolean>();
-    const classOk = (classId: string) => {
-      let ok = passesClass.get(classId);
-      if (ok === undefined) {
-        ok = passesClassFilters(opts.filters, this.registry.hierarchyOf(classId));
-        passesClass.set(classId, ok);
-      }
-      return ok;
-    };
-
     // Group relations that would introduce new nodes, so large fans can be summarised.
     const toExisting: RawRelation[] = [];
     const groups = new Map<string, RawRelation[]>();
@@ -260,9 +373,9 @@ export class GraphEngine {
       if (g.nodes.has(relatedKey) && totals.has(gk))
         existingInGroup.set(gk, (existingInGroup.get(gk) ?? 0) + 1);
       if (g.edges.has(edgeKey)) continue;
-      if (!passesRelationshipFilters(opts.filters, this.registry.hierarchyOf(r.relClassId))) continue;
+      if (!admit.relationship(r.relClassId)) continue;
       if (g.nodes.has(relatedKey)) { toExisting.push(r); continue; }
-      if (!classOk(r.related.classId)) continue;
+      if (!admit.cls(r.related.classId)) continue;
       if (!groups.has(gk)) groups.set(gk, []);
       groups.get(gk)!.push(r);
     }
@@ -282,7 +395,7 @@ export class GraphEngine {
     }
     // Capped groups whose fetched rows all led to existing (or filtered) instances.
     for (const [gk, total] of totals) {
-      if (groups.has(gk) || !passesRelationshipFilters(opts.filters, this.registry.hierarchyOf(gk.split("|")[3]))) continue;
+      if (groups.has(gk) || !admit.relationship(gk.split("|")[3])) continue;
       const hidden = total - (existingInGroup.get(gk) ?? 0);
       if (hidden > 0)
         aggregates.push({ key: gk, hidden });
@@ -312,7 +425,7 @@ export class GraphEngine {
     }
     const added: string[] = [];
     for (const [k, n] of resolved) {
-      if (!passesModelFilters(opts.filters, n, this._parentOf)) continue;
+      if (!admit.model(n)) continue;
       g.nodes.set(k, { ...n, depth: depthOf.get(k) ?? 1, expanded: false });
       added.push(k);
     }

@@ -411,3 +411,55 @@
 .ig-toolbar__search {
   width: 150px;
 }
+
+/* Find in graph */
+.ig-findbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 52px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: var(--iui-color-background, #fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.ig-findbar__input {
+  width: 200px;
+}
+
+.ig-findbar__count {
+  min-width: 64px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ig-node--find-dimmed {
+  opacity: 0.25;
+}
+
+.ig-node--find-match {
+  box-shadow: 0 0 0 3px #f2c94c, 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.ig-node--find-current {
+  box-shadow: 0 0 0 4px #f2994a, 0 4px 14px rgb(0 0 0 / 35%);
+}
+
+/* History breadcrumbs */
+.ig-crumbs {
+  flex-basis: 100%;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.ig-crumbs__item {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ig-crumbs__path {
+  font-style: italic;
+}

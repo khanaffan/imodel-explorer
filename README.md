@@ -43,6 +43,19 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Graph click-tools.** Choose a tool, then click a node or relationship to include/exclude its
   exact class/type or containing model. Exclude this instance removes just that node and paths
   through it. Tools stay active until Escape or Navigate; instance exclusions are saved in sessions.
+- **Command palette** (Cmd/Ctrl+K). Run any command, open a recent file or saved session, or search
+  instances by UserLabel, CodeValue or exact ID: Enter centres the instance, Shift+Enter finds a
+  path to it from the current centre.
+- **Native menu.** File, Edit, View and Graph menus run the same commands as the palette and
+  keyboard shortcuts; the palette explains why an unavailable command is disabled.
+- **Find in graph** (Cmd/Ctrl+F). Highlights displayed nodes matching a label, class or ID and dims
+  the rest; Enter / Shift+Enter step through matches.
+- **Path finder.** Shortest path from the centre to another instance (Find-path tool, palette or
+  Graph menu), up to 6 hops, honouring direction, filters and instance exclusions. Searches are
+  cancellable and recorded in history.
+- **Breadcrumbs** above the graph jump straight to any earlier stop in the navigation history.
+- **Filter undo/redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, or the Filters panel) for filter and
+  instance-exclusion changes. In text fields the shortcuts keep their usual text-editing meaning.
 - **Exemplar ranking.** Sort seed-query results by relationship fan-out to find the
   best-connected instances to start from.
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.
@@ -57,6 +70,23 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   visibility trees and more — to skip their queries and keep the app fast when you only need the
   core data-model view. Choices persist across iModels; children of a disabled feature keep their
   saved state.
+
+### Keyboard shortcuts
+
+Shortcuts never fire while typing in a field, except Cmd/Ctrl+K, Cmd/Ctrl+F and Escape.
+
+| Shortcut | Command |
+|---|---|
+| Cmd/Ctrl+K | Command palette |
+| Cmd/Ctrl+F | Find in graph |
+| Cmd/Ctrl+O | Open iModel |
+| Cmd/Ctrl+S | Save session |
+| Cmd/Ctrl+, | App settings |
+| Cmd/Ctrl+Z / Cmd/Ctrl+Shift+Z | Undo / redo filters |
+| Alt+← / Alt+→ | Back / forward |
+| F | Fit graph to view |
+| P | Pin or unpin the selected node |
+| Escape | Cancel a path search, close Find, then return to Navigate |
 
 ## Quick start
 

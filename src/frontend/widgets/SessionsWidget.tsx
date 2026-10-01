@@ -1,7 +1,7 @@
 import { Button, Input, Text } from "@itwin/itwinui-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { downloadText, safeFileStem } from "../services/exporters";
-import { captureSession, deleteSession, listSessions, parseSession, type SavedSession, storeSession } from "../services/sessionStore";
+import { captureSession, deleteSession, listSessions, onSessionsChanged, parseSession, type SavedSession, storeSession } from "../services/sessionStore";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import "./widgets.css";
 
@@ -12,6 +12,7 @@ export function SessionsWidget() {
   const [sessions, setSessions] = useState(() => listSessions());
   const [error, setError] = useState<string>();
   const fileInput = useRef<HTMLInputElement>(null);
+  useEffect(() => onSessionsChanged(() => setSessions(listSessions())), []);
 
   const capture = (n: string) => {
     const { graph, options, layoutMode, pins } = useGraphStore.getState();
@@ -22,7 +23,6 @@ export function SessionsWidget() {
     const s = capture(name.trim() || `Session ${new Date().toLocaleString()}`);
     if (!s) return;
     storeSession(s);
-    setSessions(listSessions());
     setName("");
   };
 
@@ -41,7 +41,6 @@ export function SessionsWidget() {
     try {
       const s = parseSession(JSON.parse(await file.text()));
       storeSession(s);
-      setSessions(listSessions());
       await open(s);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -77,7 +76,7 @@ export function SessionsWidget() {
                 {s.fileName !== fileName ? `${safeFileStem(s.fileName)} · ` : ""}depth {s.depth} · {new Date(s.savedAt).toLocaleString()}
               </span>
             </button>
-            <button className="ig-x" title="Delete" onClick={() => { deleteSession(s); setSessions(listSessions()); }}>×</button>
+            <button className="ig-x" title="Delete" onClick={() => deleteSession(s)}>×</button>
           </div>
         ))}
       </div>

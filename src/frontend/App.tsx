@@ -1,5 +1,7 @@
 import { ConfigurableUiContent, ThemeManager } from "@itwin/appui-react";
 import { Root as StrataKitRoot } from "@stratakit/mui";
+import { CommandPalette } from "./commands/CommandPalette";
+import { ToastBridge } from "./commands/ToastBridge";
 import { useAppThemeStore } from "./state/appTheme";
 import { useGraphStore } from "./state/graphStore";
 import { useColorScheme } from "./useColorScheme";
@@ -17,6 +19,8 @@ export function App() {
       <StrataKitRoot colorScheme={colorScheme} className="ig-app">
         {connection ? <ConfigurableUiContent appBackstage={undefined} /> : <WelcomePage />}
         <FeatureSettingsDialog />
+        <CommandPalette />
+        <ToastBridge />
       </StrataKitRoot>
     </ThemeManager>
   );

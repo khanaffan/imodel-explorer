@@ -15,6 +15,8 @@ export interface InstanceNodeData extends Record<string, unknown> {
   readonly leaving: boolean;
   /** Stagger for the entrance animation, by ring. */
   readonly enterDelayMs: number;
+  /** Find-in-graph state; undefined when not searching. */
+  readonly find?: "current" | "match" | "dimmed";
 }
 
 export type InstanceFlowNode = Node<InstanceNodeData, "instance">;
@@ -30,7 +32,7 @@ function shortClass(fullName: string) {
 const hiddenHandle = { opacity: 0, width: 1, height: 1, minWidth: 0, minHeight: 0, border: 0, left: "50%", top: "50%", pointerEvents: "none" } as const;
 
 function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
-  const { node, color, isCentre, isSelected, isPinned, leaving, enterDelayMs } = data;
+  const { node, color, isCentre, isSelected, isPinned, leaving, enterDelayMs, find } = data;
   const compact = useStore(zoomIsCompact);
   const [preview, setPreview] = useState<PropertyRecord[] | "loading" | undefined>();
 
@@ -60,7 +62,7 @@ function InstanceNodeView({ data }: NodeProps<InstanceFlowNode>) {
   }, [node.key]);
 
   const classes = ["ig-node", isCentre && "ig-node--centre", isSelected && "ig-node--selected", isPinned && "ig-node--pinned", leaving && "ig-node--leaving",
-    node.aggregate && "ig-node--aggregate", compact && "ig-node--compact", preview && "ig-node--open"].filter(Boolean).join(" ");
+    node.aggregate && "ig-node--aggregate", compact && "ig-node--compact", preview && "ig-node--open", find && `ig-node--find-${find}`].filter(Boolean).join(" ");
 
   const handles = (
     <>

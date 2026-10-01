@@ -9,6 +9,8 @@ export interface HistoryEntry {
   readonly expandedGroups: ReadonlySet<string>;
   readonly pins: Pins;
   readonly pinEdges: ReadonlyMap<string, GraphEdge>;
+  /** Set for a path search result, which is a separate stop even when it starts at the same centre. */
+  readonly path?: { readonly from: string; readonly to: string };
 }
 
 /** Browser-style back/forward over visited centres. Pushing after going back drops the forward
@@ -27,7 +29,7 @@ export class NavigationHistory {
 
   public push(entry: HistoryEntry): void {
     this._entries = this._entries.slice(0, this._index + 1);
-    if (this.current?.centreKey === entry.centreKey)
+    if (this.current?.centreKey === entry.centreKey && !this.current.path && !entry.path)
       this._entries[this._index] = entry;
     else
       this._entries.push(entry);
@@ -52,6 +54,13 @@ export class NavigationHistory {
   public forward(): HistoryEntry | undefined {
     if (!this.canGoForward) return undefined;
     return this._entries[++this._index];
+  }
+
+  /** Jumps to any entry, keeping the forward branch (like picking from a browser's history list). */
+  public goTo(index: number): HistoryEntry | undefined {
+    if (!Number.isInteger(index) || index < 0 || index >= this._entries.length || index === this._index) return undefined;
+    this._index = index;
+    return this._entries[index];
   }
 
   public clear(): void {

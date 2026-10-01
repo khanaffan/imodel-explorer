@@ -1,4 +1,6 @@
-import { Checkbox, ExpandableBlock, Input, Select, Text, ToggleSwitch } from "@itwin/itwinui-react";
+import { SvgRedo, SvgUndo } from "@itwin/itwinui-icons-react";
+import { Checkbox, ExpandableBlock, IconButton, Input, Select, Text, ToggleSwitch } from "@itwin/itwinui-react";
+import { formatShortcut, runCommand } from "../commands/registry";
 import { useMemo, useState } from "react";
 import { type ClassFilterEntry, cycleFilterState, type FilterSpec, type FilterState, isFilterEmpty } from "../engine/filters";
 import { buildModelTree, type ModelInfo, type ModelTreeNode } from "../engine/models";
@@ -182,6 +184,8 @@ export function FiltersWidget() {
   const options = useGraphStore((s) => s.options);
   const f = options.filters;
   const excluded = options.excludedInstances ?? [];
+  const canUndo = useGraphStore((s) => s.canUndoFilters);
+  const canRedo = useGraphStore((s) => s.canRedoFilters);
 
   const { classNames, relNames, schemas } = useMemo(() => {
     if (!engine) return { classNames: [], relNames: [], schemas: [] };
@@ -218,7 +222,13 @@ export function FiltersWidget() {
 
       <div className="ig-row ig-row--between">
         <Text variant="leading">Filters</Text>
-        {(!isFilterEmpty(f) || excluded.length > 0) && <button className="ig-link" onClick={() => graphActions.clearFilters()}>Clear all</button>}
+        <div className="ig-row">
+          <IconButton size="small" styleType="borderless" label={`Undo filter change (${formatShortcut({ key: "z", mod: true })})`} disabled={!canUndo}
+            onClick={() => void runCommand("edit.undo", "ui")}><SvgUndo /></IconButton>
+          <IconButton size="small" styleType="borderless" label={`Redo filter change (${formatShortcut({ key: "z", mod: true, shift: true })})`} disabled={!canRedo}
+            onClick={() => void runCommand("edit.redo", "ui")}><SvgRedo /></IconButton>
+          {(!isFilterEmpty(f) || excluded.length > 0) && <button className="ig-link" onClick={() => graphActions.clearFilters()}>Clear all</button>}
+        </div>
       </div>
       <Text variant="small" isMuted>✓ include only · ✕ exclude · sub-models follow their parent unless set · the centre is never hidden.</Text>
 

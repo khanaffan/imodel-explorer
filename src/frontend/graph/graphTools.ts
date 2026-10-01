@@ -1,9 +1,10 @@
 import { graphActions, type Selection, useGraphStore } from "../state/graphStore";
 
-export type GraphTool = "navigate" | "include-relationship" | "exclude-relationship" | "include-class" | "exclude-class" | "exclude-instance" | "include-model" | "exclude-model";
+export type GraphTool = "navigate" | "find-path" | "include-relationship" | "exclude-relationship" | "include-class" | "exclude-class" | "exclude-instance" | "include-model" | "exclude-model";
 
 export const GRAPH_TOOLS: ReadonlyArray<{ id: GraphTool; label: string; hint: string }> = [
   { id: "navigate", label: "Navigate", hint: "Click a node to centre on it; Shift-click to inspect." },
+  { id: "find-path", label: "Find path from centre", hint: "Click a node to show the shortest path to it from the centre, using the current filters." },
   { id: "include-relationship", label: "Include relationship type", hint: "Click an edge or relationship group. Only included types are traversed." },
   { id: "exclude-relationship", label: "Exclude relationship type", hint: "Click an edge or relationship group to exclude its exact type." },
   { id: "include-class", label: "Include node class", hint: "Click a node. Only included classes are traversed." },
@@ -18,7 +19,10 @@ export interface ToolResult {
   readonly message: string;
 }
 
-export function applyGraphTool(tool: Exclude<GraphTool, "navigate">, target: Exclude<Selection, undefined>): ToolResult {
+/** Filter tools; "find-path" is asynchronous and handled by the canvas. */
+export type FilterTool = Exclude<GraphTool, "navigate" | "find-path">;
+
+export function applyGraphTool(tool: FilterTool, target: Exclude<Selection, undefined>): ToolResult {
   const { graph } = useGraphStore.getState();
   const node = target.kind === "node" ? graph.nodes.get(target.key) : undefined;
   const edge = target.kind === "edge" ? graph.edges.get(target.key) : undefined;

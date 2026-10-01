@@ -3,9 +3,13 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { GraphData, GraphEdge, GraphNode } from "../engine/GraphModel";
+import { type GraphData, type GraphEdge, type GraphNode, parseNodeKey } from "../engine/GraphModel";
 import { colorFor } from "../state/colorTheme";
 import { graphActions, useGraphStore } from "../state/graphStore";
+import { notify } from "../commands/notify";
+import { setCanvasBridge } from "./canvasBridge";
+import { FindBar } from "./FindBar";
+import { findMatches } from "./findMatches";
 import { GraphToolbar } from "./GraphToolbar";
 import { InstanceNode, type InstanceFlowNode } from "./InstanceNode";
 import { avoidPinned, computeLayout, NODE_HEIGHT, NODE_WIDTH, type Point, type Positions } from "./layout";
@@ -57,8 +61,35 @@ function GraphCanvasInner() {
   useEffect(() => changeTool("navigate"), [connection, changeTool]);
   const clickEdge = useCallback((key: string) => {
     if (tool === "navigate") graphActions.select({ kind: "edge", key });
+    else if (tool === "find-path") setFeedback({ kind: "invalid", message: "Click a node, not a relationship." });
     else setFeedback(applyGraphTool(tool, { kind: "edge", key }));
   }, [tool]);
+
+  const [find, setFind] = useState<{ query: string; index: number; focus: number }>();
+  const matches = useMemo(() => (find ? findMatches(graph, find.query) : []), [graph, find]);
+  const matchSet = useMemo(() => new Set(matches), [matches]);
+  const currentMatch = matches.length ? matches[Math.min(find?.index ?? 0, matches.length - 1)] : undefined;
+  const panTo = useCallback((key: string | undefined) => {
+    const node = key ? rf.getNode(key) : undefined;
+    if (node) void rf.setCenter(node.position.x + NODE_WIDTH / 2, node.position.y + NODE_HEIGHT / 2, { zoom: Math.max(rf.getZoom(), 0.6), duration: prefersReducedMotion() ? 0 : 300 });
+  }, [rf]);
+  const stepFind = useCallback((delta: 1 | -1) => {
+    if (!find || matches.length === 0) return;
+    const index = (Math.min(find.index, matches.length - 1) + delta + matches.length) % matches.length;
+    setFind({ ...find, index });
+    panTo(matches[index]);
+  }, [find, matches, panTo]);
+
+  useEffect(() => setCanvasBridge({
+    getNodes: () => rf.getNodes(),
+    openFind: () => setFind((f) => ({ query: f?.query ?? "", index: f?.index ?? 0, focus: (f?.focus ?? 0) + 1 })),
+    setTool: changeTool,
+    escape: () => {
+      if (find) { setFind(undefined); return true; }
+      if (tool !== "navigate") { changeTool("navigate"); return true; }
+      return false;
+    },
+  }), [rf, changeTool, find, tool]);
 
   const [positions, setPositions] = useState<Positions>(new Map());
   const [leaving, setLeaving] = useState<Leaving>({ nodes: new Map(), edges: new Map() });
@@ -167,11 +198,12 @@ function GraphCanvasInner() {
     const add = (n: GraphNode, isLeaving: boolean) => m.set(n.key, {
       node: n, color: colorFor(n, theme), isCentre: n.key === graph.centreKey, isSelected: n.key === selectedNode, isPinned: pins.has(n.key),
       leaving: isLeaving, enterDelayMs: firstEnter.current.get(n.key) ?? 0,
+      find: !find?.query.trim() ? undefined : n.key === currentMatch ? "current" : matchSet.has(n.key) ? "match" : "dimmed",
     });
     for (const n of graph.nodes.values()) add(n, false);
     for (const n of leaving.nodes.values()) if (!m.has(n.key)) add(n, true);
     return m;
-  }, [graph, leaving, theme, selectedNode, pins]);
+  }, [graph, leaving, theme, selectedNode, pins, find, matchSet, currentMatch]);
 
   const nodes: InstanceFlowNode[] = useMemo(() => {
     const out: InstanceFlowNode[] = [];
@@ -231,6 +263,15 @@ function GraphCanvasInner() {
   }, [animator]);
 
   const onNodeClick = useCallback((ev: React.MouseEvent, n: InstanceFlowNode) => {
+    if (tool === "find-path") {
+      if (n.data.leaving || n.data.node.aggregate || n.id === useGraphStore.getState().graph.centreKey) {
+        setFeedback({ kind: "invalid", message: "Click an instance other than the centre." });
+        return;
+      }
+      changeTool("navigate");
+      graphActions.findPath(parseNodeKey(n.id)).catch((e: unknown) => notify.error(`Find path failed: ${e instanceof Error ? e.message : String(e)}`));
+      return;
+    }
     if (tool !== "navigate") {
       setFeedback(n.data.leaving
         ? { kind: "invalid", message: "This target is leaving the graph." }
@@ -239,23 +280,7 @@ function GraphCanvasInner() {
     }
     if (ev.shiftKey || ev.metaKey || ev.ctrlKey) graphActions.select({ kind: "node", key: n.id });
     else void graphActions.activate(n.id);
-  }, [tool]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.closest("input, textarea, select, [contenteditable]")) return;
-      if (e.key === "Escape" && !e.defaultPrevented) changeTool("navigate");
-      else if (e.altKey && e.key === "ArrowLeft") graphActions.back();
-      else if (e.altKey && e.key === "ArrowRight") graphActions.forward();
-      else if (e.key === "f" && !e.metaKey && !e.ctrlKey) graphActions.requestFit();
-      else if (e.key === "p" && !e.metaKey && !e.ctrlKey) {
-        const sel = useGraphStore.getState().selection;
-        if (sel?.kind === "node") graphActions.togglePin(sel.key);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [changeTool]);
+  }, [tool, changeTool]);
 
   return (
     <div className={`ig-canvas${tool !== "navigate" ? " ig-canvas--tool-active" : ""}`}>
@@ -284,6 +309,8 @@ function GraphCanvasInner() {
         <Background gap={24} size={1} />
         <MiniMap pannable zoomable nodeColor={(n) => (n.data as InstanceFlowNode["data"]).color} nodeStrokeWidth={0} />
         <GraphToolbar tool={tool} onToolChange={changeTool} feedback={feedback} />
+        {find && <FindBar query={find.query} onQuery={(query) => setFind({ ...find, query, index: 0 })} count={matches.length}
+          current={currentMatch ? matches.indexOf(currentMatch) : -1} onStep={stepFind} onClose={() => setFind(undefined)} focusRequest={find.focus} />}
       </ReactFlow>
       {graph.nodes.size === 0 && <GraphEmptyState />}
     </div>

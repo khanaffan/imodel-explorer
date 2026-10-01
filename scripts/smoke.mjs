@@ -138,7 +138,8 @@ try {
   };
   await page.locator(".ig-toolbar__tool").click();
   const toolMenuIcons = page.getByRole("menuitem").locator(".ig-tool-icon");
-  if (await toolMenuIcons.count() !== 8) throw new Error("expected icons for all eight graph tools");
+  await toolMenuIcons.nth(8).waitFor({ timeout: 5_000 });
+  if (await toolMenuIcons.count() !== 9) throw new Error(`expected icons for all nine graph tools, got ${await toolMenuIcons.count()}`);
   await page.getByRole("menuitem", { name: "Navigate", exact: true }).click();
   if (await page.locator(".ig-toolbar__tool .ig-tool-icon").getAttribute("data-tool") !== "navigate")
     throw new Error("Navigate is missing its toolbar icon");
@@ -221,6 +222,130 @@ try {
     throw new Error("returning to the instance graph did not reset the tool");
   await page.waitForTimeout(450);
   console.log("graph tools: exact type/class/model filters, instance exclusion, repeated clicks, feedback and Escape OK");
+
+  // Phase 1 navigation: native menu, palette, find, path, breadcrumbs, filter undo, toasts.
+  const mod = process.platform === "darwin" ? "Meta" : "Control";
+  const state = (fn) => page.evaluate(fn);
+  const menuItems = async () => app.evaluate(({ Menu }) => {
+    const walk = (items, path) => items.flatMap((i) => [{ path: [...path, i.label].join(" > "), enabled: i.enabled, accelerator: i.accelerator ?? null },
+      ...(i.submenu ? walk(i.submenu.items, [...path, i.label]) : [])]);
+    return walk(Menu.getApplicationMenu()?.items ?? [], []);
+  });
+  let menu = [];
+  for (let i = 0; i < 20 && !menu.some((m) => m.path === "Graph > Find in graph…" && m.enabled); i++) {
+    await page.waitForTimeout(200);
+    menu = await menuItems();
+  }
+  const find = (path) => menu.find((m) => m.path === path);
+  if (!find("Graph > Find in graph…")?.enabled || find("Graph > Find in graph…").accelerator !== "CmdOrCtrl+F")
+    throw new Error(`native menu is missing an enabled Graph > Find in graph…: ${JSON.stringify(menu.filter((m) => m.path.startsWith("Graph")))}`);
+  if (!find("Edit > Undo") || find("Edit > Undo").accelerator !== "CmdOrCtrl+Z" || !find("View > Theme > Dark") || !find("File > Export graph > GraphML"))
+    throw new Error("native menu is missing Edit > Undo, View > Theme or File > Export graph entries");
+  if (find("View > Fit graph to view")?.accelerator) throw new Error("bare-key shortcuts must not become menu accelerators");
+  const fitBefore = await state(() => globalThis.imodelExplorer.getState().fitRequest);
+  await app.evaluate(({ Menu }) => {
+    const item = Menu.getApplicationMenu().items.find((i) => i.label === "View").submenu.items.find((i) => i.label === "Fit graph to view");
+    item.click();
+  });
+  await page.waitForFunction((n) => globalThis.imodelExplorer.getState().fitRequest > n, fitBefore, { timeout: 5_000 });
+  console.log("native menu: renderer commands, accelerators, submenus and click dispatch OK");
+
+  // Toasts (and so the toaster under AppUI's ThemeManager) via Save session.
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  await page.keyboard.press(`${mod}+s`);
+  await page.getByText(/^Saved "Session /).first().waitFor({ timeout: 5_000 });
+  console.log("toasts: save session confirmation shown");
+
+  // Command palette: instance search, centre, then a command.
+  await page.keyboard.press(`${mod}+k`);
+  const palette = page.getByRole("dialog", { name: "Command palette" });
+  await palette.waitFor({ timeout: 5_000 });
+  await palette.getByRole("combobox").fill("pump-2");
+  const pump2Option = palette.getByRole("option").filter({ hasText: "Pump-2" }).first();
+  await pump2Option.waitFor({ timeout: 10_000 });
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowUp");
+  // Pump-2 must rank first: it is a literal match, and no command title contains "pump-2".
+  if (!(await palette.getByRole("option").first().textContent()).includes("Pump-2")) throw new Error("palette did not rank the instance match first");
+  await page.keyboard.press("Enter");
+  await palette.waitFor({ state: "detached", timeout: 5_000 });
+  await toolIdle();
+  const pump2Key = await state(() => globalThis.imodelExplorer.getState().graph.centreKey);
+  if (await state(() => globalThis.imodelExplorer.getState().graph.nodes.get(globalThis.imodelExplorer.getState().graph.centreKey).label) !== "Pump-2")
+    throw new Error("palette instance search did not centre on Pump-2");
+  await page.keyboard.press(`${mod}+k`);
+  await palette.getByRole("combobox").fill("radial layout");
+  await page.keyboard.press("Enter");
+  await palette.waitFor({ state: "detached", timeout: 5_000 });
+  if (await state(() => globalThis.imodelExplorer.getState().layoutMode) !== "radial") throw new Error("palette command did not run");
+  console.log("command palette: instance search ranks and centres, commands run OK");
+
+  // Find in graph: highlight, cycle, Escape.
+  await page.keyboard.press(`${mod}+f`);
+  const findInput = page.getByRole("textbox", { name: "Find in graph" });
+  await findInput.waitFor({ timeout: 5_000 });
+  await findInput.fill("pipe");
+  const counter = page.locator(".ig-findbar__count");
+  const total = await state(() => [...globalThis.imodelExplorer.getState().graph.nodes.values()].filter((n) => !n.aggregate && /pipe/i.test(`${n.label} ${n.className} ${n.id}`)).length);
+  if (total < 2) throw new Error("expected at least two pipes around Pump-2");
+  await page.waitForFunction((t) => document.querySelector(".ig-findbar__count")?.textContent === `1 of ${t}`, total, { timeout: 5_000 });
+  await page.keyboard.press("Enter");
+  if ((await counter.textContent()) !== `2 of ${total}`) throw new Error("Enter did not advance the find match");
+  await page.keyboard.press("Shift+Enter");
+  if ((await counter.textContent()) !== `1 of ${total}`) throw new Error("Shift+Enter did not go back a match");
+  if (await page.locator(".ig-node--find-current").count() !== 1 || await page.locator(".ig-node--find-dimmed").count() === 0)
+    throw new Error("find did not highlight the current match and dim the rest");
+  await page.keyboard.press("Escape");
+  await findInput.waitFor({ state: "detached", timeout: 5_000 });
+  if (await page.locator(".ig-node--find-dimmed").count()) throw new Error("closing find left nodes dimmed");
+  console.log("find in graph: counter, Enter/Shift+Enter cycling, highlight/dim and Escape OK");
+
+  // Path finder from Pump-2 to Pump-1 using only PumpFeedsPipe (Pump-1 → Pipe-A ← Pump-2).
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.setFilter("relationships", "TestIG:PumpFeedsPipe", "include"));
+  await toolIdle();
+  await page.keyboard.press(`${mod}+k`);
+  await palette.getByRole("combobox").fill("pump-1");
+  await palette.getByRole("option").filter({ hasText: "Pump-1" }).first().waitFor({ timeout: 10_000 });
+  await page.keyboard.press("Shift+Enter");
+  await palette.waitFor({ state: "detached", timeout: 5_000 });
+  await page.waitForFunction(() => globalThis.imodelExplorer.getState().pathView !== undefined, null, { timeout: 30_000 });
+  await toolIdle();
+  const path = await state(() => {
+    const s = globalThis.imodelExplorer.getState();
+    return { labels: [...s.graph.nodes.values()].filter((n) => !n.aggregate).sort((a, b) => a.depth - b.depth).map((n) => n.label), crumbs: s.crumbs.map((c) => c.label), status: s.status.message };
+  });
+  if (JSON.stringify(path.labels) !== JSON.stringify(["Pump-2", "Pipe-A", "Pump-1"]) || !/2 relationships/.test(path.status))
+    throw new Error(`unexpected path result: ${JSON.stringify(path)}`);
+  const crumbs = page.locator(".ig-crumbs");
+  await crumbs.getByText(/^Path: Pump-2 → Pump-1$/).waitFor({ timeout: 5_000 });
+  console.log("path finder: shortest filtered path shown, recorded in history and labelled OK");
+
+  // Breadcrumbs: jump back to Pump-2's neighbourhood.
+  await crumbs.getByText("Pump-2", { exact: true }).last().click();
+  await toolIdle();
+  const afterCrumb = await state(() => ({ centre: globalThis.imodelExplorer.getState().graph.centreKey, path: globalThis.imodelExplorer.getState().pathView, forward: globalThis.imodelExplorer.getState().canGoForward }));
+  if (afterCrumb.centre !== pump2Key || afterCrumb.path || !afterCrumb.forward) throw new Error(`breadcrumb jump failed: ${JSON.stringify(afterCrumb)}`);
+  console.log("breadcrumbs: jump to an earlier stop keeps the forward branch OK");
+
+  // Filter undo/redo from the keyboard (outside text fields).
+  await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+  await page.keyboard.press(`${mod}+z`);
+  await toolIdle();
+  if (await state(() => Object.keys(globalThis.imodelExplorer.getState().options.filters.relationships).length) !== 0) throw new Error(`${mod}+Z did not undo the filter`);
+  await page.keyboard.press(`${mod}+Shift+z`);
+  await toolIdle();
+  if (await state(() => globalThis.imodelExplorer.getState().options.filters.relationships["TestIG:PumpFeedsPipe"]?.state) !== "include") throw new Error(`${mod}+Shift+Z did not redo the filter`);
+  // Typing in a field must not trigger graph shortcuts.
+  await page.keyboard.press(`${mod}+f`);
+  await findInput.fill("");
+  const pinsBefore = await state(() => globalThis.imodelExplorer.getState().pins.size);
+  await findInput.press("p");
+  if (await state(() => globalThis.imodelExplorer.getState().pins.size) !== pinsBefore) throw new Error("P pinned while typing in the find field");
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => globalThis.imodelExplorer.graphActions.clearFilters());
+  await page.evaluate((key) => { const [classId, id] = key.split(":"); return globalThis.imodelExplorer.graphActions.centreOn({ classId, id }); }, summary.centre);
+  await toolIdle();
+  console.log("filter undo/redo shortcuts and in-field shortcut guard OK");
   // Edges exist in the DOM even when CSS collapses their SVG, so check that they actually paint.
   const paintedEdges = await page.evaluate(() => [...document.querySelectorAll(".react-flow__edge")]
     .filter((e) => { const svg = e.closest("svg"); return svg && svg.getBoundingClientRect().width > 0; }).length);

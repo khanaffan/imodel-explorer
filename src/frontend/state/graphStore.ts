@@ -1,6 +1,6 @@
 import type { IModelConnection } from "@itwin/core-frontend";
 import { create } from "zustand";
-import { type CancelToken, DEFAULT_OPTIONS, GraphEngine, TraversalCancelled, type TraversalOptions } from "../engine/GraphEngine";
+import { type CancelToken, DEFAULT_OPTIONS, DEFAULT_PATH_LIMITS, GraphEngine, type PathResult, TraversalCancelled, type TraversalOptions } from "../engine/GraphEngine";
 import { emptyGraph, type GraphData, type GraphEdge, type NodeKey, nodeKeyString, normalizeExcludedInstances, parseNodeKey } from "../engine/GraphModel";
 import { EMPTY_FILTERS, type FilterSpec, type FilterState } from "../engine/filters";
 import { composeDisplay, type Pin, type PinOffset, type Pins, prunePinEdges, retainPins } from "../engine/pins";
@@ -11,6 +11,7 @@ import { type ColorTheme, loadTheme, saveTheme } from "./colorTheme";
 import { NavigationHistory } from "./navigationHistory";
 import type { SavedSession } from "../services/sessionStore";
 import { type InstanceReference, resolveInstanceReferenceClassId } from "../engine/instanceProperties";
+import { notify } from "../commands/notify";
 
 export type Status =
   | { readonly kind: "idle"; readonly message?: string }
@@ -57,6 +58,14 @@ export interface GraphState {
   readonly models: readonly ModelInfo[];
   /** Bumped to ask the canvas to fit everything into view. */
   readonly fitRequest: number;
+  /** Back/Forward history as breadcrumbs; `crumbIndex` is the entry shown. */
+  readonly crumbs: ReadonlyArray<{ readonly label: string; readonly isPath: boolean }>;
+  readonly crumbIndex: number;
+  readonly canUndoFilters: boolean;
+  readonly canRedoFilters: boolean;
+  /** Set while the graph shows a path search result rather than a neighbourhood. */
+  readonly pathView?: { readonly from: string; readonly to: string; readonly label: string };
+  readonly pathSearching: boolean;
 }
 
 const OPTIONS_KEY = "instanceGraph.options";
@@ -92,11 +101,17 @@ export const useGraphStore = create<GraphState>(() => ({
   canGoForward: false,
   models: [],
   fitRequest: 0,
+  crumbs: [],
+  crumbIndex: -1,
+  canUndoFilters: false,
+  canRedoFilters: false,
+  pathSearching: false,
 }));
 
 const history = new NavigationHistory();
 let generation = 0;
 let activeToken: { cancelled: boolean } | undefined;
+let pathToken: { cancelled: boolean } | undefined;
 
 const set = useGraphStore.setState;
 const get = useGraphStore.getState;
@@ -110,7 +125,54 @@ function beginWork(message: string): CancelToken & { cancelled: boolean } {
 }
 
 function syncHistoryFlags() {
-  set({ canGoBack: history.canGoBack, canGoForward: history.canGoForward });
+  set({
+    canGoBack: history.canGoBack, canGoForward: history.canGoForward,
+    crumbs: history.entries.map((e) => ({ label: e.label, isPath: !!e.path })), crumbIndex: history.index,
+  });
+}
+
+/** Undo/redo over filter and instance-exclusion edits (not depth, budgets or navigation). */
+interface FilterSnapshot {
+  readonly filters: FilterSpec;
+  readonly excludedInstances: readonly string[];
+}
+const FILTER_UNDO_LIMIT = 50;
+const filterUndo: FilterSnapshot[] = [];
+const filterRedo: FilterSnapshot[] = [];
+let replayingFilters = false;
+
+function filterSnapshot(o: TraversalOptions): FilterSnapshot {
+  return { filters: o.filters, excludedInstances: o.excludedInstances ?? [] };
+}
+
+function sameFilters(a: FilterSnapshot, b: FilterSnapshot): boolean {
+  return JSON.stringify(a.filters) === JSON.stringify(b.filters) && sameExclusions(a.excludedInstances, b.excludedInstances);
+}
+
+function syncFilterUndo() {
+  set({ canUndoFilters: filterUndo.length > 0, canRedoFilters: filterRedo.length > 0 });
+}
+
+function clearFilterUndo() {
+  filterUndo.length = 0;
+  filterRedo.length = 0;
+  syncFilterUndo();
+}
+
+function stepFilters(from: FilterSnapshot[], to: FilterSnapshot[]) {
+  const target = from[from.length - 1];
+  if (!target) return;
+  const current = filterSnapshot(get().options);
+  replayingFilters = true;
+  try {
+    // Throws (leaving both stacks as they were) if the target would exclude the current centre.
+    graphActions.setOptions({ filters: target.filters, excludedInstances: target.excludedInstances });
+  } finally {
+    replayingFilters = false;
+  }
+  from.pop();
+  to.push(current);
+  syncFilterUndo();
 }
 
 function centreOnly(graph: GraphData, key = graph.centreKey): GraphData {
@@ -151,8 +213,11 @@ function pinTouchingEdges(base: GraphData, pins: Pins): GraphEdge[] {
 
 function recordHistory(graph: GraphData, replace = false) {
   const centre = graph.nodes.get(graph.centreKey);
-  const { pins, pinEdges } = get();
-  const entry = { centreKey: graph.centreKey, label: centre?.label ?? graph.centreKey, graph, expandedGroups: new Set(get().options.expandedGroups), pins, pinEdges };
+  const { pins, pinEdges, pathView } = get();
+  const entry = {
+    centreKey: graph.centreKey, label: pathView?.label ?? centre?.label ?? graph.centreKey, graph, expandedGroups: new Set(get().options.expandedGroups), pins, pinEdges,
+    ...(pathView ? { path: { from: pathView.from, to: pathView.to } } : {}),
+  };
   if (replace) history.replaceCurrent(entry);
   else history.push(entry);
   syncHistoryFlags();
@@ -187,10 +252,12 @@ function mergeProgress(partial: GraphData, optimistic: GraphData | undefined): G
 
 export const graphActions = {
   async attach(connection: IModelConnection, fileName: string, prefer?: StrategyName): Promise<void> {
-    const excludedInstances = get().connection === connection ? get().options.excludedInstances : [];
+    const sameConnection = get().connection === connection;
+    const excludedInstances = sameConnection ? get().options.excludedInstances : [];
     beginWork("Reading schemas…");
     history.clear();
-    set({ connection, fileName, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], options: { ...get().options, excludedInstances, expandedGroups: new Set() } });
+    if (!sameConnection) clearFilterUndo();
+    set({ connection, fileName, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, pathView: undefined, models: [], options: { ...get().options, excludedInstances, expandedGroups: new Set() } });
     syncHistoryFlags();
     try {
       const engine = await GraphEngine.create(createQueryPort(connection as unknown as QuerySource), prefer);
@@ -203,7 +270,8 @@ export const graphActions = {
   detach(): void {
     if (activeToken) activeToken.cancelled = true;
     history.clear();
-    set({ connection: undefined, fileName: undefined, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, models: [], options: { ...get().options, excludedInstances: [] }, status: { kind: "idle" } });
+    clearFilterUndo();
+    set({ connection: undefined, fileName: undefined, engine: undefined, graph: emptyGraph(), baseGraph: emptyGraph(), pins: NO_PINS, pinEdges: NO_EDGES, selection: undefined, schemaFocus: undefined, pathView: undefined, models: [], options: { ...get().options, excludedInstances: [] }, status: { kind: "idle" } });
     syncHistoryFlags();
   },
 
@@ -331,6 +399,67 @@ export const graphActions = {
 
   back(): void { restore(history.back()); },
   forward(): void { restore(history.forward()); },
+  goToHistory(index: number): void { restore(history.goTo(index)); },
+
+  undoFilters(): void { stepFilters(filterUndo, filterRedo); },
+  redoFilters(): void { stepFilters(filterRedo, filterUndo); },
+
+  /** Replaces the graph with the shortest path from the centre to `target` that traversal could
+   * take with the current filters. Says why when there is none. */
+  async findPath(target: NodeKey): Promise<PathResult | undefined> {
+    const { engine, graph } = get();
+    if (!engine) throw new Error("Open an iModel first.");
+    const from = graph.centreKey;
+    if (!from) throw new Error("Centre the graph on an instance first.");
+    const to = nodeKeyString(target);
+    if (to === from) throw new Error("Pick an instance other than the centre.");
+    const token = beginWork("Finding path…");
+    const myGeneration = generation;
+    pathToken = token;
+    set({ pathSearching: true });
+    try {
+      const result = await engine.findPath(parseNodeKey(from), target, get().options, DEFAULT_PATH_LIMITS, token, (visited) => {
+        if (myGeneration === generation) set({ status: { kind: "loading", message: `Finding path… ${visited} instances searched` } });
+      });
+      if (myGeneration !== generation) return undefined;
+      if (result.kind === "none") {
+        const why = result.reason === "hops" ? `within ${DEFAULT_PATH_LIMITS.maxHops} relationships`
+          : result.reason === "visited" ? `after searching ${result.visited} instances` : "with the current filters, exclusions and direction";
+        const message = `No path ${why}.${result.capped ? " Large fans were sampled, so one may pass through a hub." : ""}`;
+        set({ status: { kind: "idle", message } });
+        notify.warning(message);
+        return result;
+      }
+      const settled = await settlePins(result.graph, token);
+      if (myGeneration !== generation) return undefined;
+      const label = `Path: ${result.graph.nodes.get(from)?.label ?? from} → ${result.graph.nodes.get(to)?.label ?? to}`;
+      setBase(result.graph, settled.pins, settled.pinEdges, {
+        pathView: { from, to, label }, previousCentre: from, selection: { kind: "node", key: to },
+        status: { kind: "idle", message: `${label} · ${result.hops} relationship${result.hops === 1 ? "" : "s"} · ${result.visited} instances searched` },
+      });
+      set((s) => ({ fitRequest: s.fitRequest + 1 }));
+      recordHistory(result.graph);
+      return result;
+    } catch (e) {
+      if (e instanceof TraversalCancelled) return undefined;
+      if (myGeneration === generation) fail(e);
+      throw e;
+    } finally {
+      if (pathToken === token) {
+        pathToken = undefined;
+        set({ pathSearching: false });
+      }
+    }
+  },
+
+  /** Stops a running path search; false when none is running. */
+  cancelPathSearch(): boolean {
+    if (!pathToken || pathToken !== activeToken) return false;
+    pathToken.cancelled = true;
+    pathToken = undefined;
+    set({ pathSearching: false, status: { kind: "idle", message: "Path search cancelled." } });
+    return true;
+  },
 
   select(selection: Selection): void { set({ selection }); },
 
@@ -347,6 +476,13 @@ export const graphActions = {
         throw new Error("The centre cannot be excluded. Centre on another instance first.");
     }
     const changedInstances = !sameExclusions(options.excludedInstances, get().options.excludedInstances);
+    const before = filterSnapshot(get().options);
+    if (!replayingFilters && !sameFilters(before, filterSnapshot(options))) {
+      filterUndo.push(before);
+      if (filterUndo.length > FILTER_UNDO_LIMIT) filterUndo.shift();
+      filterRedo.length = 0;
+      syncFilterUndo();
+    }
     if (changedInstances) {
       history.clear();
       syncHistoryFlags();
@@ -406,6 +542,7 @@ export const graphActions = {
       throw new Error("Session excludes its own centre instance");
     history.clear();
     syncHistoryFlags();
+    clearFilterUndo();
     const { expandedGroups: _g, ...current } = get().options;
     const options: TraversalOptions = {
       ...current, depth: session.depth, direction: session.direction, filters: session.filters, excludedInstances,
@@ -457,6 +594,7 @@ function restore(entry: ReturnType<NavigationHistory["back"]>) {
   generation++;
   const s = get();
   setBase(entry.graph, entry.pins, entry.pinEdges, {
+    pathView: entry.path ? { ...entry.path, label: entry.label } : undefined,
     previousCentre: s.graph.centreKey || undefined,
     selection: { kind: "node", key: entry.centreKey },
     options: { ...s.options, expandedGroups: new Set(entry.expandedGroups) },
@@ -520,6 +658,7 @@ async function show(key: NodeKey, opts: ShowOptions): Promise<void> {
   const previousSelection = get().selection;
   const initial = opts.discardOptimistic ? centreOnly(baseGraph, centreKey) : baseGraph;
   setBase(optimistic ?? initial, pins, opts.discardOptimistic ? NO_EDGES : pinEdges, {
+    pathView: undefined,
     previousCentre: get().graph.centreKey || undefined,
     selection: opts.preserveSelection ? previousSelection && { ...previousSelection } : { kind: "node", key: centreKey },
   }, !opts.discardOptimistic);
