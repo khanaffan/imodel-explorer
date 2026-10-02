@@ -16,7 +16,7 @@ with any [ECSQL](https://www.itwinjs.org/learning/ecsql/) query, and see what it
   <a href="https://youtu.be/z3VgKTD08x0">Watch the full demo on YouTube</a>
 </p>
 
-Built on [iTwin.js](https://www.itwinjs.org/) 5.x, the open-source library behind Bentley's
+Built on [iTwin.js](https://www.itwinjs.org/) 5.14.0, the open-source library behind Bentley's
 [iTwin Platform](https://www.bentley.com/products/itwin-platform/), using
 [Electron](https://www.itwinjs.org/learning/writeaninteractivedesktopapp/), [AppUI](https://www.itwinjs.org/ui/appui/),
 [iTwinUI](https://itwinui.bentley.com/) and [ECPresentation](https://www.itwinjs.org/presentation/), plus React Flow and elkjs.
