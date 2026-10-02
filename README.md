@@ -132,7 +132,8 @@ npm start            # build and launch
 ```
 
 See the [tutorial](docs/tutorial.md) for a guided tour of every feature using the demo model, or
-watch the [75-second demo video](docs/tutorial.mp4).
+watch the [demo on YouTube](https://youtu.be/z3VgKTD08x0). The video is also
+[available in this repository](docs/tutorial.mp4).
 
 Open a `.bim` from the welcome page, run a seed query such as
 `SELECT ECInstanceId, ECClassId FROM TestIG.Pump`, and click a result.
