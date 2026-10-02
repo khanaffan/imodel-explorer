@@ -1,10 +1,15 @@
 # Tutorial: exploring the Riverbend water plant
 
-This walkthrough visits every panel of iModel Data Explorer using the demo iModel,
+This walkthrough visits every panel of iModel Data Explorer using the demo [iModel](https://www.itwinjs.org/learning/imodels/),
 `samples/water-plant.bim`. The screenshots are cropped to the widget being described and use the
 dark theme. To regenerate them, see [Regenerating the screenshots](#regenerating-the-screenshots).
 
 For a short (about 75-second) narrated overview, watch [tutorial.mp4](tutorial.mp4).
+
+The app is built on [iTwin.js](https://www.itwinjs.org/), the open-source library behind Bentley's
+[iTwin Platform](https://www.bentley.com/products/itwin-platform/). New to the concepts used
+here? Start with [iModels](https://www.itwinjs.org/learning/imodels/), [BIS](https://www.itwinjs.org/bis/guide/intro/overview/) and
+[Learning ECSQL](https://www.itwinjs.org/learning/ecsqltutorial/).
 
 ## 1. Get the model
 
@@ -37,7 +42,7 @@ with **Help → Take the tour**.
 
 ## 3. Pick a seed with ECSQL
 
-In **Seed query**, enter any ECSQL query that returns `ECInstanceId` (ideally also `ECClassId`),
+In **Seed query**, enter any [ECSQL](https://www.itwinjs.org/learning/ecsql/) query that returns `ECInstanceId` (ideally also `ECClassId`),
 then press **Run** (⌘↵). **Examples** inserts ready-made queries. Click a result row to centre
 the graph on that instance.
 
@@ -115,12 +120,12 @@ and aspect.
 
 <img src="tutorial/05-graph-p101a.png" width="700" alt="Radial graph centred on pump P-101A">
 
-- **Solid orange edges** are link-table relationships, such as `MotorDrivesPump` and
+- **Solid orange edges** are link-table [relationships](https://www.itwinjs.org/bis/guide/fundamentals/relationship-fundamentals/), such as `MotorDrivesPump` and
   `WorkOrderTargetsAsset`. Each one is an instance in its own right and can have properties.
-- **Dashed edges** are navigation properties, such as `PhysicalElementIsOfType.TypeDefinition`.
+- **Dashed edges** are [navigation properties](https://www.itwinjs.org/bis/ec/ec-property/), such as `PhysicalElementIsOfType.TypeDefinition`.
   The label names the property.
-- The numbers at each end (`0..*`, `1..1`) are the multiplicities of the relationship
-  constraints.
+- The numbers at each end (`0..*`, `1..1`) are the multiplicities of the [relationship
+  constraints](https://www.itwinjs.org/bis/ec/ec-relationship-class/).
 
 Each node shows its class, schema, label, ID and model. The node buttons are 📌 (pin), ▾ (preview
 properties) and + (expand one hop here). A 📝 before the class name means the instance has a note
@@ -140,7 +145,7 @@ Include; a **−** badge means Exclude.
 Select Include or
 Exclude relationship type, then click an edge (or a `+N` relationship group). For node classes or
 models, choose the matching tool and click an ordinary node. Class/type tools match the exact class;
-use the Filters panel's **+ subclasses** checkbox for polymorphic matching. Include creates an
+use the Filters panel's **+ subclasses** checkbox for [polymorphic](https://www.itwinjs.org/learning/ecsqlreference/polymorphicandnonpolymorphicquery/) matching. Include creates an
 allowlist in that filter dimension, not a highlight or an override of other exclusions. Model
 filters apply to the containing model, and sub-models inherit their parent's state unless overridden.
 
@@ -161,9 +166,9 @@ remain independent of the selected tool.
 
 When a node is selected, **Properties** shows a header card (class, IDs, model, hop count and
 relationship count), the buttons that apply (**Pin**, plus **Centre here**, **Expand**, **Show in 3D**,
-**Hide class** and **Hide model** where relevant), a **Note** box, and then the ECPresentation property grid
+**Hide class** and **Hide model** where relevant), a **Note** box, and then the [ECPresentation](https://www.itwinjs.org/presentation/) property grid
 for elements, with categorized, formatted values, including schema-hidden fields and properties
-from unique and multi aspects. Expand the aspect categories to inspect their values. This uses
+from unique and multi [aspects](https://www.itwinjs.org/bis/guide/fundamentals/elementaspect-fundamentals/). Expand the aspect categories to inspect their values. This uses
 generic explorer rules, not application-specific computed fields or custom related-property paths.
 The **Element** category opens expanded by default; you can collapse it manually.
 Other EC instances retain raw properties. P-101A
@@ -217,11 +222,11 @@ the centre or to another pin.
 **Filters** narrows the traversal by model (as a hierarchy), schema, class or relationship. Each
 row has a tri-state button that cycles through neutral, include (✓) and exclude (✕). Classes and
 relationships can include subclasses. The panel also holds **Group cap**, **Node budget** and the
-traversal strategy (`ECVLib.Relations()` or schema metadata).
+traversal strategy ([`ECVLib.Relations()`](https://www.itwinjs.org/learning/ecsqlreference/relations/) or schema metadata).
 
 <img src="tutorial/14-filters.png" width="358" alt="Filters panel with the BisCore schema excluded">
 
-With the **BisCore** schema excluded, P-101A shows only the domain relationships.
+With the [**BisCore**](https://www.itwinjs.org/bis/domains/biscore.ecschema/) schema excluded, P-101A shows only the domain relationships.
 
 <img src="tutorial/15-graph-filtered.png" width="700" alt="P-101A with BisCore excluded">
 
@@ -241,17 +246,17 @@ returns to where you were.
 
 ## 11. Schema
 
-**Schema** shows the selected instance's class definition: base-class chain, mixins
-(`IMaintainable`), properties with their types (including the `DutyPoint` struct) and derived
+**Schema** shows the selected instance's class definition: base-class chain, [mixins](https://www.itwinjs.org/bis/guide/fundamentals/mixins/)
+(`IMaintainable`), properties with their types (including the `DutyPoint` [struct](https://www.itwinjs.org/bis/ec/ec-struct-class/)) and derived
 classes.
 
 <img src="tutorial/16-schema.png" width="378" alt="Schema panel for WaterPlant.Pump">
 
 ## 12. Geometry
 
-**Geometry** decodes the selected element's geometry stream op by op. For P-101A, that is a box
+**Geometry** decodes the selected element's [geometry stream](https://www.itwinjs.org/learning/common/geometrystream/) op by op. For P-101A, that is a box
 base with sphere and cone primitives. Expand an op to inspect its formatted facts and appearance.
-Further sections show placement, category and sub-categories, the view and the iModel
+Further sections show placement, [category and sub-categories](https://www.itwinjs.org/bis/guide/fundamentals/categories/), the view and the iModel
 frame. Toggles control following the selection, BRep data and the range-and-axes decorator in the
 3D view. You can export the stream as JSON.
 
@@ -365,7 +370,7 @@ The toolbar's **Export** menu writes JSON, GraphML, a CmapTools concept map (CXL
 
 ## 19. Models and categories
 
-**Models & categories** shows the model, category and classification trees for the 3D view. The
+**Models & categories** shows the [model](https://www.itwinjs.org/bis/guide/fundamentals/model-fundamentals/), category and classification trees for the 3D view. The
 plant's subjects are Civil & Site, Electrical & Controls, Operations and Process.
 
 <img src="tutorial/27-visibility.png" width="358" alt="Visibility trees">
@@ -386,7 +391,8 @@ in Help elsewhere, and in the command palette everywhere.
 
 About shows the app, iTwin.js, Electron, Chromium, Node and OS versions, with links to the source
 code, the licence, [iTwin.js](https://www.itwinjs.org), [iTwin on GitHub](https://github.com/iTwin)
-and [Bentley Systems](https://www.bentley.com). **Copy version details** copies the versions for a
+and [Bentley Systems](https://www.bentley.com). Learn more about the platform at
+[Bentley iTwin Platform](https://www.bentley.com/products/itwin-platform/). **Copy version details** copies the versions for a
 bug report. **Report a bug** opens a new GitHub issue with them filled in.
 
 <img src="tutorial/37-about.png" width="520" alt="About dialog">

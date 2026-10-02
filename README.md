@@ -4,11 +4,14 @@
 
 # iModel Data Explorer
 
-A developer tool for exploring the **instance graph** of an iModel: the actual EC instances and the
+A developer tool for exploring the **instance graph** of an [iModel](https://www.itwinjs.org/learning/imodels/): the actual [EC](https://www.itwinjs.org/bis/ec/) instances and the
 relationships between them, rather than the schema. Open a `.bim` file, pick a starting instance
-with any ECSQL query, and see what it is connected to, as many hops out as you like.
+with any [ECSQL](https://www.itwinjs.org/learning/ecsql/) query, and see what it is connected to, as many hops out as you like.
 
-Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and elkjs.
+Built on [iTwin.js](https://www.itwinjs.org/) 5.x, the open-source library behind Bentley's
+[iTwin Platform](https://www.bentley.com/products/itwin-platform/), using
+[Electron](https://www.itwinjs.org/learning/writeaninteractivedesktopapp/), [AppUI](https://www.itwinjs.org/ui/appui/),
+[iTwinUI](https://itwinui.bentley.com/) and [ECPresentation](https://www.itwinjs.org/presentation/), plus React Flow and elkjs.
 
 ## Features
 
@@ -16,18 +19,18 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Centred graph.** The seed sits in the middle with one ring per hop. Click a node to recentre
   on it, and use back and forward to retrace your steps. You can set the depth (1–6) and the
   direction.
-- **Both kinds of relationship.** Link-table relationships are drawn as solid orange edges, and
-  selecting one shows the relationship instance's own properties. Navigation properties are
-  dashed edges. Both are found with `ECVLib.Relations()`, falling back to schema metadata on
+- **Both kinds of [relationship](https://www.itwinjs.org/bis/guide/fundamentals/relationship-fundamentals/).** Link-table relationships are drawn as solid orange edges, and
+  selecting one shows the relationship instance's own properties. [Navigation properties](https://www.itwinjs.org/bis/ec/ec-property/) are
+  dashed edges. Both are found with [`ECVLib.Relations()`](https://www.itwinjs.org/learning/ecsqlreference/relations/), falling back to schema metadata on
   runtimes that lack it.
-- **Cardinality** from the `ECRelationshipClass` constraints, shown at each end of an edge.
-- **Properties and Schema panels.** Elements use the ECPresentation property grid with categorized,
-  formatted properties, including schema-hidden fields and unique/multi-aspect properties.
+- **Cardinality** from the [`ECRelationshipClass`](https://www.itwinjs.org/bis/ec/ec-relationship-class/) constraints, shown at each end of an edge.
+- **Properties and Schema panels.** Elements use the ECPresentation property grid with [categorized](https://www.itwinjs.org/presentation/content/propertycategorization/),
+  formatted properties, including schema-hidden fields and unique/multi-[aspect](https://www.itwinjs.org/bis/guide/fundamentals/elementaspect-fundamentals/) properties.
   Other EC instances and relationships show raw database properties. The
-  Schema panel shows its class definition: hierarchy, mixins, property types and derived classes.
+  Schema panel shows its class definition: hierarchy, [mixins](https://www.itwinjs.org/bis/guide/fundamentals/mixins/), property types and derived classes.
   Instance references in properties, model headers and geometry details are clickable to centre the
   graph on the referenced instance.
-- **Geometry panel.** The selected element's geometry stream, op by op: formatted facts per
+- **Geometry panel.** The selected element's [geometry stream](https://www.itwinjs.org/learning/common/geometrystream/), op by op: formatted facts per
   primitive, searchable/type-filtered op lists with per-op raw JSON and Copy,
   inline `GeometryPart` drill-down, placement / category / view / iModel-frame facts,
   a 3D range-and-axes decorator, and JSON export.
@@ -44,7 +47,7 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
   exact class/type or containing model. Exclude this instance removes just that node and paths
   through it. Tools stay active until Escape or Navigate; instance exclusions are saved in sessions.
 - **Command palette** (Cmd/Ctrl+K). Run any command, open a recent file or saved session, or search
-  instances by UserLabel, CodeValue or exact ID: Enter centres the instance, Shift+Enter finds a
+  instances by UserLabel, [CodeValue](https://www.itwinjs.org/bis/guide/fundamentals/codes/) or exact ID: Enter centres the instance, Shift+Enter finds a
   path to it from the current centre.
 - **Native menu.** File, Edit, View and Graph menus run the same commands as the palette and
   keyboard shortcuts; the palette explains why an unavailable command is disabled.
@@ -89,7 +92,7 @@ Built on iTwin.js 5.x (Electron, AppUI, iTwinUI, ECPresentation), React Flow and
 - **Colouring** by element kind (geometric, definition, information, …), with custom rules.
 - **Pinned nodes** stay in view as you click through the graph.
 - **Hub safety.** Large fan-outs collapse to `+N` summary nodes that you can open on demand.
-- **3D view** with two-way selection sync, plus model, category and classification visibility
+- **3D view** with two-way selection sync, plus [model](https://www.itwinjs.org/bis/guide/fundamentals/model-fundamentals/), [category](https://www.itwinjs.org/bis/guide/fundamentals/categories/) and classification visibility
   trees.
 - **Sessions and export.** Save and restore sessions. Export JSON, GraphML, a CmapTools concept
   map (CXL) or PNG, or copy an ECSQL recipe that reproduces the traversal.
@@ -129,7 +132,7 @@ npm start            # build and launch
 ```
 
 See the [tutorial](docs/tutorial.md) for a guided tour of every feature using the demo model, or
-watch the [one-minute demo video](docs/tutorial.mp4).
+watch the [75-second demo video](docs/tutorial.mp4).
 
 Open a `.bim` from the welcome page, run a seed query such as
 `SELECT ECInstanceId, ECClassId FROM TestIG.Pump`, and click a result.
@@ -139,7 +142,7 @@ Open a `.bim` from the welcome page, run a seed query such as
 `samples/water-plant.bim` is a small water-treatment works built from scratch by
 `test/demoModel.ts`: fenced site with road, trees and a control building, raw-water tank,
 clarifiers, filters, clearwell, pumps with motors, valves, instruments and colour-coded piping. Its
-`WaterPlant` schema uses mixins, enums, structs, type definitions, unique and multi aspects,
+`WaterPlant` [schema](https://www.itwinjs.org/bis/ec/ec-schema/) uses mixins, enums, [structs](https://www.itwinjs.org/bis/ec/ec-struct-class/), [type definitions](https://www.itwinjs.org/bis/guide/fundamentals/type-definitions/), unique and multi aspects,
 navigation and link-table relationships. The model also contains process areas, trains
 (groups), work orders and a P&ID drawing linked to the 3D elements. Good seeds:
 
