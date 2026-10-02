@@ -8,6 +8,14 @@ A developer tool for exploring the **instance graph** of an [iModel](https://www
 relationships between them, rather than the schema. Open a `.bim` file, pick a starting instance
 with any [ECSQL](https://www.itwinjs.org/learning/ecsql/) query, and see what it is connected to, as many hops out as you like.
 
+<p align="center">
+  <a href="https://youtu.be/z3VgKTD08x0">
+    <img src="docs/demo.gif" alt="iModel Data Explorer demo" width="100%">
+  </a>
+  <br>
+  <a href="https://youtu.be/z3VgKTD08x0">Watch the full demo on YouTube</a>
+</p>
+
 Built on [iTwin.js](https://www.itwinjs.org/) 5.x, the open-source library behind Bentley's
 [iTwin Platform](https://www.bentley.com/products/itwin-platform/), using
 [Electron](https://www.itwinjs.org/learning/writeaninteractivedesktopapp/), [AppUI](https://www.itwinjs.org/ui/appui/),
