@@ -1,6 +1,7 @@
 import type { TraversalOptions } from "../engine/GraphEngine";
 import { type GraphData, type NodeKey, nodeKeyString, normalizeExcludedInstances, parseNodeKey } from "../engine/GraphModel";
 import { EMPTY_FILTERS, type FilterSpec } from "../engine/filters";
+import { validateExpression } from "../engine/nodeExpression";
 import type { LayoutMode } from "../graph/layout";
 import type { PinOffset, Pins } from "../engine/pins";
 import { type Notes, parseNotes } from "./annotations";
@@ -68,7 +69,8 @@ export function parseSession(value: unknown): SavedSession {
     centre: parseNodeKey(centreKey),
     depth: Math.min(6, num(v.depth, 1)),
     direction: v.direction === "forward" || v.direction === "backward" ? v.direction : "both",
-    filters: { models: f.models ?? {}, schemas: f.schemas ?? {}, classes: f.classes ?? {}, relationships: f.relationships ?? {} },
+    filters: { models: f.models ?? {}, schemas: f.schemas ?? {}, classes: f.classes ?? {}, relationships: f.relationships ?? {},
+      ...(f.expression !== undefined ? { expression: validateExpression(f.expression) } : {}) },
     nodeBudget: num(v.nodeBudget, 750),
     groupCap: num(v.groupCap, 25),
     expandedGroups: Array.isArray(v.expandedGroups) ? v.expandedGroups.filter((s) => typeof s === "string") : [],

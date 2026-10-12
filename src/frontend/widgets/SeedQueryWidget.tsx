@@ -5,9 +5,10 @@ import { nodeKeyString } from "../engine/GraphModel";
 import { EXAMPLE_SEED_QUERIES, RANK_LIMIT, rankSeedCandidates, runSeedQuery, SEED_LIMIT, type SeedQueryResult } from "../engine/seedQuery";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import { useFeature } from "../state/featureStore";
-import { useOverviewStore } from "../state/censusStore";
+import { censusFor, relCensusFor, useOverviewStore } from "../state/censusStore";
 import { notify } from "../commands/notify";
 import { deleteSeed, listSeedHistory, listSeedsFor, onSeedsChanged, recordSeedQuery, type SavedSeed, storeSeed } from "../services/seedLibrary";
+import { QueryBuilderDialog } from "./QueryBuilderDialog";
 import { Skeleton } from "./Skeleton";
 import "./widgets.css";
 
@@ -33,6 +34,15 @@ export function SeedQueryWidget() {
     return onSeedsChanged(reload);
   }, [fileName]);
   const [saving, setSaving] = useState<{ name: string; description: string; thisFileOnly: boolean }>();
+  const [building, setBuilding] = useState(false);
+  const loadCounts = useCallback(async () => {
+    if (!engine) throw new Error("No iModel is open.");
+    const [census, rels] = await Promise.all([censusFor(engine), relCensusFor(engine)]);
+    return {
+      classes: new Map(census.entries.map((e) => [e.className, e.count])),
+      relationships: new Map(rels.flatMap((r) => r.count !== undefined ? [[r.className, r.count] as const] : [])),
+    };
+  }, [engine]);
 
   const run = useCallback(async (sql?: string) => {
     const text = sql ?? ecsql;
@@ -122,6 +132,7 @@ export function SeedQueryWidget() {
       />
       <div className="ig-row">
         <Button size="small" styleType="high-visibility" disabled={!engine || running} onClick={() => void run()}>{running ? "Running…" : "Run (⌘↵)"}</Button>
+        <Button size="small" styleType="borderless" disabled={!engine} title="Build or edit the query visually" onClick={() => setBuilding(true)}>Build…</Button>
         <DropdownMenu menuItems={(close) => EXAMPLE_SEED_QUERIES.map((q) => (
           <MenuItem key={q.label} onClick={() => { close(); setEcsql(q.ecsql); }}>{q.label}</MenuItem>
         ))}>
@@ -189,6 +200,11 @@ export function SeedQueryWidget() {
             })}
           </div>
         </>
+      )}
+      {building && engine && (
+        <QueryBuilderDialog port={engine.port} registry={engine.registry} initialEcsql={ecsql} loadCounts={loadCounts}
+          onClose={() => setBuilding(false)}
+          onUse={(sql, andRun) => { setBuilding(false); setEcsql(sql); if (andRun) void run(sql); }} />
       )}
     </div>
   );

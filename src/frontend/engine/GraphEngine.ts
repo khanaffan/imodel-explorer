@@ -11,6 +11,8 @@ import { loadModels, type ModelInfo } from "./models";
 import { NodeResolver } from "./resolveNodes";
 import { RelationshipInfoCache } from "./relationshipInfo";
 import { selectStrategy, type StrategyName, type TraversalStrategy } from "./TraversalStrategy";
+import { validateExpressionProperties } from "./nodeExpression";
+import { matchingExpressionNodes } from "./nodeExpressionQuery";
 
 export interface TraversalOptions {
   readonly depth: number;
@@ -100,6 +102,7 @@ export class GraphEngine {
   /** The centre plus `depth` hops, one frontier at a time so filters apply between hops and each
    * completed ring can be shown while the next loads. */
   public async buildNeighbourhood(centre: NodeKey, opts: TraversalOptions, onProgress?: (g: GraphData) => void, cancel?: CancelToken): Promise<GraphData> {
+    if (opts.filters.expression) validateExpressionProperties(opts.filters.expression, this.registry);
     const centreKey = nodeKeyString(centre);
     if (opts.excludedInstances?.includes(centreKey))
       throw new Error("This instance is excluded. Remove its exclusion in Filters before navigating to it.");
@@ -229,6 +232,7 @@ export class GraphEngine {
    * relationship group, so "none" with `capped` means a path may still exist through a hub. */
   public async findPath(from: NodeKey, to: NodeKey, opts: TraversalOptions, limits: PathLimits = DEFAULT_PATH_LIMITS,
     cancel?: CancelToken, onProgress?: (visited: number) => void): Promise<PathResult> {
+    if (opts.filters.expression) validateExpressionProperties(opts.filters.expression, this.registry);
     const fromKey = nodeKeyString(from);
     const toKey = nodeKeyString(to);
     const admit = this._admission(opts);
@@ -264,10 +268,15 @@ export class GraphEngine {
         if (k !== fromKey && k !== toKey && !admit.cls(r.related.classId)) continue;
         found.set(k, { parent: nodeKeyString(r.seed), via: r });
       }
-      if (filterModels) {
+      if (filterModels || opts.filters.expression) {
         const resolved = await this.resolver.resolve([...found.keys()].filter((k) => k !== fromKey && k !== toKey).map(parseNodeKey));
         this._checkCancelled(cancel);
         for (const [k, n] of resolved) if (!admit.model(n)) found.delete(k);
+        if (opts.filters.expression) {
+          const matches = await matchingExpressionNodes(this.port, this.registry, opts.filters.expression, resolved, cancel);
+          this._checkCancelled(cancel);
+          for (const k of resolved.keys()) if (!matches.has(k)) found.delete(k);
+        }
       }
       side.depth++;
       side.frontier = [];
@@ -380,6 +389,25 @@ export class GraphEngine {
       groups.get(gk)!.push(r);
     }
 
+    // Filter before the display cap/budget: rejected candidates must not consume either.
+    let expressionResolved: Awaited<ReturnType<NodeResolver["resolve"]>> | undefined;
+    if (opts.filters.expression) {
+      const candidates = new Map<string, NodeKey>();
+      for (const rels of groups.values())
+        for (const r of rels) candidates.set(nodeKeyString(r.related), r.related);
+      expressionResolved = await this.resolver.resolve([...candidates.values()]);
+      this._checkCancelled(cancel);
+      const matches = await matchingExpressionNodes(this.port, this.registry, opts.filters.expression, expressionResolved, cancel);
+      this._checkCancelled(cancel);
+      for (const [gk, rels] of groups) {
+        groups.set(gk, rels.filter((r) => {
+          const k = nodeKeyString(r.related);
+          const node = expressionResolved?.get(k);
+          return matches.has(k) && !!node && admit.model(node);
+        }));
+      }
+    }
+
     const accepted: RawRelation[] = [];
     const aggregates: Array<{ key: string; hidden: number }> = [];
     for (const [gk, rels] of groups) {
@@ -414,7 +442,9 @@ export class GraphEngine {
       newKeys.push(r.related);
     }
 
-    const resolved = newKeys.length > 0 ? await this.resolver.resolve(newKeys) : new Map();
+    const resolved = expressionResolved
+      ? new Map([...expressionResolved].filter(([k]) => newKeySet.has(k)))
+      : newKeys.length > 0 ? await this.resolver.resolve(newKeys) : new Map();
     this._checkCancelled(cancel);
 
     const depthOf = new Map<string, number>();

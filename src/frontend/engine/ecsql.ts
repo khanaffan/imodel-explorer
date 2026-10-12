@@ -134,6 +134,20 @@ export function buildInstanceQuery(className: string): string {
   return `SELECT $ FROM ${quoteClassName(className)} WHERE ECInstanceId = ?`;
 }
 
+export const EXPRESSION_PROPERTY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(?:\.(?:Id|RelECClassId))?$/i;
+
+export function expressionPropertySql(property: string): string {
+  if (!EXPRESSION_PROPERTY_PATTERN.test(property)) throw new Error(`Invalid property name: ${property}`);
+  const parts = property.split(".");
+  if (parts.length === 2 || /^(ECInstanceId|ECClassId)$/i.test(property))
+    return parts.map((p) => `[${p}]`).join(".");
+  return `$->[${property}]`;
+}
+
+export function buildExpressionPropertyQuery(className: string, property: string, ids: readonly string[]): string {
+  return `SELECT ECInstanceId Id, ECClassId ClassId, ${expressionPropertySql(property)} V FROM ONLY ${quoteClassName(className)} WHERE ECInstanceId IN (${idList(ids)})`;
+}
+
 export function buildClassIdLookupQuery(className: string): string {
   return `SELECT ECClassId FROM ${quoteClassName(className)} WHERE ECInstanceId = ?`;
 }

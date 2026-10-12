@@ -1,4 +1,5 @@
 import type { GraphNode } from "./GraphModel";
+import type { NodeExpr } from "./nodeExpression";
 
 export type FilterState = "include" | "exclude";
 
@@ -11,6 +12,7 @@ export interface ClassFilterEntry {
 /** Tri-state per entry: absent = neutral. Within a dimension, any matching `exclude` removes the
  * item; if any `include` entries exist, the item must match at least one of them. */
 export interface FilterSpec {
+  readonly expression?: NodeExpr;
   readonly models: Readonly<Record<string, FilterState>>;
   readonly schemas: Readonly<Record<string, FilterState>>;
   readonly classes: Readonly<Record<string, ClassFilterEntry>>;
@@ -20,12 +22,12 @@ export interface FilterSpec {
 export const EMPTY_FILTERS: FilterSpec = { models: {}, schemas: {}, classes: {}, relationships: {} };
 
 export function isFilterEmpty(f: FilterSpec): boolean {
-  return [f.models, f.schemas, f.classes, f.relationships].every((d) => Object.keys(d).length === 0);
+  return !f.expression && [f.models, f.schemas, f.classes, f.relationships].every((d) => Object.keys(d).length === 0);
 }
 
 /** Number of include/exclude entries across all dimensions. */
 export function filterCount(f: FilterSpec): number {
-  return Object.keys(f.models).length + Object.keys(f.schemas).length + Object.keys(f.classes).length + Object.keys(f.relationships).length;
+  return Object.keys(f.models).length + Object.keys(f.schemas).length + Object.keys(f.classes).length + Object.keys(f.relationships).length + (f.expression ? 1 : 0);
 }
 
 function passes<T>(entries: Readonly<Record<string, T>>, stateOf: (e: T) => FilterState, matches: (name: string, e: T) => boolean): boolean {

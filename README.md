@@ -50,7 +50,38 @@ Built on [iTwin.js](https://www.itwinjs.org/) 5.14.0, the open-source library be
   per class, one edge per relationship class with instance counts — either collapsed from the
   current neighbourhood or built for the whole iModel. Double-click a class to jump back to its
   instances.
+- **Visual ECSQL query builder.** **Build…** in the Seed query widget opens a builder for SELECT
+  queries. Start from a class (default `BisCore:Element`), select a class box to tick columns and
+  add typed WHERE conditions or sort terms from its properties (grouped as system, own and
+  inherited, including navigation `.Id` and point `.X/.Y/.Z` members), and join related classes
+  from suggestions ranked by link counts: via a navigation property, through the relationship
+  class, or with `JOIN … USING`. Drag one box onto another to relate two sources you already
+  have. You can also edit DISTINCT, aggregates, GROUP BY/HAVING, ORDER BY, LIMIT/OFFSET, CTEs
+  (`WITH`, including RECURSIVE) and UNION/INTERSECT/EXCEPT parts. The ECSQL tab stays in sync and
+  is checked by the native parser. A pasted query is rebuilt visually using
+  `PRAGMA PARSE_TREE`, and the Parse tree tab shows that tree. Parts the builder cannot model
+  (subqueries, EXISTS, window functions…) stay as editable ECSQL chips. The Results tab previews
+  up to 100 rows. Pasted text is kept verbatim until you edit visually. After that it is
+  regenerated: `*` expands to the columns, schema aliases such as `bis` become `BisCore`, and
+  `NULLS FIRST/LAST` and named `WINDOW` clauses are lost.
 - **Include or exclude filters** by model (as a hierarchy), schema, class or relationship.
+- **Property expression filters.** In Traversal & filters, open **Expression > Add expression** to
+  build a boolean expression visually or edit its synced text, for example
+  `UserLabel LIKE 'Pump%' OR (RatedPower > 5 AND node.category = 'aspect')`.
+  Connect visual nodes by dragging the right-edge output circle to a matching left-edge input
+  circle, or by clicking the two circles (blue operands, green predicates).
+  Supports comparisons, `LIKE`, `IN`, `IS NULL`, `AND`, `OR` and `NOT` over scalar EC properties,
+  `ECInstanceId`, `ECClassId`, navigation members such as `Model.Id`, `Parent.Id` and
+  `OwnerPump.RelECClassId`,
+  and `node.label`, `node.className`, `node.schemaName`, `node.category`, `node.modelName`,
+  `node.id` and `node.classId`. Missing properties are NULL; only TRUE passes.
+  Nonmatching instances and paths through them are pruned, including models and aspects.
+  The centre, path endpoints and pinned nodes are exempt. Apply/Cancel, filter undo/redo and
+  saved sessions work as for other filters. The ECSQL pane is an illustration, not the engine's
+  executable query: `$->` missing-property semantics differ, and some node fields have no SQL
+  equivalent. Capped relationship groups' `+N` counts can include filtered instances; a capped
+  candidate scan may not find every matching neighbour. Struct/array members are not supported;
+  navigation properties support their `.Id` and `.RelECClassId` members.
 - **Graph click-tools.** Choose a tool, then click a node or relationship to include/exclude its
   exact class/type or containing model. Exclude this instance removes just that node and paths
   through it. Tools stay active until Escape or Navigate; instance exclusions are saved in sessions.

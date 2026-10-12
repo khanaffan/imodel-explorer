@@ -57,6 +57,37 @@ again from **Saved** or the command palette. **History** lists the last 20 queri
 
 <img src="tutorial/29-saved-seeds.png" width="182" alt="Saved queries menu">
 
+### Build a query visually
+
+**Build…** opens the ECSQL query builder with the current seed query. Each `FROM` or `JOIN` source
+is a box on the canvas. Select a box to rename its alias, toggle `ONLY`, and work with its
+properties, which are grouped as system, own and inherited (including navigation `.Id` members).
+Tick a property to select it, or add it to WHERE or ORDER BY. **Join a related class** lists the
+relationships that fit the selected class, ranked by link count in this iModel. A join can use a
+navigation property, the relationship class itself, or `USING`. To relate two sources you already
+have, drag from one box's right-edge circle onto the other box. Type in **Add source** to add a
+class or CTE.
+
+The tabs below the canvas edit columns (aggregates, aliases, DISTINCT), WHERE and HAVING (typed
+values or ƒx expressions, AND/OR groups, NOT), GROUP BY, ORDER BY and LIMIT/OFFSET. **+ CTE** adds a
+`WITH` query (tick RECURSIVE for recursive ones), and **+ UNION…** adds a compound part. The ECSQL
+tab is editable and is checked by the native parser as you type. A pasted query is rebuilt on the
+canvas from its parse tree, which the **Parse tree** tab shows. Parts the builder cannot model,
+such as subqueries, stay as editable ECSQL chips. **Results** previews up to 100 rows. **Use
+query** copies the text into Seed query; **Use & run** also runs it.
+
+```sql
+SELECT pi.ECInstanceId, pi.ECClassId, pi.Tag, pi.NominalDiameter, pu.Tag AS PumpTag
+FROM WaterPlant.Pipe pi JOIN WaterPlant.Pump pu ON pu.ECInstanceId = pi.FromEquipment.Id
+WHERE pi.NominalDiameter >= 150 ORDER BY pi.Tag
+```
+
+<img src="tutorial/38-query-builder.png" width="700" alt="Query builder with a Pipe to Pump join">
+
+Pasted text is kept as written until you edit visually. After that it is regenerated: `*` expands
+to the columns, schema aliases such as `bis` become `BisCore`, and `NULLS FIRST/LAST` and named
+`WINDOW` clauses are dropped. The builder only creates SELECT statements.
+
 ## 4. The graph toolbar
 
 The **Close iModel** X sits above the graph toolbar, leaving its controls unobstructed.
@@ -233,6 +264,26 @@ With the [**BisCore**](https://www.itwinjs.org/bis/domains/biscore.ecschema/) sc
 Filter and instance-exclusion changes can be undone with **Cmd/Ctrl+Z** (redo with
 **Cmd/Ctrl+Shift+Z**) or with the Undo/Redo buttons at the top of the panel. History resets when you
 close the iModel or restore a session.
+
+### Expression filters
+
+Open **Expression > Add expression...** to keep only instances whose properties match a boolean
+expression. Type it in **Expression text** or build it from nodes on the canvas; each stays in sync
+with the other. To connect two nodes, drag a right-edge circle to a matching left-edge circle, or
+click the two circles. Blue circles are operands and green ones are predicates.
+
+```
+Tag LIKE 'P-1%' OR (NominalDiameter >= 150 AND node.className = 'Pipe')
+```
+
+<img src="tutorial/39-expression-filter.png" width="700" alt="Node filter expression editor">
+
+Expressions can use comparisons, `LIKE`, `IN`, `IS NULL`, `AND`, `OR` and `NOT` over scalar
+properties. They can also use `ECInstanceId`, `ECClassId`, navigation members such as `Model.Id`,
+and node fields such as `node.label` and `node.category`. A missing property is NULL, and only a
+TRUE result passes. Non-matching instances, and paths through them, are pruned. The centre, path
+endpoints and pinned nodes are always kept. The ECSQL preview is only an illustration; it is not
+the query the traversal runs.
 
 ### Finding a path
 

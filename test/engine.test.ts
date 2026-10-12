@@ -6,6 +6,8 @@ import { RelationsTraversal } from "../src/frontend/engine/TraversalStrategy";
 import { createQueryPort, type QuerySource } from "../src/frontend/engine/IModelQueryPort";
 import { loadInstanceProperties } from "../src/frontend/engine/instanceProperties";
 import { EMPTY_FILTERS } from "../src/frontend/engine/filters";
+import { expressionPropertyNames, parseExpression } from "../src/frontend/engine/nodeExpression";
+import { matchingExpressionNodes } from "../src/frontend/engine/nodeExpressionQuery";
 import { runSeedQuery } from "../src/frontend/engine/seedQuery";
 import { createFixture, type Fixture, HUB_FANOUT } from "./fixture";
 
@@ -50,6 +52,100 @@ describe("strategy selection", () => {
 
 describe.each([["relations"], ["fallback"]] as const)("GraphEngine (%s)", (name) => {
   const engine = () => (name === "relations" ? relations : fallback);
+
+  const expressionOptions = (text: string, extra: Partial<TraversalOptions> = {}) => opts({
+    ...extra, filters: {
+      ...EMPTY_FILTERS,
+      relationships: { "TestIG:PumpFeedsPipe": { state: "include", polymorphic: false } },
+      expression: parseExpression(text),
+    },
+  });
+
+  it("prunes property failures before caps and budgets without hiding the centre", async () => {
+    const g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      expressionOptions("UserLabel = 'Pipe-A' OR UserLabel = 'Pump-2'", { depth: 2, groupCap: 1, nodeBudget: 3 }));
+    expect([...g.nodes.values()].filter((n) => !n.aggregate).map((n) => n.label).sort()).toEqual(["Pipe-A", "Pump-1", "Pump-2"]);
+    const blocked = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      expressionOptions("UserLabel = 'Pump-2'", { depth: 2 }));
+    expect(blocked.nodes.size).toBe(1);
+    expect(blocked.nodes.has(key("TestIG:Pump", fx.ids.pump1))).toBe(true);
+  });
+
+  it("filters aspects and models and preserves missing-property NULL semantics", async () => {
+    const e = engine();
+    const base = await e.buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), opts());
+    const matches = await matchingExpressionNodes(e.port, e.registry, parseExpression("RatedPower > 5"), base.nodes);
+    expect([...matches].map((k) => base.nodes.get(k)?.className)).toEqual(["TestIG:PumpSpec"]);
+    const nulls = await matchingExpressionNodes(e.port, e.registry, parseExpression("RatedPower IS NULL OR node.category = 'model'"), base.nodes);
+    expect(nulls.has(key("TestIG:Pump", fx.ids.pump1))).toBe(true);
+    expect(nulls.has(key("BisCore:PhysicalModel", fx.ids.plantA))).toBe(true);
+    expect([...base.nodes.values()].filter((n) => n.className === "TestIG:PumpSpec").every((n) => !nulls.has(n.key))).toBe(true);
+    const models = await matchingExpressionNodes(e.port, e.registry, parseExpression("IsPrivate = FALSE"), base.nodes);
+    expect(models.has(key("BisCore:PhysicalModel", fx.ids.plantA))).toBe(true);
+    const unknown = await matchingExpressionNodes(e.port, e.registry, parseExpression("RatedPower IS NOT NULL AND node.category = 'model'"), base.nodes);
+    expect(unknown.size).toBe(0);
+  });
+
+  it("applies the expression to path interiors but exempts endpoints", async () => {
+    const allowed = await engine().findPath(centre("TestIG:Pump", fx.ids.pump1), centre("TestIG:Pump", fx.ids.pump2),
+      expressionOptions("UserLabel = 'Pipe-A'"));
+    expect(allowed.kind).toBe("found");
+    const blocked = await engine().findPath(centre("TestIG:Pump", fx.ids.pump1), centre("TestIG:Pump", fx.ids.pump2),
+      expressionOptions("UserLabel = 'Pipe-B'"));
+    expect(blocked.kind).toBe("none");
+  });
+
+  it("rejects unknown properties and incompatible types explicitly", async () => {
+    await expect(engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), expressionOptions("NoSuchProperty = 1"))).rejects.toThrow(/Unknown/);
+    await expect(engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), expressionOptions("RatedPower = 'five'"))).rejects.toThrow(/incompatible/);
+  });
+
+  it("filters system ids and navigation Id/RelECClassId members", async () => {
+    const e = engine();
+    const g = await e.buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), opts());
+    const matches = (text: string) => matchingExpressionNodes(e.port, e.registry, parseExpression(text), g.nodes);
+    expect(await matches(`ECClassId = ${fx.classIds["TestIG:Pipe"]}`)).toEqual(new Set([
+      key("TestIG:Pipe", fx.ids.pipeA), key("TestIG:Pipe", fx.ids.pipeB),
+    ]));
+    expect(await matches(`Model.Id = ${fx.ids.plantB}`)).toEqual(new Set([key("TestIG:Pipe", fx.ids.pipeB)]));
+    expect(await matches(`model.id = ${fx.ids.plantB}`)).toEqual(new Set([key("TestIG:Pipe", fx.ids.pipeB)]));
+    expect(await matches(`OwnerPump.Id = ${fx.ids.pump1}`)).toEqual(new Set([
+      key("TestIG:Pipe", fx.ids.pipeA), key("TestIG:Pipe", fx.ids.pipeB),
+    ]));
+    expect(await matches(`OwnerPump.RelECClassId = ${fx.classIds["TestIG:PumpOwnsPipes"]}`)).toEqual(new Set([
+      key("TestIG:Pipe", fx.ids.pipeA), key("TestIG:Pipe", fx.ids.pipeB),
+    ]));
+    const sameId = await e.resolver.resolve([
+      centre("BisCore:PhysicalModel", fx.ids.plantA), centre("BisCore:PhysicalPartition", fx.ids.plantA),
+    ]);
+    const noQuery = { ...e.port, query: async () => { throw new Error("System ids should not query"); } };
+    expect(await matchingExpressionNodes(noQuery, e.registry, parseExpression(`ECInstanceId = ${fx.ids.plantA}`), sameId)).toEqual(new Set(sameId.keys()));
+    expect(await matchingExpressionNodes(noQuery, e.registry, parseExpression(`ECInstanceId = ${fx.ids.plantA} AND ECClassId = ${fx.classIds["BisCore:PhysicalModel"]}`), sameId)).toEqual(new Set([key("BisCore:PhysicalModel", fx.ids.plantA)]));
+    expect(expressionPropertyNames(e.registry)).toEqual(expect.arrayContaining(["ECInstanceId", "ECClassId", "Model.Id", "OwnerPump.RelECClassId"]));
+    const filtered = await e.buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), opts({
+      filters: { ...EMPTY_FILTERS, expression: parseExpression(`Model.Id = ${fx.ids.plantB}`) },
+    }));
+    expect([...filtered.nodes.keys()]).toEqual([key("TestIG:Pump", fx.ids.pump1), key("TestIG:Pipe", fx.ids.pipeB)]);
+    await expect(e.buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1),
+      expressionOptions("UserLabel.Id = 0x1"))).rejects.toThrow(/unsupported/);
+  });
+
+  it("batches candidate properties and propagates query failures and cancellation", async () => {
+    const e = engine();
+    const base = await e.buildNeighbourhood(centre("TestIG:Pump", fx.ids.hub), opts({ groupCap: HUB_FANOUT + 1 }));
+    let queries = 0;
+    const port = {
+      ...e.port,
+      query: async (...args: Parameters<typeof e.port.query>) => { queries++; return e.port.query(...args); },
+    };
+    await matchingExpressionNodes(port, e.registry, parseExpression("UserLabel LIKE 'Hub-Pipe-%'"), base.nodes);
+    expect(queries).toBeLessThan(10);
+    expect(base.nodes.size).toBeGreaterThan(HUB_FANOUT);
+    await expect(matchingExpressionNodes({
+      ...port, query: async () => { throw new Error("Property query failed"); },
+    }, e.registry, parseExpression("UserLabel IS NULL"), base.nodes)).rejects.toThrow("Property query failed");
+    await expect(matchingExpressionNodes(port, e.registry, parseExpression("UserLabel IS NULL"), base.nodes, { cancelled: true })).rejects.toBeInstanceOf(TraversalCancelled);
+  });
 
   it("returns nav and link-table edges between the same pair as distinct edges", async () => {
     const g = await engine().buildNeighbourhood(centre("TestIG:Pump", fx.ids.pump1), opts());

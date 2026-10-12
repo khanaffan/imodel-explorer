@@ -1,0 +1,34 @@
+.ig-expression-editor { width: min(1200px, 94vw); max-width: 94vw; }
+.ig-expr-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ig-expr-toolbar label { display: flex; align-items: center; gap: 8px; }
+.ig-expr-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 12px; }
+.ig-expr-canvas { height: min(420px, 45vh); min-height: 260px; border: 1px solid var(--iui-color-border, #777); }
+/* StrataKit's SVG reset otherwise collapses React Flow's connection and edge layers. */
+.ig-expr-canvas .react-flow svg { max-inline-size: none; }
+.ig-expr-controls { min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+.ig-expr-controls h3 { margin: 0; overflow-wrap: anywhere; }
+.ig-expression-editor label { font-weight: 600; }
+.ig-expr-controls label, .ig-expr-panes label { display: flex; flex-direction: column; gap: 6px; }
+.ig-expression-editor input, .ig-expression-editor select, .ig-expression-editor textarea {
+  color: var(--iui-color-text, #222); background: var(--iui-color-background, #fff); border: 1px solid var(--iui-color-border, #777);
+  border-radius: 4px; padding: 6px; font: inherit; min-width: 0;
+}
+.ig-expression-editor textarea { resize: vertical; width: 100%; box-sizing: border-box; font-family: monospace; font-weight: normal; }
+.ig-expression-editor small, .ig-expr-hint { font-weight: normal; font-size: 12px; }
+.ig-expr-panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ig-expr-errors { padding: 8px 0; }
+.ig-expr-errors ul { margin: 0; padding-left: 20px; color: var(--iui-color-text-negative, #b5251b); }
+.ig-expr-node { width: 190px; box-sizing: border-box; border: 2px solid var(--iui-color-border, #777); border-radius: 6px; background: var(--iui-color-background, #fff); color: var(--iui-color-text, #222); padding: 8px 12px 30px; }
+.ig-expr-node--selected { border-color: var(--iui-color-border-accent, #2876bf); }
+.ig-expr-node strong { text-transform: capitalize; }
+.ig-expr-node__label { text-align: right; overflow-wrap: anywhere; font-size: 12px; }
+.ig-expr-node__port { position: absolute; left: 0; font-size: 10px; pointer-events: none; }
+.ig-expr-node__port span { display: inline-block; padding-left: 16px; }
+.ig-expr-node .react-flow__handle { width: 20px; height: 20px; z-index: 2; cursor: crosshair; border: 2px solid var(--iui-color-background, #fff); }
+.ig-expr-node .react-flow__handle:hover { box-shadow: 0 0 0 4px var(--iui-color-border-accent, #2876bf); }
+.ig-expr-node .ig-expr-port--operand { background: #2876bf; }
+.ig-expr-node .ig-expr-port--predicate { background: #278547; }
+@media (max-width: 800px) {
+  .ig-expr-workspace, .ig-expr-panes { grid-template-columns: 1fr; }
+  .ig-expr-controls { max-height: 200px; overflow: auto; }
+}

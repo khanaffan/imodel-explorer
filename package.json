@@ -44,6 +44,7 @@
     "@itwin/ecschema-metadata": "5.14.0",
     "@itwin/ecschema-rpcinterface-common": "5.14.0",
     "@itwin/ecschema-rpcinterface-impl": "5.14.0",
+    "@itwin/ecsql-common": "5.14.0",
     "@itwin/imodel-components-react": "5.35.1",
     "@itwin/itwinui-icons-react": "2.11.0",
     "@itwin/itwinui-react": "3.22.0",

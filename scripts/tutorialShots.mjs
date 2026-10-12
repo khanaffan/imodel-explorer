@@ -113,6 +113,18 @@ try {
   await page.waitForTimeout(400);
   await shot(page.locator('[role="menu"]').first(), "29-saved-seeds");
   await page.keyboard.press("Escape");
+  // Query builder: paste a Pipe → Pump join and select the Pipe box.
+  await seed.getByRole("button", { name: "Build…" }).click();
+  const builder = page.locator(".ig-query-builder").first();
+  await builder.getByRole("textbox", { name: "ECSQL text" }).fill("SELECT pi.ECInstanceId, pi.ECClassId, pi.Tag, pi.NominalDiameter, pu.Tag AS PumpTag FROM WaterPlant.Pipe pi JOIN WaterPlant.Pump pu ON pu.ECInstanceId = pi.FromEquipment.Id WHERE pi.NominalDiameter >= 150 ORDER BY pi.Tag");
+  await page.waitForFunction(() => document.querySelector(".ig-qb-badge")?.textContent === "Valid ECSQL", null, { timeout: 20_000 });
+  await page.waitForFunction(() => document.querySelectorAll(".ig-query-builder .react-flow__node").length === 2);
+  await builder.locator(".react-flow__node").filter({ hasText: "Pipe" }).first().click();
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => { for (const t of document.querySelectorAll("[class*='toast-wrapper']")) t.style.visibility = "hidden"; });
+  await shot(builder, "38-query-builder");
+  await page.evaluate(() => { for (const t of document.querySelectorAll("[class*='toast-wrapper']")) t.style.visibility = ""; });
+  await builder.getByRole("button", { name: "Cancel" }).click();
   await page.locator(".ig-list__item", { hasText: "P-101A" }).first().click();
   await page.waitForFunction(() => globalThis.imodelExplorer.getState().graph.nodes.size > 1, null, { timeout: 60_000 });
   await settle();
@@ -221,6 +233,14 @@ try {
   await settle();
   await shot(filters, "14-filters");
   await graphShot("15-graph-filtered");
+  // Expression filter editor, cancelled so the following shots are unfiltered.
+  await filters.getByText("Expression", { exact: true }).click();
+  await filters.getByText("Add expression...").click();
+  const exprEditor = page.locator(".ig-expression-editor").first();
+  await exprEditor.getByRole("textbox", { name: "Expression text" }).fill("Tag LIKE 'P-1%' OR (NominalDiameter >= 150 AND node.className = 'Pipe')");
+  await page.waitForTimeout(1500);
+  await shot(exprEditor, "39-expression-filter");
+  await exprEditor.getByRole("button", { name: "Cancel" }).click();
   await filters.getByRole("button", { name: "Clear all" }).click();
   await settle();
 

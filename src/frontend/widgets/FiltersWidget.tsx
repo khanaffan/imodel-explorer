@@ -6,6 +6,8 @@ import { type ClassFilterEntry, cycleFilterState, type FilterSpec, type FilterSt
 import { buildModelTree, type ModelInfo, type ModelTreeNode } from "../engine/models";
 import { graphActions, useGraphStore } from "../state/graphStore";
 import "./widgets.css";
+import { printExpression } from "../engine/nodeExpression";
+import { ExpressionEditorDialog } from "./ExpressionEditorDialog";
 
 export function TriState({ state, onChange, title, inherited }: {
   state: FilterState | undefined;
@@ -181,6 +183,7 @@ function ModelTreeList({ models, states, onChange }: {
 export const FILTERS_WIDGET_ID = "ig-filters";
 
 export function FiltersWidget() {
+  const [editingExpression, setEditingExpression] = useState(false);
   const engine = useGraphStore((s) => s.engine);
   const models = useGraphStore((s) => s.models);
   const options = useGraphStore((s) => s.options);
@@ -234,6 +237,17 @@ export function FiltersWidget() {
       </div>
       <Text variant="small" isMuted>✓ include only · ✕ exclude · sub-models follow their parent unless set · the centre is never hidden.</Text>
 
+      <Section title="Expression" count={f.expression ? 1 : 0}>
+        {f.expression && <Text variant="small"><code>{printExpression(f.expression)}</code></Text>}
+        <div className="ig-row">
+          <button className="ig-link" onClick={() => setEditingExpression(true)}>{f.expression ? "Edit expression..." : "Add expression..."}</button>
+          {f.expression && <button className="ig-link" onClick={() => updateFilters((x) => ({ ...x, expression: undefined }))}>Clear expression</button>}
+        </div>
+        <Text variant="small" isMuted>Nonmatching nodes and paths through them are pruned. Centre, path endpoints and pins stay visible. Capped +N counts may include filtered instances.</Text>
+      </Section>
+      {editingExpression && <ExpressionEditorDialog expression={f.expression} registry={engine.registry}
+        onClose={() => setEditingExpression(false)}
+        onApply={(expression) => { updateFilters((x) => ({ ...x, expression })); setEditingExpression(false); }} />}
       <ModelTreeList models={models} states={f.models} onChange={(models) => updateFilters((x) => ({ ...x, models }))} />
       <StateList title="Schemas" searchable
         items={schemas.map((s) => ({ key: s, label: s }))}

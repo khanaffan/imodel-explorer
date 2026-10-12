@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { type CancelToken, DEFAULT_OPTIONS, DEFAULT_PATH_LIMITS, GraphEngine, type PathResult, TraversalCancelled, type TraversalOptions } from "../engine/GraphEngine";
 import { emptyGraph, type GraphData, type GraphEdge, type NodeKey, nodeKeyString, normalizeExcludedInstances, parseNodeKey } from "../engine/GraphModel";
 import { EMPTY_FILTERS, type FilterSpec, type FilterState } from "../engine/filters";
+import { validateExpression, validateExpressionProperties } from "../engine/nodeExpression";
 import { composeDisplay, type Pin, type PinOffset, type Pins, prunePinEdges, retainPins } from "../engine/pins";
 import { createQueryPort, type QuerySource } from "../engine/IModelQueryPort";
 import { RelationsTraversal, type StrategyName } from "../engine/TraversalStrategy";
@@ -78,6 +79,15 @@ const OPTIONS_KEY = "instanceGraph.options";
 function loadOptions(): TraversalOptions {
   try {
     const saved = JSON.parse(localStorage.getItem(OPTIONS_KEY) ?? "{}");
+    if (saved.filters?.expression !== undefined) {
+      try {
+        saved.filters.expression = validateExpression(saved.filters.expression);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("Discarding invalid saved node expression:", e);
+        delete saved.filters.expression;
+      }
+    }
     return { ...DEFAULT_OPTIONS, ...saved, excludedInstances: [], expandedGroups: new Set() };
   } catch {
     return DEFAULT_OPTIONS;
@@ -472,6 +482,11 @@ export const graphActions = {
 
   setOptions(patch: Partial<TraversalOptions>, reload = true): void {
     const options = { ...get().options, ...patch };
+    if (patch.filters?.expression) {
+      validateExpression(patch.filters.expression);
+      const registry = get().engine?.registry;
+      if (registry) validateExpressionProperties(patch.filters.expression, registry);
+    }
     if (patch.excludedInstances !== undefined) {
       options.excludedInstances = normalizeExcludedInstances(patch.excludedInstances);
       if (options.excludedInstances.includes(get().graph.centreKey))
