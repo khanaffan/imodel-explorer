@@ -8,3 +8,4 @@ samples/*.bim-shm
 samples/*.bim-wal
 samples/*.bim.Tiles
 *.bim-journal
+samples/*.bim-hierarchies
