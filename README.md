@@ -196,6 +196,7 @@ navigation and link-table relationships. The model also contains process areas, 
 
 | Command | Purpose |
 |---|---|
+| `npm run build:prod` / `npm run start:prod` | Optimized build (clean `dist`, minified, no source maps), and build + launch it |
 | `npm start` / `npm run dev` | Build and launch, or run with hot reload |
 | `npm test` | Unit and engine tests (Vitest) |
 | `npm run typecheck` / `npm run lint` | Type-check and lint |

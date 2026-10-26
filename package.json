@@ -17,6 +17,8 @@
     "build": "npm run build:backend && npm run build:frontend",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.backend.json --noEmit",
     "lint": "eslint src test scripts",
+    "build:prod": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.backend.json --sourceMap false && cross-env IG_PROD=1 NODE_ENV=production vite build",
+    "start:prod": "npm run build:prod && cross-env NODE_ENV=production electron .",
     "start": "npm run build && electron .",
     "dev": "npm run build:backend && concurrently -k -n vite,electron \"vite\" \"wait-on tcp:3000 && cross-env IG_DEV=1 electron .\"",
     "sample": "vite-node scripts/makeSample.ts",
