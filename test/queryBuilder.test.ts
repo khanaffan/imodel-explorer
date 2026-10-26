@@ -41,6 +41,7 @@ const CORPUS = [
   "SELECT ECInstanceId, ROW_NUMBER() OVER (PARTITION BY ECClassId ORDER BY ECInstanceId DESC ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) r, COUNT(*) FILTER (WHERE CodeValue IS NULL) OVER (ORDER BY ECInstanceId) c FROM bis.Element",
   "SELECT s.ECInstanceId FROM (SELECT ECInstanceId FROM bis.Element) s, ONLY bis.Model m",
   "SELECT CAST(ECInstanceId AS TEXT), IIF(CodeValue IS NULL, 1, 2), CASE WHEN UserLabel IS NULL THEN 'a' ELSE 'b' END FROM bis.Element WHERE UserLabel LIKE 'a!%' ESCAPE '!' ECSQLOPTIONS NoECClassIdFilter",
+  "WITH c(Id) AS (SELECT ECInstanceId FROM bis.Element) SELECT n FROM (SELECT t.Id n FROM bis.Model m INNER JOIN c t ON t.Id = m.ECInstanceId)",
 ];
 
 describe("ECSQL parse and model round-trip", () => {
@@ -96,6 +97,7 @@ describe("ECSQL parse and model round-trip", () => {
 describe("query model editing helpers", () => {
   it("removes redundant brackets but keeps reserved words quoted", () => {
     expect(unbracket("SELECT [e].[Order], [e].[CodeValue] FROM [BisCore].[Element] [e] WHERE [x] = '[y]'")).toBe("SELECT e.[Order], e.CodeValue FROM BisCore.Element e WHERE x = '[y]'");
+    expect(unbracket("FROM [Tree][t] JOIN [x].[y]")).toBe("FROM Tree t JOIN x.y");
   });
 
   it("qualifies bare references before a join and renames aliases everywhere", () => {

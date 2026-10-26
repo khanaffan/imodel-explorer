@@ -116,6 +116,10 @@ export function unbracket(sql: string): string {
     } else if (ch === "[") {
       const end = sql.indexOf("]", i + 1);
       if (end < 0) { out += sql.slice(i); break; }
+      // ecsql-common writes some adjacent identifiers with no separator (a CTE reference and its
+      // alias come out as `[Tree][t]`), so keep them apart once the brackets are dropped.
+      if (/[A-Za-z0-9_\]]$/.test(out))
+        out += " ";
       out += quoteIdentifier(sql.slice(i + 1, end));
       i = end + 1;
     } else {
