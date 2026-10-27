@@ -1,14 +1,15 @@
 import { useActiveViewport } from "@itwin/appui-react";
 import { IModelApp, type IModelConnection } from "@itwin/core-frontend";
-import { Select, Text } from "@itwin/itwinui-react";
+import { Input, Select, Text } from "@itwin/itwinui-react";
 import {
-  CategoriesTreeComponent, ClassificationsTreeComponent, ModelsTreeComponent, type TreeDefinition, TreeWidgetComponent,
+  CategoriesTreeComponent, ClassificationsTreeComponent, ModelsTreeComponent, TreeWidgetContextProvider,
 } from "@itwin/tree-widget-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGraphStore } from "../state/graphStore";
 import { getUnifiedSelectionStorage, syncTreeSelectionToGraph } from "../state/selectionStorage";
 
 interface ClassificationSystem { code: string; count: number }
+type TreeKind = "models" | "categories" | "classifications";
 
 async function queryClassificationSystems(imodel: IModelConnection): Promise<ClassificationSystem[]> {
   const out: ClassificationSystem[] = [];
@@ -32,10 +33,14 @@ export function VisibilityTreesWidget() {
   const viewport = useActiveViewport();
   const [systems, setSystems] = useState<ClassificationSystem[]>();
   const [systemCode, setSystemCode] = useState<string>();
+  const [tree, setTree] = useState<TreeKind>("models");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     setSystems(undefined);
     setSystemCode(undefined);
+    setTree("models");
+    setSearchText("");
     if (!connection) return;
     let live = true;
     void queryClassificationSystems(connection).then((s) => {
@@ -47,54 +52,43 @@ export function VisibilityTreesWidget() {
     return () => { live = false; unsubscribe(); };
   }, [connection]);
 
-  const trees = useMemo((): TreeDefinition[] => {
-    const selectionStorage = getUnifiedSelectionStorage();
-    const defs: TreeDefinition[] = [
-      {
-        id: ModelsTreeComponent.id,
-        getLabel: ({ standardLabels }) => ModelsTreeComponent.getLabel({ standardLabels }),
-        isSearchable: true,
-        render: ({ treeLabel, searchText }) => (
-          <ModelsTreeComponent treeLabel={treeLabel} searchText={searchText} selectionStorage={selectionStorage} selectionMode="single" />
-        ),
-      },
-      {
-        id: CategoriesTreeComponent.id,
-        getLabel: ({ standardLabels }) => CategoriesTreeComponent.getLabel({ standardLabels }),
-        isSearchable: true,
-        render: ({ treeLabel, searchText }) => (
-          <CategoriesTreeComponent treeLabel={treeLabel} searchText={searchText} selectionStorage={selectionStorage} selectionMode="single" />
-        ),
-      },
-    ];
-    if (systems && systems.length > 0) {
-      defs.push({
-        id: ClassificationsTreeComponent.id,
-        getLabel: ({ standardLabels }) => ClassificationsTreeComponent.getLabel({ standardLabels }),
-        isSearchable: true,
-        render: ({ treeLabel, searchText }) => (
-          <div className="ig-classifications">
-            {systems.length > 1 && (
-              <Select size="small" value={systemCode} onChange={setSystemCode}
-                options={systems.map((s) => ({ value: s.code, label: `${s.code} (${s.count})` }))} />
-            )}
-            {systemCode && (
-              <ClassificationsTreeComponent key={systemCode} treeLabel={treeLabel} searchText={searchText}
-                selectionStorage={selectionStorage} selectionMode="single"
-                hierarchyConfig={{ rootClassificationSystemCode: systemCode }}
-                emptyTreeContent={<Text isMuted>No classifications in “{systemCode}”.</Text>} />
-            )}
-          </div>
-        ),
-      });
-    }
-    return defs;
-  }, [systems, systemCode]);
-
   if (!connection || !viewport) return <div className="ig-empty"><Text isMuted>Waiting for the 3D view…</Text></div>;
+  const selectionStorage = getUnifiedSelectionStorage();
+  const options: Array<{ value: TreeKind; label: string }> = [
+    { value: "models", label: "Models" },
+    { value: "categories", label: "Categories" },
+    ...(systems?.length ? [{ value: "classifications" as const, label: "Classifications" }] : []),
+  ];
+  const content = tree === "models"
+    ? <ModelsTreeComponent treeLabel="Models" searchText={searchText} selectionStorage={selectionStorage} selectionMode="single" />
+    : tree === "categories"
+      ? <CategoriesTreeComponent treeLabel="Categories" searchText={searchText} selectionStorage={selectionStorage} selectionMode="single" />
+      : (
+        <div className="ig-classifications">
+          {systems && systems.length > 1 && (
+            <Select size="small" value={systemCode} onChange={setSystemCode}
+              options={systems.map((s) => ({ value: s.code, label: `${s.code} (${s.count})` }))} />
+          )}
+          {systemCode && (
+            <ClassificationsTreeComponent key={systemCode} treeLabel="Classifications" searchText={searchText}
+              selectionStorage={selectionStorage} selectionMode="single"
+              hierarchyConfig={{ rootClassificationSystemCode: systemCode }}
+              emptyTreeContent={<Text isMuted>No classifications in “{systemCode}”.</Text>} />
+          )}
+        </div>
+      );
+
   return (
-    <div className="ig-visibility-trees">
-      <TreeWidgetComponent trees={trees} localization={IModelApp.localization} />
-    </div>
+    <TreeWidgetContextProvider localization={IModelApp.localization}>
+      <div className="ig-visibility-trees">
+        <div className="ig-visibility-trees__header">
+          <Select<TreeKind> size="small" value={tree} options={options} triggerProps={{ "aria-label": "Tree type" }}
+            onChange={(value) => { setTree(value); setSearchText(""); }} />
+          <Input size="small" aria-label={`Search ${tree}`} placeholder="Search…" value={searchText}
+            onChange={(event) => setSearchText(event.target.value)} />
+        </div>
+        <div className="ig-visibility-trees__content">{content}</div>
+      </div>
+    </TreeWidgetContextProvider>
   );
 }

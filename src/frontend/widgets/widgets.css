@@ -280,7 +280,10 @@
 }
 
 .ig-visibility-trees { height: 100%; display: flex; flex-direction: column; min-height: 0; }
-.ig-visibility-trees > * { flex: 1; min-height: 0; }
+.ig-visibility-trees__header { display: flex; gap: 4px; padding: 4px; }
+.ig-visibility-trees__header > * { flex: 1; min-width: 0; }
+.ig-visibility-trees__content { flex: 1; min-height: 0; }
+.ig-visibility-trees__content > * { height: 100%; }
 /* StrataKit paints the tree with its own page colour; let the AppUI panel background show instead. */
 .ig-visibility-trees [role="tree"] { background-color: transparent; }
 .ig-classifications { height: 100%; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
