@@ -16,7 +16,7 @@ function IModelName() {
   return (
     <DropdownMenu
       menuItems={(close) => {
-        const recent = appHost.getRecentFiles();
+        const recent = appHost.getRecentFiles().filter((p) => p !== fileName);
         return [
           <MenuItem key="open" onClick={() => { close(); void runCommand("file.open", "ui"); }}>
             Open another iModel…

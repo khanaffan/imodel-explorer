@@ -50,6 +50,7 @@ export function SeedQueryWidget() {
   const [activeIdx, setActiveIdx] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const isComposingRef = useRef(false);
 
   useEffect(() => {
     const active = listRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
@@ -188,10 +189,23 @@ export function SeedQueryWidget() {
           onChange={(e) => {
             const val = e.target.value;
             setEcsql(val);
-            updateCompletions(val, e.target.selectionStart ?? val.length);
+            if (!isComposingRef.current) {
+              updateCompletions(val, e.target.selectionStart ?? val.length);
+            }
           }}
+          onCompositionStart={() => {
+            isComposingRef.current = true;
+            setCompletion(undefined);
+          }}
+          onCompositionEnd={(e) => {
+            isComposingRef.current = false;
+            const val = e.currentTarget.value;
+            updateCompletions(val, e.currentTarget.selectionStart ?? val.length);
+          }}
+          onClick={() => setCompletion(undefined)}
           onBlur={() => setCompletion(undefined)}
           onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || isComposingRef.current) return;
             if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
               e.preventDefault();
               setCompletion(undefined);
@@ -204,6 +218,10 @@ export function SeedQueryWidget() {
               return;
             }
             if (!completion) return;
+            if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Home" || e.key === "End") {
+              setCompletion(undefined);
+              return;
+            }
             if (e.key === "ArrowDown") {
               e.preventDefault();
               setActiveIdx((i) => (i + 1) % completion.items.length);

@@ -85,11 +85,14 @@ function isInsideLiteralOrComment(sql: string, cursor: number): boolean {
 /** Extract `Schema.Class` / `Schema:Class` sources and optional aliases from FROM / JOIN / USING clauses. */
 function extractSources(sql: string): SourceRef[] {
   const refs: SourceRef[] = [];
-  const re = /\b(?:FROM|JOIN|USING)\s+(?:ONLY\s+)?([A-Za-z_]\w*[:.][A-Za-z_]\w*)(?:\s+(?:AS\s+)?([A-Za-z_]\w*))?/gi;
+  const re = /\b(?:FROM|JOIN|USING)\s+(?:ONLY\s+)?([A-Za-z_]\w*[:.][A-Za-z_]\w*)/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(sql)) !== null) {
     const className = m[1].replace(".", ":");
-    const rawAlias = m[2];
+    // Peek ahead without consuming clause keywords like JOIN / WHERE / ON so subsequent clauses still match.
+    const rest = sql.slice(re.lastIndex);
+    const aliasMatch = rest.match(/^\s+(?:AS\s+)?([A-Za-z_]\w*)/i);
+    const rawAlias = aliasMatch?.[1];
     const alias = rawAlias && !CLAUSE_STOPWORDS.has(rawAlias.toUpperCase()) ? rawAlias : undefined;
     refs.push({ className, alias });
   }
@@ -159,6 +162,8 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
   }
 
   const before = sql.slice(0, pos);
+  let replaceEnd = pos;
+  while (replaceEnd < sql.length && /\w/.test(sql[replaceEnd])) replaceEnd++;
   const sources = extractSources(sql);
 
   // 1. Qualified completion: `prefix.partial` or `prefix:partial` (including `alias.nav.partial` and trailing `.` / `:`)
@@ -171,6 +176,8 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
     const beforeQual = before.slice(0, pos - qualMatch[0].length);
     const { last: prevKw, prev: prevPrevKw } = findPrevKeywords(beforeQual);
     const inUsing = prevKw === "USING" || (prevKw === "ONLY" && prevPrevKw === "USING");
+    const inClassClause = inUsing || prevKw === "FROM" || prevKw === "JOIN"
+      || (prevKw === "ONLY" && (prevPrevKw === "FROM" || prevPrevKw === "JOIN"));
 
     // 1a. `alias.navProp.` -> sub-members (.Id, .RelECClassId, .X/.Y/.Z)
     if (qualifier.includes(".") && sep === ".") {
@@ -183,20 +190,35 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
             const sub = m.path.split(".").pop() ?? m.path;
             return { label: sub, insertText: sub, kind: "property", detail: m.type };
           });
-          return { replaceStart, replaceEnd: pos, items: filterAndRank(items, partial) };
+          return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
         }
       }
-      return { replaceStart, replaceEnd: pos, items: [] };
+      return { replaceStart, replaceEnd, items: [] };
     }
 
-    // 1b. `Schema.` or `Schema:` -> classes in that schema
+    // 1b. In expression contexts with `.`, resolve table aliases before schema names/aliases
+    //     so `SELECT bis. FROM bis.Element bis` completes properties of `bis`.
+    if (sep === "." && !inClassClause) {
+      const src = sources.find((s) => s.alias?.toLowerCase() === qualifier.toLowerCase());
+      if (src) {
+        const items: CompletionItem[] = allPropertiesOf(registry, src.className).map((f) => ({
+          label: f.path,
+          insertText: f.path,
+          kind: "property",
+          detail: f.type,
+        }));
+        return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
+      }
+    }
+
+    // 1c. `Schema.` or `Schema:` -> classes in that schema
     const schema = resolveSchema(registry.view, qualifier);
     if (schema) {
       const items = schemaClassItems(schema, inUsing);
-      return { replaceStart, replaceEnd: pos, items: filterAndRank(items, partial) };
+      return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
     }
 
-    // 1c. `alias.` -> properties of the alias's class
+    // 1d. `alias.` fallback or `NavProp.` / `PointProp.` directly on a referenced class
     if (sep === ".") {
       const src = sources.find((s) => s.alias?.toLowerCase() === qualifier.toLowerCase());
       if (src) {
@@ -206,10 +228,9 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
           kind: "property",
           detail: f.type,
         }));
-        return { replaceStart, replaceEnd: pos, items: filterAndRank(items, partial) };
+        return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
       }
 
-      // 1d. `NavProp.` or `PointProp.` directly on a referenced class
       for (const s of sources) {
         const field = allPropertiesOf(registry, s.className).find((f) => f.path.toLowerCase() === qualifier.toLowerCase());
         if (field?.members) {
@@ -217,12 +238,12 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
             const sub = m.path.split(".").pop() ?? m.path;
             return { label: sub, insertText: sub, kind: "property", detail: m.type };
           });
-          return { replaceStart, replaceEnd: pos, items: filterAndRank(items, partial) };
+          return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
         }
       }
     }
 
-    return { replaceStart, replaceEnd: pos, items: [] };
+    return { replaceStart, replaceEnd, items: [] };
   }
 
   // 2. Unqualified identifier token at cursor
@@ -265,7 +286,7 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
         });
       }
     }
-    return { replaceStart, replaceEnd: pos, items: filterAndRank(items, partial) };
+    return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
   }
 
   // 2b. General / expression position: properties of referenced classes, aliases, functions, keywords
@@ -305,5 +326,5 @@ export function completeEcsql(sql: string, cursor: number, registry?: ClassRegis
     items.push({ label: fn.name, insertText: fn.name, kind: "function", detail: fn.detail });
   }
 
-  return { replaceStart, replaceEnd: pos, items: filterAndRank(items, partial) };
+  return { replaceStart, replaceEnd, items: filterAndRank(items, partial) };
 }
