@@ -1,4 +1,4 @@
-import { StagePanelLocation, StagePanelSection, UiItemsManager, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
+import { StagePanelLocation, StagePanelSection, ToolbarItems, ToolbarOrientation, ToolbarUsage, UiItemsManager, type UiItemsProvider, type Widget, WidgetState } from "@itwin/appui-react";
 import { SvgFilter, SvgHierarchyTree, SvgInfo, SvgList, SvgModel, SvgPalette, SvgPropertiesList, SvgSave, SvgSearch } from "@itwin/itwinui-icons-react";
 import { featureEnabled, type FeatureMap, useFeatureStore } from "../state/featureStore";
 import { FILTERS_WIDGET_ID, FiltersWidget } from "../widgets/FiltersWidget";
@@ -19,6 +19,24 @@ import { STATUS_BAR_ITEMS } from "./StatusBarItems";
 export const instanceGraphUiProvider: UiItemsProvider = {
   id: "InstanceGraph:Widgets",
   getStatusBarItems: () => STATUS_BAR_ITEMS,
+  provideToolbarItems(stageId, _usage, toolbarUsage, toolbarOrientation) {
+    if (stageId !== MAIN_STAGE_ID) return [];
+    if (toolbarUsage === ToolbarUsage.ViewNavigation && toolbarOrientation === ToolbarOrientation.Horizontal) {
+      return [
+        ToolbarItems.createSelectElement({
+          itemPriority: 0,
+          groupPriority: 0,
+          layouts: {
+            standard: {
+              usage: ToolbarUsage.ViewNavigation,
+              orientation: ToolbarOrientation.Horizontal,
+            },
+          },
+        }),
+      ];
+    }
+    return [];
+  },
   provideWidgets(stageId, _usage, location, section): Widget[] {
     if (stageId !== MAIN_STAGE_ID) return [];
     const features = useFeatureStore.getState().features;
