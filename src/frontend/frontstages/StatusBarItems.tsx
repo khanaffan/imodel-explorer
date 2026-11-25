@@ -1,6 +1,8 @@
 import { type StatusBarItem, StatusBarItemUtilities, StatusBarSection, UiFramework } from "@itwin/appui-react";
+import { DropdownMenu, MenuDivider, MenuItem } from "@itwin/itwinui-react";
 import { useEffect, useState } from "react";
 import { type AppMemory, formatBytes } from "../../common/appMemory";
+import { runCommand } from "../commands/registry";
 import { filterCount } from "../engine/filters";
 import { appHost } from "../host/AppHost";
 import { useClassGraphStore } from "../state/classGraphStore";
@@ -10,7 +12,43 @@ import { FILTERS_WIDGET_ID } from "../widgets/FiltersWidget";
 function IModelName() {
   const fileName = useGraphStore((s) => s.fileName);
   if (!fileName) return null;
-  return <span className="ig-statusbar__item" title={fileName}>{fileName.split(/[\\/]/).pop()}</span>;
+  const label = fileName.split(/[\\/]/).pop() ?? fileName;
+  return (
+    <DropdownMenu
+      menuItems={(close) => {
+        const recent = appHost.getRecentFiles();
+        return [
+          <MenuItem key="open" onClick={() => { close(); void runCommand("file.open", "ui"); }}>
+            Open another iModel…
+          </MenuItem>,
+          <MenuItem
+            key="recent"
+            disabled={recent.length === 0}
+            subMenuItems={recent.map((p) => (
+              <MenuItem key={p} sublabel={p} onClick={() => { close(); void runCommand("file.openRecent", "ui", p); }}>
+                {p.split(/[\\/]/).pop() ?? p}
+              </MenuItem>
+            ))}
+          >
+            Open recent
+          </MenuItem>,
+          <MenuDivider key="div" />,
+          <MenuItem key="close" onClick={() => { close(); void runCommand("file.close", "ui"); }}>
+            Close iModel
+          </MenuItem>,
+        ];
+      }}
+    >
+      <button
+        type="button"
+        className="ig-statusbar__item ig-statusbar__button"
+        data-testid="status-imodel"
+        title={`${fileName}\nClick to open another iModel or close this one`}
+      >
+        {label} ▾
+      </button>
+    </DropdownMenu>
+  );
 }
 
 function GraphCounts() {
