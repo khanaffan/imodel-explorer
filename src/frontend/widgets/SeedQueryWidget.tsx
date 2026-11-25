@@ -1,6 +1,7 @@
 import { Button, Checkbox, DropdownMenu, Input, MenuDivider, MenuItem, Text, Textarea } from "@itwin/itwinui-react";
 import { UiFramework } from "@itwin/appui-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { type CompletionItem, type CompletionKind, type CompletionResult, completeEcsql } from "../engine/ecsqlComplete";
 import { nodeKeyString } from "../engine/GraphModel";
 import { EXAMPLE_SEED_QUERIES, RANK_LIMIT, rankSeedCandidates, runSeedQuery, SEED_LIMIT, type SeedQueryResult } from "../engine/seedQuery";
 import { graphActions, useGraphStore } from "../state/graphStore";
@@ -14,6 +15,16 @@ import "./widgets.css";
 
 const QUERY_KEY = "instanceGraph.seedQuery";
 export const SEED_WIDGET_ID = "ig-seed";
+
+const KIND_BADGE: Record<CompletionKind, string> = {
+  keyword: "kw",
+  schema: "sch",
+  class: "cls",
+  relationship: "rel",
+  property: "prop",
+  alias: "as",
+  function: "fn",
+};
 
 export function SeedQueryWidget() {
   const engine = useGraphStore((s) => s.engine);
@@ -35,6 +46,51 @@ export function SeedQueryWidget() {
   }, [fileName]);
   const [saving, setSaving] = useState<{ name: string; description: string; thisFileOnly: boolean }>();
   const [building, setBuilding] = useState(false);
+  const [completion, setCompletion] = useState<CompletionResult>();
+  const [activeIdx, setActiveIdx] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const active = listRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    active?.scrollIntoView({ block: "nearest" });
+  }, [activeIdx, completion]);
+
+  const updateCompletions = useCallback((text: string, cursor: number, explicit = false) => {
+    if (!explicit) {
+      const prev = cursor > 0 ? text[cursor - 1] : "";
+      if (!/[A-Za-z0-9_.:]/.test(prev)) {
+        setCompletion(undefined);
+        return;
+      }
+    }
+    const res = completeEcsql(text, cursor, engine?.registry);
+    if (res.items.length === 0) {
+      setCompletion(undefined);
+    } else {
+      setCompletion(res);
+      setActiveIdx(0);
+    }
+  }, [engine]);
+
+  const acceptCompletion = useCallback((item: CompletionItem) => {
+    if (!completion) return;
+    const nextText = ecsql.slice(0, completion.replaceStart) + item.insertText + ecsql.slice(completion.replaceEnd);
+    const caret = completion.replaceStart + (item.insertText.endsWith("()") ? item.insertText.length - 1 : item.insertText.length);
+    setEcsql(nextText);
+    if (item.insertText.endsWith(".")) {
+      updateCompletions(nextText, caret, true);
+    } else {
+      setCompletion(undefined);
+    }
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(caret, caret);
+      }
+    });
+  }, [completion, ecsql, updateCompletions]);
   const loadCounts = useCallback(async () => {
     if (!engine) throw new Error("No iModel is open.");
     const [census, rels] = await Promise.all([censusFor(engine), relCensusFor(engine)]);
@@ -121,15 +177,69 @@ export function SeedQueryWidget() {
 
   return (
     <div className="ig-widget" data-tour="seed">
-      <Text variant="small" isMuted>Any ECSQL returning an <code>ECInstanceId</code> (and ideally <code>ECClassId</code>). Pick a row to centre the graph on it.</Text>
-      <Textarea
-        className="ig-sql"
-        rows={5}
-        value={ecsql}
-        spellCheck={false}
-        onChange={(e) => setEcsql(e.target.value)}
-        onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); void run(); } }}
-      />
+      <Text variant="small" isMuted>Any ECSQL returning an <code>ECInstanceId</code> (and ideally <code>ECClassId</code>). Pick a row to centre the graph on it. Press <code>Ctrl+Space</code> for suggestions.</Text>
+      <div className="ig-sql-wrap">
+        <Textarea
+          ref={textareaRef}
+          className="ig-sql"
+          rows={5}
+          value={ecsql}
+          spellCheck={false}
+          onChange={(e) => {
+            const val = e.target.value;
+            setEcsql(val);
+            updateCompletions(val, e.target.selectionStart ?? val.length);
+          }}
+          onBlur={() => setCompletion(undefined)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+              e.preventDefault();
+              setCompletion(undefined);
+              void run();
+              return;
+            }
+            if (e.ctrlKey && e.code === "Space") {
+              e.preventDefault();
+              updateCompletions(ecsql, e.currentTarget.selectionStart ?? ecsql.length, true);
+              return;
+            }
+            if (!completion) return;
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setActiveIdx((i) => (i + 1) % completion.items.length);
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setActiveIdx((i) => (i - 1 + completion.items.length) % completion.items.length);
+            } else if (e.key === "Tab" || e.key === "Enter") {
+              e.preventDefault();
+              const chosen = completion.items[activeIdx] ?? completion.items[0];
+              if (chosen) acceptCompletion(chosen);
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              setCompletion(undefined);
+            }
+          }}
+        />
+        {completion && (
+          <div ref={listRef} className="ig-autocomplete" role="listbox" aria-label="ECSQL suggestions" data-testid="ecsql-autocomplete">
+            {completion.items.map((item, i) => (
+              <button
+                key={`${item.kind}:${item.label}`}
+                type="button"
+                role="option"
+                aria-selected={i === activeIdx}
+                className={`ig-autocomplete__item${i === activeIdx ? " ig-autocomplete__item--active" : ""}`}
+                onMouseDown={(e) => { e.preventDefault(); acceptCompletion(item); }}
+              >
+                <span className={`ig-autocomplete__badge ig-autocomplete__badge--${item.kind}`}>{KIND_BADGE[item.kind]}</span>
+                <span className="ig-autocomplete__label">{item.label}</span>
+                {item.detail && <span className="ig-autocomplete__detail">{item.detail}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="ig-row">
         <Button size="small" styleType="high-visibility" disabled={!engine || running} onClick={() => void run()}>{running ? "Running…" : "Run (⌘↵)"}</Button>
         <Button size="small" styleType="borderless" disabled={!engine} title="Build or edit the query visually" onClick={() => setBuilding(true)}>Build…</Button>

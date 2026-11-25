@@ -19,6 +19,83 @@
   font-size: 12px;
 }
 
+.ig-sql-wrap {
+  position: relative;
+}
+
+.ig-autocomplete {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 2px;
+  max-height: 190px;
+  overflow-y: auto;
+  z-index: 30;
+  background: var(--iui-color-background, #fff);
+  border: 1px solid var(--iui-color-border, #ccc);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 16%);
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+}
+
+.ig-autocomplete__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--iui-color-text, inherit);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ig-autocomplete__item:hover,
+.ig-autocomplete__item--active {
+  background: var(--iui-color-background-accent-muted, rgb(0 115 230 / 14%));
+}
+
+.ig-autocomplete__badge {
+  flex: 0 0 auto;
+  min-width: 26px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  background: var(--iui-color-background-backdrop, rgb(128 128 128 / 15%));
+  color: var(--iui-color-text-muted, #666);
+}
+
+.ig-autocomplete__badge--class,
+.ig-autocomplete__badge--relationship {
+  color: var(--iui-color-text-accent, #0073e6);
+}
+
+.ig-autocomplete__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ig-autocomplete__detail {
+  flex: 0 1 auto;
+  color: var(--iui-color-text-muted, #777);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ig-element-properties {
   flex: 1 0 240px;
   min-height: 240px;
