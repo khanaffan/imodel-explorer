@@ -168,6 +168,7 @@ npm install
 npm run sample       # writes samples/pump-network.bim (small test fixture)
 npm run sample:demo  # writes samples/water-plant.bim (demo plant)
 npm start            # build and launch
+npm run launch       # launch without rebuilding (once already built)
 ```
 
 See the [tutorial](docs/tutorial.md) for a guided tour of every feature using the demo model, or
@@ -198,6 +199,7 @@ navigation and link-table relationships. The model also contains process areas, 
 |---|---|
 | `npm run build:prod` / `npm run start:prod` | Optimized build (clean `dist`, minified, no source maps), and build + launch it |
 | `npm start` / `npm run dev` | Build and launch, or run with hot reload |
+| `npm run launch` / `npm run launch:prod` | Launch the already-built app without rebuilding (`electron .`) |
 | `npm test` | Unit and engine tests (Vitest) |
 | `npm run typecheck` / `npm run lint` | Type-check and lint |
 | `npm run smoke [file.bim]` | End-to-end run of the built app |
