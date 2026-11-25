@@ -391,7 +391,13 @@ try {
   const memoryTitle = await page.getByTestId("status-memory").getAttribute("title");
   if (!/^Memory \d+(\.\d)? (MB|GB)$/.test(memoryText) || !memoryTitle.includes("Main & iModel backend"))
     throw new Error(`status bar memory is wrong: ${memoryText} / ${memoryTitle}`);
-  console.log("status bar: iModel, counts, filter count (opens Filters), load time and memory OK");
+  // Status bar iModel switcher menu: Open another iModel…, Open recent, Close iModel.
+  await page.getByTestId("status-imodel").click();
+  await page.getByRole("menuitem", { name: "Open another iModel…" }).waitFor({ state: "visible", timeout: 5_000 });
+  await page.getByRole("menuitem", { name: "Close iModel" }).waitFor({ state: "visible", timeout: 5_000 });
+  await page.keyboard.press("Escape");
+  await page.getByRole("menuitem", { name: "Close iModel" }).waitFor({ state: "hidden", timeout: 5_000 });
+  console.log("status bar: iModel switcher, counts, filter count (opens Filters), load time and memory OK");
 
   // Shortcut sheet: "?" opens it, generated from the registry and searchable.
   await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
