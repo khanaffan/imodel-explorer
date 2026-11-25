@@ -104,6 +104,12 @@ try {
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1600, 1000));
   await page.waitForTimeout(300);
   console.log("graph toolbar: corner-button clearance and visible controls at normal/narrow widths in both modes OK");
+  // 3D viewport toolbar: switching to Pan and back to Select Element works.
+  await page.getByRole("button", { name: "Pan View" }).click();
+  await page.waitForFunction(() => globalThis.imodelExplorer.IModelApp.toolAdmin.activeTool?.toolId !== "Select", null, { timeout: 5_000 });
+  await page.getByRole("button", { name: "Select" }).click();
+  await page.waitForFunction(() => globalThis.imodelExplorer.IModelApp.toolAdmin.activeTool?.toolId === "Select", null, { timeout: 5_000 });
+  console.log("viewport toolbar: Pan -> Select Element OK");
   await page.getByRole("tab", { name: "Properties", exact: true }).click();
   const propertyGrid = page.locator(".ig-element-properties .components-virtualized-property-grid");
   await propertyGrid.waitFor({ timeout: 30_000 });
