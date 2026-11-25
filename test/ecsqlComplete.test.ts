@@ -67,4 +67,25 @@ describe("completeEcsql", () => {
     expect(completeEcsql("SELECT * FROM TestIG.Pump -- TestIG.", 36, registry).items).toEqual([]);
     expect(completeEcsql("SELECT * /* TestIG. */ FROM TestIG.Pump", 19, registry).items).toEqual([]);
   });
+
+  it("extends replaceEnd across the full identifier when editing mid-token", () => {
+    const res = completeEcsql("SELECT * FROM TestIG.Pump", 3, registry);
+    expect(res.replaceStart).toBe(0);
+    expect(res.replaceEnd).toBe(6);
+    expect(res.items.some((i) => i.label === "SELECT")).toBe(true);
+  });
+
+  it("extracts joined aliases even when the preceding FROM source is unaliased", () => {
+    const sql = "SELECT p. FROM TestIG.Pump JOIN TestIG.Pipe p ON p.ECInstanceId = 1";
+    const res = completeEcsql(sql, 9, registry);
+    expect(res.items.some((i) => i.label === "ECInstanceId" && i.kind === "property")).toBe(true);
+    expect(res.items.some((i) => i.label === "UserLabel" && i.kind === "property")).toBe(true);
+  });
+
+  it("prefers table aliases over schema aliases in expression contexts", () => {
+    const sql = "SELECT bis. FROM bis.Element bis";
+    const res = completeEcsql(sql, 11, registry);
+    expect(res.items.some((i) => i.label === "ECInstanceId" && i.kind === "property")).toBe(true);
+    expect(res.items.some((i) => i.kind === "class")).toBe(false);
+  });
 });
